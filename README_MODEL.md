@@ -91,16 +91,18 @@ User Intent (TH/EN)
 
 ### FDIA Score — Quality Framework
 
-The model is trained to maximize the **FDIA** (Fidelity × Depth × Integrity × Alignment) score:
+This model is evaluated using the **FDIA** equation — the same formula as [Delentia OS](https://github.com/delentia-labs/delentia-os):
 
 $$F = D^I \times A$$
 
-| Metric | Target | Description |
-|--------|--------|-------------|
-| **D** — Depth | ≥ 0.90 | How thoroughly the intent is understood |
-| **I** — Integrity | ≥ 0.97 | Factual accuracy, no hallucination |
-| **A** — Alignment | ≥ 1.00 | Alignment with constitutional AI principles |
-| **F** — Final Score | ≥ 0.87 | Combined quality score |
+| Symbol | Definition | Role in Model Evaluation | Target |
+|--------|-----------|--------------------------|--------|
+| **F** | **Future** — the desired output quality | Final composite evaluation score | ≥ 0.87 |
+| **D** | **Data quality** — accuracy & completeness of inputs (0.0–1.0) | Data faithfulness: how accurately the model follows JITNA packet format | ≥ 0.90 |
+| **I** | **Intent precision** — acts as an **exponent** (higher I amplifies result) | Intent routing accuracy: precision of intent classification | ≥ 0.97 |
+| **A** | **Architect** — Human-in-the-loop approval gate (0.0–1.0) | Constitutional alignment: 1.0 = no constitutional violations detected | ≥ 1.00 |
+
+> **Key insight — I as exponent:** When Intent precision (I → 1.0) is high, even moderate Data quality (D) yields excellent results. A = 0 blocks output entirely regardless of D and I values.
 
 ---
 
@@ -130,7 +132,7 @@ PARAMETER top_p 0.9
 PARAMETER stop "<|eot_id|>"
 SYSTEM """You are Delentia JITNA — a precision AI assistant built on RCT v5 HexaCore.
 You respond with high factual accuracy in Thai and English.
-FDIA framework: Depth × Integrity × Alignment = Final Score."""
+FDIA framework: F = D^I × A (Future = Data quality ^ Intent precision × Architect gate)."""
 EOF
 
 ollama create delentia-jitna-v0.1 -f Modelfile
@@ -160,7 +162,7 @@ print(result)
 
 ```bash
 # Download GGUF
-huggingface-cli download delentia-labs/delentia-slm-jitna-v0.1 \
+huggingface-cli download Ittirit-delentia/delentia-slm-jitna-v0.1 \
   gguf/delentia-jitna-v0.1-Q4_K_M.gguf \
   --local-dir ./models
 
@@ -177,7 +179,7 @@ huggingface-cli download delentia-labs/delentia-slm-jitna-v0.1 \
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
-model_id = "delentia-labs/delentia-slm-jitna-v0.1"
+model_id = "Ittirit-delentia/delentia-slm-jitna-v0.1"
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 model = AutoModelForCausalLM.from_pretrained(
     model_id,
@@ -274,7 +276,7 @@ See [LICENSE](LICENSE) and [Meta Llama 3 Community License](https://llama.meta.c
   author       = {Delentia Labs},
   year         = {2026},
   publisher    = {HuggingFace},
-  howpublished = {\url{https://huggingface.co/delentia-labs/delentia-slm-jitna-v0.1}},
+  howpublished = {\url{https://huggingface.co/Ittirit-delentia/delentia-slm-jitna-v0.1}},
   note         = {QLoRA fine-tune of Llama 3.1 8B for JITNA intent recognition},
 }
 ```
