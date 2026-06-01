@@ -39,7 +39,7 @@ jobs:
 
       - name: Validate dataset (if exists)
         run: |
-          if [ -f datasets/processed/jitna_pairs.jsonl ]; then
+          if [ -f datasets/processed/jitna_pairs.jsonl ] && [ -s datasets/processed/jitna_pairs.jsonl ]; then
             python datasets/scripts/validate_dataset.py \
               datasets/processed/jitna_pairs.jsonl \
               --min-pairs 100 \
