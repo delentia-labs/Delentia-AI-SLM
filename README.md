@@ -37,7 +37,7 @@ model-index:
 [![CI](https://img.shields.io/github/actions/workflow/status/delentia-labs/delentia-ai/validate_dataset.yml?branch=main&label=Dataset+CI)](https://github.com/delentia-labs/delentia-ai/actions)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue)](https://python.org)
-[![HuggingFace](https://img.shields.io/badge/🤗-delentia--labs%2Fdelentia--slm--jitna--v0.1-yellow)](https://huggingface.co/delentia-labs/delentia-slm-jitna-v0.1)
+[![HuggingFace](https://img.shields.io/badge/🤗-Ittirit--delentia%2Fdelentia--slm--jitna--v0.1-yellow)](https://huggingface.co/Ittirit-delentia/delentia-slm-jitna-v0.1)
 
 **Delentia AI** is the SLM fine-tuning factory for [Delentia OS](https://github.com/delentia-labs/delentia-os).
 
