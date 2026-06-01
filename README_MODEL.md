@@ -26,6 +26,9 @@ model-index:
       - task:
           type: text-generation
           name: Thai/EN Intent Recognition
+        dataset:
+          name: Delentia JITNA Instruction Pairs v1
+          type: delentia-labs/jitna-instruction-pairs-v1
         metrics:
           - type: jitna_accuracy
             value: 0.94
