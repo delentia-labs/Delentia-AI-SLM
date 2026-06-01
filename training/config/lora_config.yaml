@@ -1,0 +1,34 @@
+# LoRA adapter configuration — standalone reference for inference/export
+# Matches the training config in slm_jitna_v0.1.yaml
+
+peft_type: "LORA"
+task_type: "CAUSAL_LM"
+
+# Adapter dimensions
+r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+bias: "none"
+use_rslora: true
+
+# Target modules (all projection layers)
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+# Inference settings
+inference_mode: false           # set true for inference-only loading
+
+# Merge settings (for GGUF export)
+merge_before_export: true
+export_format: "Q4_K_M"        # 4-bit quantized GGUF for Ollama
+
+# Paths (relative to repo root)
+adapter_path: "models/adapters/jitna_v0.1"
+merged_path:  "models/merged/jitna_v0.1"
+gguf_path:    "models/gguf/delentia-jitna-v0.1-Q4_K_M.gguf"

@@ -1,0 +1,57 @@
+name: Validate Dataset
+
+on:
+  push:
+    paths:
+      - "datasets/**"
+      - "datasets/scripts/**"
+  pull_request:
+    paths:
+      - "datasets/**"
+      - "datasets/scripts/**"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate JITNA Dataset
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true  # CRITICAL: pull Git LFS objects
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install validation dependencies (no GPU)
+        run: |
+          pip install pythainlp typer rich
+
+      - name: Extract dataset from delentia-os
+        run: |
+          python datasets/scripts/extract_from_os.py \
+            --output datasets/processed/jitna_pairs.jsonl
+        continue-on-error: true  # Allow if delentia-os is not checked out
+
+      - name: Validate dataset (if exists)
+        run: |
+          if [ -f datasets/processed/jitna_pairs.jsonl ]; then
+            python datasets/scripts/validate_dataset.py \
+              datasets/processed/jitna_pairs.jsonl \
+              --min-pairs 100 \
+              --sample-fdia 0
+          else
+            echo "No dataset found — skipping validation (expected on first run)"
+          fi
+
+      - name: Upload validation artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dataset-validation
+          path: datasets/processed/
+          retention-days: 7

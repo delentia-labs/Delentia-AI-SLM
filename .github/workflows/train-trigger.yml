@@ -1,0 +1,144 @@
+name: 🧠 Trigger SLM Training
+
+on:
+  # Manual dispatch — team member kicks off a training run
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for training run (e.g. 'new dataset v1.2 with 800 pairs')"
+        required: true
+        default: "Scheduled quality improvement"
+      target_gpu:
+        description: "Target GPU tier"
+        required: false
+        default: "T4"
+        type: choice
+        options: ["T4", "A100", "L4"]
+      dry_run:
+        description: "Dry run — validate dataset only, skip training"
+        required: false
+        default: false
+        type: boolean
+
+  # Auto-trigger when a new validated dataset is pushed
+  push:
+    paths:
+      - "datasets/jitna_v1.jsonl"
+      - "datasets/scripts/**"
+      - "training/config/**"
+    branches: ["main"]
+
+jobs:
+  validate-dataset:
+    name: Validate dataset before training
+    runs-on: ubuntu-latest
+    outputs:
+      pair_count: ${{ steps.validate.outputs.pair_count }}
+      avg_fdia: ${{ steps.validate.outputs.avg_fdia }}
+      gate_passed: ${{ steps.validate.outputs.gate_passed }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install validation deps
+        run: pip install -r requirements.txt --quiet
+
+      - name: Run dataset validation
+        id: validate
+        run: |
+          python datasets/scripts/validate_dataset.py \
+            --input datasets/jitna_v1.jsonl \
+            --min-pairs 500 \
+            --min-fdia 0.70 \
+            --github-output
+        continue-on-error: true
+
+      - name: Report validation result
+        run: |
+          echo "### Dataset Validation" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value | Gate |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Pairs  | ${{ steps.validate.outputs.pair_count }} | ≥ 500 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Avg FDIA | ${{ steps.validate.outputs.avg_fdia }} | ≥ 0.70 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Gate | ${{ steps.validate.outputs.gate_passed }} | |" >> $GITHUB_STEP_SUMMARY
+
+  notify-colab:
+    name: Notify team to run Colab training
+    needs: validate-dataset
+    if: needs.validate-dataset.outputs.gate_passed == 'true' && inputs.dry_run != 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create training run issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pairCount = '${{ needs.validate-dataset.outputs.pair_count }}';
+            const avgFdia = '${{ needs.validate-dataset.outputs.avg_fdia }}';
+            const reason = '${{ inputs.reason || 'Auto-triggered by dataset push' }}';
+            const gpu = '${{ inputs.target_gpu || 'T4' }}';
+
+            const colabUrl = 'https://colab.research.google.com/github/delentia-labs/delentia-ai/blob/main/notebooks/colab_setup.ipynb';
+
+            const body = `
+            ## 🧠 SLM Training Run Ready
+
+            **Reason**: ${reason}
+
+            ### Dataset Status ✅
+            | Metric | Value |
+            |--------|-------|
+            | Pairs  | ${pairCount} |
+            | Avg FDIA | ${avgFdia} |
+
+            ### Instructions
+            1. Open the training notebook: [colab_setup.ipynb](${colabUrl})
+            2. Select **${gpu}** GPU runtime: Runtime → Change runtime type → GPU → ${gpu}
+            3. Run all cells (Ctrl+F9 or Runtime → Run all)
+            4. After completion, close this issue with the HuggingFace model URL
+
+            ### Required Secrets
+            Set in **Colab Secrets** (key icon, left sidebar):
+            - \`HF_TOKEN\` — HuggingFace write token for model upload
+
+            ### Expected Outputs
+            - JITNA accuracy ≥ 94%
+            - FDIA score ≥ 0.87
+            - Hallucination rate ≤ 2.8%
+            - Model published to: \`delentia-labs/delentia-slm-jitna-v0.1\`
+
+            /cc @delentia-labs/ml-team
+            `;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🧠 Training Run Ready — ${pairCount} pairs, FDIA avg ${avgFdia}`,
+              body,
+              labels: ['training', 'ml', 'needs-colab'],
+            });
+
+      - name: Add summary
+        run: |
+          echo "## ✅ Training run issue created" >> $GITHUB_STEP_SUMMARY
+          echo "Open Colab notebook to start training:" >> $GITHUB_STEP_SUMMARY
+          echo "https://colab.research.google.com/github/delentia-labs/delentia-ai/blob/main/notebooks/colab_setup.ipynb" >> $GITHUB_STEP_SUMMARY
+
+  dry-run-complete:
+    name: Dry run complete (validation only)
+    needs: validate-dataset
+    if: inputs.dry_run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report
+        run: |
+          echo "## 🔍 Dry run complete" >> $GITHUB_STEP_SUMMARY
+          echo "Dataset gate: ${{ needs.validate-dataset.outputs.gate_passed }}" >> $GITHUB_STEP_SUMMARY
+          echo "No training was triggered (dry_run=true)" >> $GITHUB_STEP_SUMMARY

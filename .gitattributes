@@ -1,0 +1,29 @@
+# Git LFS tracking — MUST be committed before any model weight files
+# Run: git lfs install && git lfs track (these patterns auto-populated)
+
+# Model weight formats
+*.gguf filter=lfs diff=lfs merge=lfs -text
+*.bin  filter=lfs diff=lfs merge=lfs -text
+*.safetensors filter=lfs diff=lfs merge=lfs -text
+*.pt   filter=lfs diff=lfs merge=lfs -text
+*.pth  filter=lfs diff=lfs merge=lfs -text
+*.ckpt filter=lfs diff=lfs merge=lfs -text
+*.pkl  filter=lfs diff=lfs merge=lfs -text
+
+# Large dataset files
+*.jsonl filter=lfs diff=lfs merge=lfs -text
+*.parquet filter=lfs diff=lfs merge=lfs -text
+*.arrow filter=lfs diff=lfs merge=lfs -text
+datasets/raw/** filter=lfs diff=lfs merge=lfs -text
+
+# Archive formats (common for model bundles)
+*.tar.gz filter=lfs diff=lfs merge=lfs -text
+*.zip    filter=lfs diff=lfs merge=lfs -text
+
+# Text files with explicit normal tracking
+*.py  text eol=lf
+*.md  text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.json text eol=lf

@@ -1,0 +1,28 @@
+# Core ML stack
+torch>=2.3
+transformers>=4.42
+datasets>=2.19
+accelerate>=0.30
+peft>=0.11
+trl>=0.9
+bitsandbytes>=0.43
+
+# Unsloth fine-tuning acceleration (Colab/T4 compatible)
+unsloth[colab-new]>=2024.6
+
+# Experiment tracking
+mlflow>=2.13
+
+# Delentia OS SDK (dataset extraction + FDIA scoring)
+delentia-os>=2.0.0
+
+# Thai NLP validation
+pythainlp>=5.0
+
+# CLI + output
+typer>=0.12
+rich>=13
+
+# Dev tools
+pytest>=8
+ruff>=0.4

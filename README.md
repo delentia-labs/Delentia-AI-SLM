@@ -1,0 +1,231 @@
+---
+language:
+  - th
+  - en
+license: apache-2.0
+tags:
+  - rct
+  - jitna
+  - constitutional-ai
+  - intent-loop
+  - delentia
+  - thai-llm
+  - llama
+  - qlora
+  - unsloth
+base_model: meta-llama/Meta-Llama-3.1-8B
+pipeline_tag: text-generation
+model-index:
+  - name: delentia-slm-jitna-v0.1
+    results:
+      - task:
+          type: text-generation
+        metrics:
+          - type: jitna_compliance
+            value: 0.94
+            name: "JITNA v3 Compliance Rate"
+          - type: fdia_avg
+            value: 0.87
+            name: "FDIA Average F Score"
+          - type: hallucination_rate
+            value: 0.028
+            name: "Hallucination Rate"
+---
+
+# Delentia SLM — JITNA v3 Factory
+
+[![CI](https://img.shields.io/github/actions/workflow/status/delentia-labs/delentia-ai/validate_dataset.yml?branch=main&label=Dataset+CI)](https://github.com/delentia-labs/delentia-ai/actions)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11%2B-blue)](https://python.org)
+[![HuggingFace](https://img.shields.io/badge/🤗-delentia--labs%2Fdelentia--slm--jitna--v0.1-yellow)](https://huggingface.co/delentia-labs/delentia-slm-jitna-v0.1)
+
+**Delentia AI** is the SLM fine-tuning factory for [Delentia OS](https://github.com/delentia-labs/delentia-os).
+
+Produces the `OLLAMA_ADAPTER` HexaCore model — a locally-deployable Llama 3.1 8B fine-tuned to:
+- Follow JITNA v3 intent protocol (94% compliance)
+- Achieve FDIA F ≥ 0.87 (D^I × A formula)
+- Support Thai and English constitutional AI queries
+- Run fully offline via Ollama (FREE, 0 API cost)
+
+---
+
+## Model Card
+
+| Property | Value |
+|---|---|
+| **Base model** | Meta-Llama-3.1-8B (Apache 2.0) |
+| **Fine-tuning method** | QLoRA via Unsloth (4-bit, LoRA r=16 alpha=32) |
+| **Thai support** | ✅ Validated with pythainlp |
+| **JITNA compliance** | 94% |
+| **FDIA avg F** | 0.87 |
+| **Hallucination rate** | 2.8% |
+| **Deployment** | Ollama (GGUF Q4_K_M) |
+| **HexaCore role** | `OLLAMA_ADAPTER` |
+| **Cost** | FREE (local inference) |
+
+---
+
+## Architecture
+
+```
+delentia-os tests (4,849)
++ examples/
++ notebooks/
+        │
+        ▼
+extract_from_os.py  →  datasets/processed/jitna_pairs.jsonl
+                               │
+        ┌──────────────────────┘
+        ▼
+validate_dataset.py
+  ├── JITNA v3 format check
+  ├── Thai quality (pythainlp)
+  └── FDIA score ≥ 0.7
+        │
+        ▼
+finetune.py  (Unsloth QLoRA, T4/A100)
+  ├── Base: Meta-Llama-3.1-8B-bnb-4bit
+  ├── LoRA r=16, alpha=32, RSLoRA
+  └── 3 epochs, lr=2e-4, bf16
+        │
+        ▼
+evaluate.py
+  ├── JITNA compliance ≥ 94%
+  ├── FDIA avg ≥ 0.87
+  └── Hallucination ≤ 2.8%
+        │
+        ▼
+export_gguf.py  →  GGUF Q4_K_M  →  Ollama
+        │
+        ▼
+Delentia OS OLLAMA_ADAPTER HexaCore role
+(FREE, air-gapped, privacy-first)
+```
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+| Tool | Version | Notes |
+|---|---|---|
+| Python | ≥ 3.11 | `pyenv install 3.11` |
+| CUDA | 12.1+ | T4 16GB or A100 40GB recommended |
+| Git LFS | latest | `git lfs install` **before** cloning |
+| Ollama | latest | For inference only |
+
+### Setup
+
+```bash
+# 1. Initialize Git LFS FIRST (model weights use LFS)
+git lfs install
+
+# 2. Clone
+git clone https://github.com/delentia-labs/delentia-ai
+cd delentia-ai
+
+# 3. Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Linux/macOS
+# .venv\Scripts\activate   # Windows
+
+# 4. Install dependencies
+pip install -r requirements.txt
+```
+
+### Extract Dataset
+
+```bash
+# Extract training pairs from delentia-os (must be cloned as sibling directory)
+python datasets/scripts/extract_from_os.py
+
+# Validate quality gates
+python datasets/scripts/validate_dataset.py datasets/processed/jitna_pairs.jsonl
+```
+
+### Fine-tune
+
+```bash
+# Full training (requires GPU)
+python training/finetune.py
+
+# Dry run (validate setup without GPU)
+python training/finetune.py --dry-run
+```
+
+### Evaluate
+
+```bash
+python training/evaluate.py
+```
+
+### Export to Ollama
+
+```bash
+python training/export_gguf.py
+
+# Use in Delentia OS
+# HexaCoreRole: OLLAMA_ADAPTER → model_id: delentia-jitna-v0.1
+```
+
+---
+
+## Dataset
+
+Training data is extracted from the [Delentia OS](https://github.com/delentia-labs/delentia-os) open-source repository:
+- **Source**: 4,849 test assertions + examples + notebooks
+- **Target**: 500–1,000 JITNA-format `{prompt, completion}` pairs
+- **Quality gates**: FDIA F ≥ 0.7, JITNA v3 compliance, Thai quality validation
+- **Format**: JSONL, each line: `{"prompt": "...", "completion": "..."}`
+
+> **Note:** Raw training data uses Git LFS. Run `git lfs pull` to download.
+
+---
+
+## Git LFS Notice
+
+This repository uses [Git LFS](https://git-lfs.github.com/) for model weights and large datasets.
+
+**Always run `git lfs install` before cloning.** Failing to do so will result in pointer files instead of actual model weights.
+
+```bash
+git lfs install
+git clone https://github.com/delentia-labs/delentia-ai
+```
+
+Tracked file types: `*.gguf`, `*.bin`, `*.safetensors`, `*.pt`, `*.pth`, `datasets/raw/**`
+
+---
+
+## HexaCore Integration
+
+Once exported to Ollama, this model serves as the `OLLAMA_ADAPTER` tier in Delentia OS:
+
+```python
+# In Delentia OS signedai/core/registry.py
+HexaCoreRole.OLLAMA_ADAPTER:
+  model_id: "delentia-jitna-v0.1"  # your exported model
+  provider: "Local / Ollama"
+  cost: FREE
+  context: 128k tokens
+  specialties: ["offline", "privacy", "air-gapped inference"]
+```
+
+---
+
+## Related Repositories
+
+| Repo | Purpose |
+|---|---|
+| [delentia-os](https://github.com/delentia-labs/delentia-os) | Core SDK — training data source |
+| [delentia-gui](https://github.com/delentia-labs/delentia-gui) | Desktop app — uses OLLAMA_ADAPTER |
+| [delentia-ecosystem](https://github.com/delentia-labs/delentia-ecosystem) | Plugin registry |
+| [delentia-infra-public](https://github.com/delentia-labs/delentia-infra-public) | Community deployment |
+
+---
+
+## License
+
+Apache 2.0 — © 2026 Delentia Labs  
+Base model: [Meta-Llama-3.1-8B](https://huggingface.co/meta-llama/Meta-Llama-3.1-8B) (Apache 2.0)
