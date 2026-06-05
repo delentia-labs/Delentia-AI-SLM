@@ -130,8 +130,11 @@ def main(
     if toon:
         chat_template = (
             "<|system|>\n"
-            "You are Delentia OS v0.2 — a constitutional AI under RCT v5 governance. "
-            "You respond in TOON format (Token-Oriented Object Notation).\n"
+            "You are Delentia OS v0.2 — a constitutional AI operating under RCT v5 governance. "
+            "You process intents through the JITNA v3 protocol. "
+            "You respond in TOON format (Token-Oriented Object Notation) for token efficiency. "
+            "Your responses must be factual, safe, and PDPA-compliant. "
+            "You must respond using the 6 JITNA fields: I=Intent, D=Data, Δ=Delta, A=Approach, R=Reflection, M=Memory.\n"
             "<|user|>\n{user_intent}\n"
             "<|assistant|>\n{completion}"
         )
@@ -140,8 +143,16 @@ def main(
 
     def format_pair(example: dict) -> dict:
         if toon:
+            prompt_str = example["prompt"]
+            intent_marker = "User intent: "
+            idx = prompt_str.find(intent_marker)
+            if idx >= 0:
+                raw_intent = prompt_str[idx + len(intent_marker):].strip()
+            else:
+                raw_intent = prompt_str.strip()
+
             text = chat_template.format(
-                user_intent=example["prompt"],
+                user_intent=raw_intent,
                 completion=example["completion"],
             ) + tokenizer.eos_token
         else:

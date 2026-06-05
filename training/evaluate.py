@@ -47,58 +47,53 @@ JITNA_REQUIRED = {"packet_id", "schema_version", "message_type", "payload", "tim
 
 
 def _check_jitna_compliance(text: str, toon: bool = False) -> bool:
-    """Check if model output resembles a valid JITNA v3 structure."""
+    """Check if model output resembles a valid JITNA v3 structure containing I, D, Δ, A, R, M."""
     if toon:
-        try:
-            if TOON_AVAILABLE:
-                data = toon_deserialize(text)
-                if isinstance(data, dict):
-                    missing = JITNA_REQUIRED - set(data.keys())
-                    return len(missing) <= 2
-        except Exception:
-            pass
-    # Lightweight structural check — look for key identifiers
-    indicators = ["packet_id", "schema_version", "3.0", "message_type", "INTENT_RESPONSE"]
-    return sum(1 for ind in indicators if ind in text) >= 2
+        return _check_toon_compliance(text)
+    
+    try:
+        import json
+        data = json.loads(text)
+        if isinstance(data, dict):
+            json_keys = set(data.keys())
+            has_delta = ("Δ" in json_keys or "delta" in json_keys)
+            has_others = {"I", "D", "A", "R", "M"}.issubset(json_keys)
+            return has_delta and has_others
+    except Exception:
+        pass
+        
+    indicators = ["I:", "D:", "A:", "R:", "M:"]
+    found = sum(1 for ind in indicators if ind in text)
+    has_delta = ("Δ:" in text or "delta:" in text)
+    return found == 5 and has_delta
 
 
 def _check_toon_compliance(completion: str) -> bool:
     """
-    Check if a completion string is valid TOON format.
+    Check if a completion string is valid TOON format under JITNA v3.
     
     Validation rules:
-      - Must contain at least one key: value line
-      - Must not contain JSON braces or brackets (except inline empty markers)
-      - Each non-empty line must be key: value, key:, or - item
+      - Must contain all JITNA v3 keys: I:, D:, Δ: (or delta:), A:, R:, M:
     """
     lines = completion.strip().splitlines()
     if not lines:
         return False
     
-    has_kv = False
+    required_keys = {"I:", "D:", "A:", "R:", "M:"}
+    found_keys = set()
+    
     for line in lines:
         stripped = line.strip()
         if not stripped:
             continue
         
-        # Allow: key: value, key:, - item, -
-        if ": " in stripped or stripped.endswith(":"):
-            has_kv = True
-        elif stripped.startswith("- ") or stripped == "-":
-            continue
-        elif stripped in ("{}", "[]"):
-            continue  # inline empty markers
-        else:
-            # Raw text wrapped as "output: ..." is also valid TOON
-            if stripped.startswith("output: "):
-                has_kv = True
-            # Bare string (not TOON) — but tolerate if short
-            elif len(stripped) < 5:
-                continue
-            else:
-                return False
-    
-    return has_kv
+        for key in required_keys:
+            if stripped.startswith(key):
+                found_keys.add(key)
+        if stripped.startswith("Δ:") or stripped.startswith("delta:"):
+            found_keys.add("delta")
+            
+    return len(found_keys) == 6
 
 
 def _compute_token_savings(completion: str) -> float:

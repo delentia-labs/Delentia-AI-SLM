@@ -13,12 +13,6 @@ Output:
   - datasets/processed/jitna_pairs_toon.jsonl    (TOON v0.2 format — token-optimized)
 
 Target: 500–1000 high-quality pairs minimum.
-
-Format per line (standard):
-  {"prompt": "<system_context>\n\n<user_intent>", "completion": "<expected_output>"}
-
-Format per line (TOON v0.2):
-  {"prompt": "<system_context>\n\n<user_intent>", "completion": "<TOON-formatted output>"}
 """
 
 import json
@@ -54,45 +48,82 @@ SYSTEM_CONTEXT_TOON = (
 )
 
 
-def _emit(prompt: str, completion: str, use_toon: bool = False) -> dict:
+def _build_6field_jitna(prompt: str, body: str) -> dict:
+    """Build a canonical 6-field JITNA Language schema dictionary (I/D/Δ/A/R/M)."""
+    intent = prompt.strip()
+
+    # Extract docstring if present in function/example body
+    doc = ""
+    if '"""' in body:
+        parts = body.split('"""', 2)
+        if len(parts) >= 3:
+            doc = parts[1].strip()
+    elif "'''" in body:
+        parts = body.split("'''", 2)
+        if len(parts) >= 3:
+            doc = parts[1].strip()
+
+    doc = doc.replace("\n", " ").strip()
+
+    # D: Data
+    if doc:
+        d_val = f"ทดสอบกรณี {doc} โดยตรวจสอบความถูกต้องของระบบ"
+    else:
+        d_val = f"RCT OS local test parameters and validation variables for intent '{intent}'."
+
+    # delta: Delta (change of state)
+    if "assert " in body:
+        delta_val = "ตรวจสอบเงื่อนไขและโครงสร้างระบบให้ผ่านการรับรอง"
+    else:
+        delta_val = "Verify execution outcomes and ensure zero state conflicts."
+
+    # A: Approach
+    body_lower = body.lower()
+    if "scorer" in body_lower or "score" in body_lower or "fdia" in body_lower:
+        a_val = "FDIAGatekeeper safety assessment using equation F = D^I * A."
+    elif "signed" in body_lower or "consensus" in body_lower:
+        a_val = "SignedAI HexaCore multi-node validation consensus execution."
+    elif "toon" in body_lower:
+        a_val = "ALGO-42 TOON syntax compression and token saving verification."
+    elif "loop" in body_lower or "intake" in body_lower:
+        a_val = "IntentLoopEngine JITNA natural action intake pipeline."
+    else:
+        a_val = "Deterministic RCT component unit verification."
+
+    # R: Reflection
+    r_val = "หากเงื่อนไขผิดพลาดหรือสิทธิ์สถาปนิก (A) ปิด ระบบจะต้องรีเซ็ต F เป็น 0 และป้องกันการบวมของข้อมูลผ่าน Delta Engine (91.5% saving)."
+
+    # M: Memory
+    m_val = "RCT v5 compliance, PDPA integrity guarantees, and local offline deployment limits under SignedAI rules."
+
+    return {
+        "I": intent,
+        "D": d_val,
+        "Δ": delta_val,
+        "A": a_val,
+        "R": r_val,
+        "M": m_val,
+    }
+
+
+def _emit(prompt: str, completion_body: str, use_toon: bool = False) -> dict:
     ctx = SYSTEM_CONTEXT_TOON if use_toon else SYSTEM_CONTEXT
-    comp = _completion_to_toon(completion) if use_toon else completion.strip()
+    jitna_dict = _build_6field_jitna(prompt, completion_body)
+
+    if use_toon:
+        sys.path.insert(0, str(DELENTIA_OS))
+        from rct_control_plane.toon_formatter import toon_serialize
+        comp = toon_serialize(jitna_dict)
+    else:
+        comp = json.dumps(jitna_dict, ensure_ascii=False, indent=2)
+
     return {
         "prompt": f"{ctx}\n\nUser intent: {prompt.strip()}",
         "completion": comp,
     }
 
 
-def _completion_to_toon(completion: str) -> str:
-    """
-    Convert a completion string to TOON format.
-    
-    If the completion looks like structured data (dict-like), parse and convert.
-    Otherwise, wrap it in a minimal TOON structure with 'output' key.
-    """
-    try:
-        # Attempt to import TOON formatter from Delentia-OS
-        sys.path.insert(0, str(REPO_ROOT / "Delentia-OS"))
-        from rct_control_plane.toon_formatter import toon_serialize
-        
-        # Try parsing as JSON-like structure
-        import ast
-        try:
-            data = ast.literal_eval(completion.strip())
-            if isinstance(data, dict):
-                return toon_serialize(data)
-        except (ValueError, SyntaxError):
-            pass
-            
-        return toon_serialize({"output": completion.strip()[:512]})
-    except Exception:
-        # Fallback if anything goes wrong
-        escaped = completion.strip()[:512].replace("\n", "\\n")
-        return f"output: {escaped}"
-
-
-
-def _extract_from_tests(pairs: list[dict]) -> int:
+def _extract_from_tests(pairs: list[dict], use_toon: bool = False) -> int:
     """Parse pytest test files for intent→assertion pairs."""
     test_dirs = [
         DELENTIA_OS / "tests",
@@ -114,20 +145,19 @@ def _extract_from_tests(pairs: list[dict]) -> int:
                     if '"""' in func_block or "assert" in func_block:
                         # Use function name as intent hint
                         intent = (
-                          line.strip()
-                          .replace("def test_", "")
-                          .replace("(self):", "")
-                          .replace("():", "")
-                          .replace("_", " ")
-                          .strip()
+                            line.strip()
+                            .replace("def test_", "")
+                            .replace("(self):", "")
+                            .replace("():", "")
+                            .replace("_", " ")
+                            .strip()
                         )
-                        pairs.append(_emit(intent, func_block.strip()[:512]))
+                        pairs.append(_emit(intent, func_block.strip()[:512], use_toon=use_toon))
                         count += 1
     return count
 
 
-
-def _extract_from_examples(pairs: list[dict]) -> int:
+def _extract_from_examples(pairs: list[dict], use_toon: bool = False) -> int:
     """Extract from delentia-os/examples/ directory."""
     examples_dir = DELENTIA_OS / "examples"
     if not examples_dir.exists():
@@ -144,12 +174,12 @@ def _extract_from_examples(pairs: list[dict]) -> int:
                 intent = line.split(":", 1)[-1].strip()
                 completion = "\n".join(lines[i + 1 : i + 15]).strip()
                 if len(completion) > 20:
-                    pairs.append(_emit(intent, completion[:512]))
+                    pairs.append(_emit(intent, completion[:512], use_toon=use_toon))
                     count += 1
     return count
 
 
-def _extract_from_notebooks(pairs: list[dict]) -> int:
+def _extract_from_notebooks(pairs: list[dict], use_toon: bool = False) -> int:
     """Extract from delentia-os/notebooks/ .ipynb files."""
     nb_dir = DELENTIA_OS / "notebooks"
     if not nb_dir.exists():
@@ -166,7 +196,7 @@ def _extract_from_notebooks(pairs: list[dict]) -> int:
                     if j + 1 < len(cells) and cells[j + 1].get("cell_type") == "code":
                         code = "".join(cells[j + 1].get("source", []))
                         if len(md) > 15 and len(code) > 20:
-                            pairs.append(_emit(md[:200], code[:512]))
+                            pairs.append(_emit(md[:200], code[:512], use_toon=use_toon))
                             count += 1
         except (json.JSONDecodeError, KeyError):
             continue
@@ -188,9 +218,9 @@ def main(
     console.print(f"Output: {output}")
 
     pairs: list[dict] = []
-    n_tests    = _extract_from_tests(pairs)
-    n_examples = _extract_from_examples(pairs)
-    n_notebooks = _extract_from_notebooks(pairs)
+    n_tests    = _extract_from_tests(pairs, use_toon=toon)
+    n_examples = _extract_from_examples(pairs, use_toon=toon)
+    n_notebooks = _extract_from_notebooks(pairs, use_toon=toon)
 
     # Deduplicate by prompt
     seen: set[str] = set()
@@ -201,23 +231,9 @@ def main(
             seen.add(key)
             unique_pairs.append(p)
 
-
-    # If TOON mode, re-emit all pairs with TOON formatting
-    if toon:
-        toon_pairs = []
-        for p in unique_pairs:
-            # Re-extract original intent from the prompt
-            intent_marker = "User intent: "
-            idx = p["prompt"].find(intent_marker)
-            if idx >= 0:
-                intent = p["prompt"][idx + len(intent_marker):]
-            else:
-                intent = p["prompt"]
-            toon_pairs.append(_emit(intent, p["completion"], use_toon=True))
-        unique_pairs = toon_pairs
-        # Update output filename
-        if output == OUTPUT_DIR / "jitna_pairs.jsonl":
-            output = OUTPUT_DIR / "jitna_pairs_toon.jsonl"
+    # Update output filename if toon mode is on
+    if toon and output == OUTPUT_DIR / "jitna_pairs.jsonl":
+        output = OUTPUT_DIR / "jitna_pairs_toon.jsonl"
 
     total = len(unique_pairs)
     console.print(

@@ -85,41 +85,31 @@ def _compute_fdia(prompt: str, completion: str) -> float:
 
 def _check_toon_compliance(completion: str) -> bool:
     """
-    Check if a completion string is valid TOON format.
+    Check if a completion string is valid TOON format under JITNA v3.
     
     Validation rules:
-      - Must contain at least one key: value line
-      - Must not contain JSON braces or brackets (except inline empty markers)
-      - Each non-empty line must be key: value, key:, or - item
+      - Must contain all JITNA v3 keys: I:, D:, Δ: (or delta:), A:, R:, M:
     """
     lines = completion.strip().splitlines()
     if not lines:
         return False
     
-    has_kv = False
+    required_keys = {"I:", "D:", "A:", "R:", "M:"}
+    found_keys = set()
+    
     for line in lines:
         stripped = line.strip()
         if not stripped:
             continue
         
-        # Allow: key: value, key:, - item, -
-        if ": " in stripped or stripped.endswith(":"):
-            has_kv = True
-        elif stripped.startswith("- ") or stripped == "-":
-            continue
-        elif stripped in ("{}", "[]"):
-            continue  # inline empty markers
-        else:
-            # Raw text wrapped as "output: ..." is also valid TOON
-            if stripped.startswith("output: "):
-                has_kv = True
-            # Bare string (not TOON) — but tolerate if short
-            elif len(stripped) < 5:
-                continue
-            else:
-                return False
-    
-    return has_kv
+        for key in required_keys:
+            if stripped.startswith(key):
+                found_keys.add(key)
+        if stripped.startswith("Δ:") or stripped.startswith("delta:"):
+            found_keys.add("delta")
+            
+    return len(found_keys) == 6
+
 
 
 @app.command()
@@ -159,6 +149,21 @@ def main(
             if not obj["prompt"].strip() or not obj["completion"].strip():
                 errors.append(f"Line {line_no}: Empty prompt or completion")
                 continue
+
+            # In standard JSON mode (not toon), check if completion contains JITNA keys
+            if not toon:
+                try:
+                    comp_dict = json.loads(obj["completion"])
+                    if not isinstance(comp_dict, dict):
+                        errors.append(f"Line {line_no}: Standard completion is not a JSON dict")
+                    else:
+                        json_keys = set(comp_dict.keys())
+                        has_delta = ("Δ" in json_keys or "delta" in json_keys)
+                        has_others = {"I", "D", "A", "R", "M"}.issubset(json_keys)
+                        if not (has_delta and has_others):
+                            errors.append(f"Line {line_no}: Standard completion missing JITNA v3 keys")
+                except json.JSONDecodeError:
+                    errors.append(f"Line {line_no}: Standard completion is not valid JSON")
 
             pairs.append(obj)
 
