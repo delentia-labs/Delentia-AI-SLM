@@ -3,11 +3,12 @@
 finetune.py
 
 Unsloth-accelerated QLoRA fine-tuning for the Delentia SLM.
-Configuration: training/config/slm_jitna_v0.1.yaml
+Configuration: training/config/slm_jitna_v0.1.yaml (or v0.2 for TOON)
 
 Usage:
   python training/finetune.py
-  python training/finetune.py --config training/config/slm_jitna_v0.1.yaml
+  python training/finetune.py --toon           # TOON v0.2 format training
+  python training/finetune.py --config training/config/slm_jitna_v0.2.yaml --toon
   delentia-train  (if installed via pyproject.toml scripts)
 
 Requirements:
@@ -15,15 +16,15 @@ Requirements:
   - Run: pip install -r requirements.txt
 """
 
-import sys
 from pathlib import Path
 
 import mlflow
 import typer
 import yaml
-from datasets import load_dataset
 from rich.console import Console
 from rich.panel import Panel
+
+from datasets import load_dataset
 
 console = Console()
 app = typer.Typer()
@@ -38,10 +39,13 @@ def load_config(config_path: Path) -> dict:
 
 @app.command()
 def main(
-    config: Path = typer.Option(CONFIG_DEFAULT, help="YAML config file"),
-    dry_run: bool = typer.Option(False, help="Validate setup without training"),
+    config: Path = typer.Option(CONFIG_DEFAULT, help="YAML config file"),  # noqa: B008
+    dry_run: bool = typer.Option(False, help="Validate setup without training"),  # noqa: B008
+    toon: bool = typer.Option(False, "--toon", help="Train with TOON v0.2 format"),  # noqa: B008
 ) -> None:
-    console.print(Panel("[bold blue]Delentia AI — SLM Fine-tuning[/]", expand=False))
+    version_label = "v0.2 TOON" if toon else "v0.1"
+    msg = f"[bold blue]Delentia AI — SLM Fine-tuning ({version_label})[/]"
+    console.print(Panel(msg, expand=False))
 
     # ── Load config ───────────────────────────────────────────────────────────
     if not config.exists():
@@ -61,31 +65,45 @@ def main(
     # ── Import Unsloth (lazy — heavy import) ─────────────────────────────────
     try:
         from unsloth import FastLanguageModel  # type: ignore
+        unsloth_available = True
     except ImportError:
-        console.print("[red]unsloth not installed.[/] Run: pip install 'unsloth[colab-new]'")
-        raise typer.Exit(1)
+        unsloth_available = False
+        if not dry_run:
+            console.print("[red]unsloth not installed.[/] Run: pip install 'unsloth[colab-new]'")
+            raise typer.Exit(1) from None
+        console.print("[yellow]unsloth not installed — mocking FastLanguageModel for dry run.[/]")
 
     # ── Load base model ───────────────────────────────────────────────────────
     console.print("\n[1/5] Loading base model…")
-    model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name=model_cfg["base_model"],
-        max_seq_length=model_cfg["max_seq_length"],
-        dtype=model_cfg.get("dtype"),
-        load_in_4bit=model_cfg.get("load_in_4bit", True),
-    )
+    if unsloth_available:
+        model, tokenizer = FastLanguageModel.from_pretrained(
+            model_name=model_cfg["base_model"],
+            max_seq_length=model_cfg["max_seq_length"],
+            dtype=model_cfg.get("dtype"),
+            load_in_4bit=model_cfg.get("load_in_4bit", True),
+        )
+    else:
+        from unittest.mock import MagicMock
+        model = MagicMock()
+        tokenizer = MagicMock()
+        tokenizer.eos_token = "<|eot_id|>"
 
     # ── Apply LoRA adapter ────────────────────────────────────────────────────
     console.print("[2/5] Applying LoRA adapter…")
-    model = FastLanguageModel.get_peft_model(
-        model,
-        r=lora_cfg["r"],
-        lora_alpha=lora_cfg["lora_alpha"],
-        lora_dropout=lora_cfg["lora_dropout"],
-        bias=lora_cfg.get("bias", "none"),
-        use_rslora=lora_cfg.get("use_rslora", True),
-        target_modules=lora_cfg["target_modules"],
-        use_gradient_checkpointing="unsloth",
-    )
+    if unsloth_available:
+        model = FastLanguageModel.get_peft_model(
+            model,
+            r=lora_cfg["r"],
+            lora_alpha=lora_cfg["lora_alpha"],
+            lora_dropout=lora_cfg["lora_dropout"],
+            bias=lora_cfg.get("bias", "none"),
+            use_rslora=lora_cfg.get("use_rslora", True),
+            target_modules=lora_cfg["target_modules"],
+            use_gradient_checkpointing="unsloth",
+        )
+    else:
+        pass
+
 
     # ── Load dataset ──────────────────────────────────────────────────────────
     console.print("[3/5] Loading dataset…")
@@ -108,16 +126,31 @@ def main(
     eval_ds  = split["test"]
     console.print(f"  Train: {len(train_ds)}, Eval: {len(eval_ds)}")
 
-    # Tokenize
-    chat_template = cfg.get("chat_template", "{prompt}\n{completion}")
+    # Tokenize with TOON-aware chat template
+    if toon:
+        chat_template = (
+            "<|system|>\n"
+            "You are Delentia OS v0.2 — a constitutional AI under RCT v5 governance. "
+            "You respond in TOON format (Token-Oriented Object Notation).\n"
+            "<|user|>\n{user_intent}\n"
+            "<|assistant|>\n{completion}"
+        )
+    else:
+        chat_template = cfg.get("chat_template", "{prompt}\n{completion}")
 
     def format_pair(example: dict) -> dict:
-        text = chat_template.format(
-            system_context=(
-                "You are Delentia OS — constitutional AI under RCT v5 governance."
-            ),
-            user_intent=example["prompt"],
-        ) + example["completion"] + tokenizer.eos_token
+        if toon:
+            text = chat_template.format(
+                user_intent=example["prompt"],
+                completion=example["completion"],
+            ) + tokenizer.eos_token
+        else:
+            text = chat_template.format(
+                system_context=(
+                    "You are Delentia OS — constitutional AI under RCT v5 governance."
+                ),
+                user_intent=example["prompt"],
+            ) + example["completion"] + tokenizer.eos_token
         return {"text": text}
 
     train_ds = train_ds.map(format_pair, batched=False)
@@ -129,8 +162,8 @@ def main(
 
     # ── Train ─────────────────────────────────────────────────────────────────
     console.print("[4/5] Starting training…")
-    from trl import SFTTrainer  # type: ignore
     from transformers import TrainingArguments  # type: ignore
+    from trl import SFTTrainer  # type: ignore
 
     training_args = TrainingArguments(
         output_dir=train_cfg["output_dir"],
@@ -176,6 +209,8 @@ def main(
             "epochs": train_cfg["num_train_epochs"],
             "lr": train_cfg["learning_rate"],
             "train_size": len(train_ds),
+            "toon_format": toon,
+            "version": version_label,
         })
 
         train_result = trainer.train()
@@ -184,9 +219,10 @@ def main(
             "train_steps": train_result.global_step,
         })
 
-    # ── Save adapter ──────────────────────────────────────────────────────────
+    # ── Save adapter ──────────────────────────────────────────────────────────────────
     console.print("[5/5] Saving LoRA adapter…")
-    adapter_path = "models/adapters/jitna_v0.1"
+    adapter_version = "jitna_v0.2_toon" if toon else "jitna_v0.1"
+    adapter_path = f"models/adapters/{adapter_version}"
     model.save_pretrained(adapter_path)
     tokenizer.save_pretrained(adapter_path)
     console.print(f"[bold green]Adapter saved → {adapter_path}[/]")

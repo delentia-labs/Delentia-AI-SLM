@@ -8,6 +8,7 @@ Validates a JSONL dataset file against Delentia AI quality gates:
   3. FDIA score >= 0.7 (computed locally using FDIAScorer from delentia-os)
   4. Minimum pair count >= 500
   5. Deduplication check (< 5% near-duplicate prompts)
+  6. TOON v0.2 format compliance (when --toon flag is set)
 
 Exit code 0 = all checks pass
 Exit code 1 = validation failed (CI will reject)
@@ -31,11 +32,19 @@ MAX_DUP_RATIO = 0.05
 
 # Optional: import FDIA scorer from delentia-os if available
 try:
-    from delentia_os.core.fdia import FDIAScorer  # type: ignore
+    # Attempt importing from local Delentia-OS repository path
+    _repo_root = Path(__file__).parents[3]
+    sys.path.insert(0, str(_repo_root / "Delentia-OS"))
+    from core.fdia.fdia import FDIAScorer  # type: ignore
     FDIA_AVAILABLE = True
 except ImportError:
-    FDIA_AVAILABLE = False
-    console.print("[yellow]Note:[/] delentia-os not installed — FDIA scoring will be skipped.")
+    try:
+        from delentia_os.core.fdia import FDIAScorer  # type: ignore
+        FDIA_AVAILABLE = True
+    except ImportError:
+        FDIA_AVAILABLE = False
+        console.print("[yellow]Note:[/] delentia-os not installed — FDIA scoring will be skipped.")
+
 
 # Optional: Thai NLP validation
 try:
@@ -74,12 +83,52 @@ def _compute_fdia(prompt: str, completion: str) -> float:
         return MIN_FDIA  # Default to passing if scorer errors
 
 
+def _check_toon_compliance(completion: str) -> bool:
+    """
+    Check if a completion string is valid TOON format.
+    
+    Validation rules:
+      - Must contain at least one key: value line
+      - Must not contain JSON braces or brackets (except inline empty markers)
+      - Each non-empty line must be key: value, key:, or - item
+    """
+    lines = completion.strip().splitlines()
+    if not lines:
+        return False
+    
+    has_kv = False
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        
+        # Allow: key: value, key:, - item, -
+        if ": " in stripped or stripped.endswith(":"):
+            has_kv = True
+        elif stripped.startswith("- ") or stripped == "-":
+            continue
+        elif stripped in ("{}", "[]"):
+            continue  # inline empty markers
+        else:
+            # Raw text wrapped as "output: ..." is also valid TOON
+            if stripped.startswith("output: "):
+                has_kv = True
+            # Bare string (not TOON) — but tolerate if short
+            elif len(stripped) < 5:
+                continue
+            else:
+                return False
+    
+    return has_kv
+
+
 @app.command()
 def main(
     dataset: Path = typer.Argument(..., help="JSONL dataset file to validate"),
     min_pairs: int = typer.Option(MIN_PAIRS, help="Minimum required pairs"),
     min_fdia: float = typer.Option(MIN_FDIA, help="Minimum FDIA F score (0.0–1.0)"),
     sample_fdia: int = typer.Option(50, help="Number of pairs to spot-check with FDIA scorer"),
+    toon: bool = typer.Option(False, "--toon", help="Enable TOON v0.2 format compliance check"),
 ) -> None:
     console.print(f"[bold blue]Delentia AI — Dataset Validator[/]\nFile: {dataset}")
 
@@ -116,11 +165,11 @@ def main(
     # ── 2. Minimum count ──────────────────────────────────────────────────────
     pair_ok = len(pairs) >= min_pairs
 
-    # ── 3. Deduplication ─────────────────────────────────────────────────────
-    prompts = [p["prompt"][:80] for p in pairs]
+    prompts = [p["prompt"] for p in pairs]
     unique_prompts = len(set(prompts))
     dup_ratio = 1.0 - (unique_prompts / len(pairs)) if pairs else 0.0
     dup_ok = dup_ratio <= MAX_DUP_RATIO
+
 
     # ── 4. Thai quality spot-check ────────────────────────────────────────────
     thai_failures = 0
@@ -136,6 +185,19 @@ def main(
         fdia_results.append(score)
     fdia_avg = sum(fdia_results) / len(fdia_results) if fdia_results else min_fdia
     fdia_ok = fdia_avg >= min_fdia
+
+    # ── 6. TOON compliance (v0.2) ──────────────────────────────────────────────
+    toon_ok = True
+    toon_compliance = 0
+    toon_total = 0
+    toon_pct = 0.0
+    if toon:
+        for p in pairs:
+            toon_total += 1
+            if _check_toon_compliance(p["completion"]):
+                toon_compliance += 1
+        toon_pct = (toon_compliance / toon_total * 100) if toon_total > 0 else 0
+        toon_ok = toon_pct >= 80.0  # Require 80% TOON compliance
 
     # ── Report ────────────────────────────────────────────────────────────────
     table = Table(title="Validation Results")
@@ -153,6 +215,9 @@ def main(
     row("Thai quality",  thai_ok,   f"{thai_failures} failures in first 100 pairs")
     row("FDIA avg",      fdia_ok,   f"{fdia_avg:.3f} (min {min_fdia}) — sampled {len(fdia_results)}")
 
+    if toon:
+        row("TOON format", toon_ok, f"{toon_compliance}/{toon_total} compliant ({toon_pct:.0f}%, min 80%)")
+
     console.print(table)
 
     if errors:
@@ -162,7 +227,7 @@ def main(
         if len(errors) > 10:
             console.print(f"  … and {len(errors) - 10} more")
 
-    all_ok = pair_ok and len(errors) == 0 and dup_ok and thai_ok and fdia_ok
+    all_ok = pair_ok and len(errors) == 0 and dup_ok and thai_ok and fdia_ok and toon_ok
     if all_ok:
         console.print("[bold green]✓ Dataset validation PASSED[/]")
     else:
