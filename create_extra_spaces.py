@@ -204,11 +204,68 @@ This Space hosts the JITNA intent compiler and TOON format simulator for Delenti
     # CPU Basic hardware, requires no database setup, and tracks model parameters and metrics.
     # Wait! The user said: "และเลือกเทมเพลต Langfuse หรือ MLflow"
     # Let's provide a Dockerfile that starts MLflow, which is perfect for training logs.
+    proxy_content = r"""import os
+import subprocess
+import time
+from fastapi import FastAPI, Request
+from fastapi.responses import Response
+import httpx
+
+app = FastAPI()
+
+# Start MLflow in background on port 7861
+subprocess.Popen([
+    "mlflow", "server",
+    "--host", "127.0.0.1",
+    "--port", "7861",
+    "--backend-store-uri", "sqlite:///mlflow.db",
+    "--default-artifact-root", "./artifacts"
+])
+
+# Wait for MLflow to start
+time.sleep(3)
+
+client = httpx.AsyncClient(base_url="http://127.0.0.1:7861")
+
+@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"])
+async def proxy_req(request: Request, path: str):
+    url = f"/{path}"
+    if request.url.query:
+        url += f"?{request.url.query}"
+    
+    headers = dict(request.headers)
+    headers.pop("host", None)
+    
+    content = await request.body()
+    
+    try:
+        response = await client.request(
+            method=request.method,
+            url=url,
+            headers=headers,
+            content=content,
+            timeout=30.0
+        )
+    except Exception as e:
+        return Response(content=f"Proxy error: {e}", status_code=500)
+    
+    response_headers = dict(response.headers)
+    response_headers.pop("x-frame-options", None)
+    response_headers.pop("X-Frame-Options", None)
+    
+    return Response(
+        content=response.content,
+        status_code=response.status_code,
+        headers=response_headers
+    )
+"""
+
     dockerfile_content = """FROM python:3.10-slim
-RUN pip install mlflow pysqlite3
+RUN pip install mlflow fastapi uvicorn httpx pysqlite3
 WORKDIR /app
+COPY proxy.py /app/proxy.py
 EXPOSE 7860
-CMD ["mlflow", "server", "--host", "0.0.0.0", "--port", "7860", "--backend-store-uri", "sqlite:///mlflow.db", "--default-artifact-root", "./artifacts", "--allowed-hosts", "*"]
+CMD ["uvicorn", "proxy:app", "--host", "0.0.0.0", "--port", "7860"]
 """
 
     docker_readme = """---
@@ -229,6 +286,9 @@ This Space hosts the centralized tracking server for Delentia OS training logs a
             temp_dockerfile = Path("temp_Dockerfile")
             temp_dockerfile.write_text(dockerfile_content.strip(), encoding="utf-8")
             
+            temp_proxy = Path("temp_proxy.py")
+            temp_proxy.write_text(proxy_content.strip(), encoding="utf-8")
+            
             temp_readme = Path("temp_readme_docker.md")
             temp_readme.write_text(docker_readme.strip(), encoding="utf-8")
 
@@ -241,6 +301,13 @@ This Space hosts the centralized tracking server for Delentia OS training logs a
                 commit_message="feat: upload MLflow Dockerfile",
             )
             api.upload_file(
+                path_or_fileobj=str(temp_proxy),
+                path_in_repo="proxy.py",
+                repo_id=monitor_repo,
+                repo_type="space",
+                commit_message="feat: upload reverse proxy script proxy.py",
+            )
+            api.upload_file(
                 path_or_fileobj=str(temp_readme),
                 path_in_repo="README.md",
                 repo_id=monitor_repo,
@@ -251,7 +318,7 @@ This Space hosts the centralized tracking server for Delentia OS training logs a
         except Exception as e:
             print(f"  [WARN] Failed to upload Docker Space files: {e}")
         finally:
-            for f in (temp_dockerfile, temp_readme):
+            for f in (temp_dockerfile, temp_proxy, temp_readme):
                 if f.exists():
                     f.unlink()
 
