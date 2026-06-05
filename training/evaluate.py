@@ -310,9 +310,9 @@ def main(
     console.print(table)
 
     if all_pass:
-        console.print("[bold green]✓ Model evaluation PASSED[/]")
+        console.print("[bold green][OK] Model evaluation PASSED[/]")
     else:
-        console.print("[bold red]✗ Model evaluation FAILED[/]")
+        console.print("[bold red][FAIL] Model evaluation FAILED[/]")
         if model_loaded:
             raise typer.Exit(1)
         else:

@@ -229,9 +229,9 @@ def main(
 
     all_ok = pair_ok and len(errors) == 0 and dup_ok and thai_ok and fdia_ok and toon_ok
     if all_ok:
-        console.print("[bold green]✓ Dataset validation PASSED[/]")
+        console.print("[bold green][OK] Dataset validation PASSED[/]")
     else:
-        console.print("[bold red]✗ Dataset validation FAILED[/]")
+        console.print("[bold red][FAIL] Dataset validation FAILED[/]")
         raise typer.Exit(1)
 
 
