@@ -84,7 +84,7 @@ chat_template: |
 # MLflow experiment tracking
 mlflow:
   experiment_name: "delentia-slm-jitna-v0.2-toon"
-  tracking_uri: "http://localhost:5000"
+  tracking_uri: "https://delentia-delentia-agent-monitor.hf.space"
   log_model: true
 
 # Target metrics (gates for acceptance) — v0.2 with TOON compliance
