@@ -1,0 +1,16 @@
+# Configuration for Cog (Replicate deployment tool)
+# Reference: https://replicate.com/docs/guides/push-a-model
+build:
+  gpu: true
+  cuda: "12.1"
+  python_version: "3.10"
+  python_packages:
+    - "torch==2.2.0"
+    - "transformers==4.38.1"
+    - "peft==0.8.2"
+    - "accelerate==0.27.2"
+    - "bitsandbytes==0.42.0"
+    - "pyyaml==6.0.1"
+  system_packages:
+    - "git"
+predict: "predict.py:Predictor"
