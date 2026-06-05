@@ -113,24 +113,635 @@ $$F = D^I \\times A$$
 </div>
 """
 
+    org_index_content = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delentia Labs - JITNA & RCT Control Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #060913;
+      --card-bg: rgba(13, 18, 38, 0.7);
+      --card-border: rgba(59, 130, 246, 0.15);
+      --card-border-glow: rgba(139, 92, 246, 0.35);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --primary: #3b82f6;
+      --accent: #8b5cf6;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      max-width: 800px;
+    }
+
+    header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #f472b6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1.15rem;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    @media (min-width: 900px) {
+      .container {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 30px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card:hover {
+      border-color: var(--card-border-glow);
+      box-shadow: 0 12px 40px 0 rgba(139, 92, 246, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(90deg, #f3f4f6, #9ca3af);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-group label {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .form-group label span {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--primary);
+      transition: all 0.2s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .switch-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 26px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      transition: .4s;
+      border-radius: 34px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--success);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    .result-display {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .score-circle {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 4px solid var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      margin-bottom: 15px;
+      position: relative;
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+      transition: all 0.3s;
+    }
+
+    .score-circle.success {
+      border-color: var(--success);
+      color: var(--success);
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .score-circle.error {
+      border-color: var(--error);
+      color: var(--error);
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+    }
+
+    .status-text {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 5px;
+    }
+
+    .status-desc {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    .editor-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      height: 100%;
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #38bdf8;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      padding: 12px;
+      resize: none;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      padding: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .compress-output {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      white-space: pre-wrap;
+      height: 150px;
+      overflow-y: auto;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+      padding: 10px 15px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .stats-row span strong {
+      color: var(--success);
+    }
+
+    .console-logs {
+      grid-column: 1 / -1;
+      background: #020308;
+      border: 1px solid rgba(59, 130, 246, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.8rem;
+      height: 200px;
+      overflow-y: auto;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.9);
+    }
+
+    .log-line {
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+
+    .log-time {
+      color: var(--text-muted);
+      margin-right: 10px;
+    }
+
+    .log-info {
+      color: #60a5fa;
+    }
+
+    .log-success {
+      color: #34d399;
+    }
+
+    .log-warning {
+      color: #fbbf24;
+    }
+    
+    footer {
+      margin-top: 20px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>DELENTIA LABS</h1>
+    <p>The Intent-Centric AI Operating System powered by the RCT Ecosystem. Mathematically aligned and optimized for standard resource deployment.</p>
+  </header>
+
+  <div class="container">
+    
+    <!-- Card 1: FDIA State Gatekeeper -->
+    <div class="card">
+      <div>
+        <div class="card-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          FDIA Algorithmic Gatekeeper
+        </div>
+        
+        <div class="form-group">
+          <label>Data Quality (D) <span id="valD">0.85</span></label>
+          <input type="range" id="inputD" min="0" max="1" step="0.01" value="0.85">
+        </div>
+
+        <div class="form-group">
+          <label>Intent Precision (I) <span id="valI">1.50</span></label>
+          <input type="range" id="inputI" min="1" max="3" step="0.05" value="1.50">
+        </div>
+
+        <div class="switch-container">
+          <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Human Architect Gate (A)</span>
+          <label class="switch">
+            <input type="checkbox" id="inputA" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="result-display">
+        <div class="score-circle success" id="scoreCircle">0.67</div>
+        <div class="status-text" id="statusText">State Authorized</div>
+        <div class="status-desc" id="statusDesc">State transition allowed under constitutional consensus constraints.</div>
+      </div>
+    </div>
+
+    <!-- Card 2: TOON Compressor -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6v6H4zm10 0h6v6h-6zM4 4h6v6H4zm10 0h6v6h-6z"/></svg>
+        TOON Protocol Compressor (ALGO-42)
+      </div>
+      
+      <div class="editor-container">
+        <textarea id="jsonInput">{
+  "packet_id": "6afff5d6-7fa3-4f2c-92b0-b1a77fd42a93",
+  "priority": 3,
+  "payload": {
+    "intent": "คำนวณภาษีบุคคลธรรมดา 1 ล้านบาท",
+    "currency": "THB",
+    "income": 1000000
+  }
+}</textarea>
+        
+        <button class="btn" onclick="compress()">Compress to TOON</button>
+        
+        <div class="compress-output" id="toonOutput">packet_id: 6afff5d6-7fa3-4f2c-92b0-b1a77fd42a93
+priority: 3
+payload:
+  intent: คำนวณภาษีบุคคลธรรมดา 1 ล้านบาท
+  currency: THB
+  income: 1000000</div>
+        
+        <div class="stats-row">
+          <span>JSON: <span id="jsonBytes">198</span> chars</span>
+          <span>TOON: <span id="toonBytes">122</span> chars</span>
+          <span>Savings: <strong id="savingsPct">38.4%</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log Console -->
+    <div class="console-logs" id="logs">
+      <div class="log-line"><span class="log-time">[15:00:00]</span><span class="log-info">[INIT] Delentia OS v3.0 Nodal Core initialized.</span></div>
+      <div class="log-line"><span class="log-time">[15:00:01]</span><span class="log-success">[SignedAI] HexaCore consensus node connected (Supreme Architect).</span></div>
+      <div class="log-line"><span class="log-time">[15:00:02]</span><span class="log-success">[SignedAI] 9 consensus roles online (TH-Local node active).</span></div>
+      <div class="log-line"><span class="log-time">[15:00:03]</span><span class="log-info">[DeltaEngine] Compression initialized. Base state caching active.</span></div>
+    </div>
+
+  </div>
+
+  <footer>
+    Delentia Labs &middot; Bangkok, Thailand 🇹🇭 &middot; Built for Enterprise Trust
+  </footer>
+
+  <script>
+    const inputD = document.getElementById('inputD');
+    const inputI = document.getElementById('inputI');
+    const inputA = document.getElementById('inputA');
+    const valD = document.getElementById('valD');
+    const valI = document.getElementById('valI');
+    const scoreCircle = document.getElementById('scoreCircle');
+    const statusText = document.getElementById('statusText');
+    const statusDesc = document.getElementById('statusDesc');
+    const logs = document.getElementById('logs');
+
+    function addLog(type, msg) {
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0];
+      const div = document.createElement('div');
+      div.className = 'log-line';
+      div.innerHTML = `<span class="log-time">[${timeStr}]</span><span class="${type}">${msg}</span>`;
+      logs.appendChild(div);
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    function calculateFDIA() {
+      const D = parseFloat(inputD.value);
+      const I = parseFloat(inputI.value);
+      const A = inputA.checked ? 1 : 0;
+      
+      valD.textContent = D.toFixed(2);
+      valI.textContent = I.toFixed(2);
+
+      const F = Math.pow(D, I) * A;
+      scoreCircle.textContent = F.toFixed(2);
+
+      scoreCircle.className = 'score-circle';
+      
+      if (A === 0) {
+        scoreCircle.classList.add('error');
+        statusText.textContent = "BLOCKED";
+        statusText.style.color = "var(--error)";
+        statusDesc.textContent = "Architect Gate is closed (A=0). Operation mathematically aborted.";
+      } else if (F < 0.5) {
+        scoreCircle.classList.add('error');
+        statusText.textContent = "FAIL";
+        statusText.style.color = "var(--error)";
+        statusDesc.textContent = "Score too low due to insufficient data quality (D) or intent precision (I).";
+      } else {
+        scoreCircle.classList.add('success');
+        statusText.textContent = "State Authorized";
+        statusText.style.color = "var(--success)";
+        statusDesc.textContent = "State transition allowed under constitutional consensus constraints.";
+      }
+    }
+
+    inputD.addEventListener('input', () => {
+      calculateFDIA();
+      addLog('log-info', `[FDIAGate] Input parameter D adjusted to ${inputD.value}`);
+    });
+    inputI.addEventListener('input', () => {
+      calculateFDIA();
+      addLog('log-info', `[FDIAGate] Input parameter I adjusted to ${inputI.value}`);
+    });
+    inputA.addEventListener('change', () => {
+      calculateFDIA();
+      const state = inputA.checked ? "OPEN" : "CLOSED";
+      const logClass = inputA.checked ? "log-success" : "log-warning";
+      addLog(logClass, `[FDIAGate] Human Architect Gate A toggled ${state}`);
+    });
+
+    function jsonToToon(obj, indent = 0) {
+      let result = '';
+      const space = ' '.repeat(indent);
+      
+      if (Array.isArray(obj)) {
+        for (const item of obj) {
+          if (typeof item === 'object' && item !== null) {
+            result += `${space}-\n${jsonToToon(item, indent + 2)}`;
+          } else {
+            result += `${space}- ${item}\n`;
+          }
+        }
+      } else if (typeof obj === 'object' && obj !== null) {
+        for (const [key, val] of Object.entries(obj)) {
+          if (typeof val === 'object' && val !== null) {
+            result += `${space}${key}:\n${jsonToToon(val, indent + 2)}`;
+          } else {
+            result += `${space}${key}: ${val}\n`;
+          }
+        }
+      } else {
+        result += `${space}${obj}\n`;
+      }
+      return result;
+    }
+
+    function compress() {
+      const jsonInput = document.getElementById('jsonInput').value;
+      const toonOutput = document.getElementById('toonOutput');
+      const jsonBytes = document.getElementById('jsonBytes');
+      const toonBytes = document.getElementById('toonBytes');
+      const savingsPct = document.getElementById('savingsPct');
+
+      try {
+        const parsed = JSON.parse(jsonInput);
+        const toon = jsonToToon(parsed).trim();
+        toonOutput.textContent = toon;
+        
+        const jsonLen = jsonInput.length;
+        const toonLen = toon.length;
+        const savings = ((jsonLen - toonLen) / jsonLen) * 100;
+
+        jsonBytes.textContent = jsonLen;
+        toonBytes.textContent = toonLen;
+        savingsPct.textContent = savings.toFixed(1) + '%';
+        
+        addLog('log-success', `[TOON] Serialization complete. Token count reduced by ${savings.toFixed(1)}%`);
+      } catch (e) {
+        alert("Invalid JSON payload. Please enter valid JSON formatting.");
+        addLog('log-warning', `[TOON] Serialization failed. Invalid JSON payload format.`);
+      }
+    }
+  </script>
+</body>
+</html>
+"""
+
     if org_repo:
-        temp_file = Path("temp_org_readme.md")
-        temp_file.write_text(org_readme_content.strip(), encoding="utf-8")
-        print("Uploading organization card README.md ...")
+        temp_readme = Path("temp_org_readme.md")
+        temp_readme.write_text(org_readme_content.strip(), encoding="utf-8")
+        
+        temp_index = Path("temp_org_index.html")
+        temp_index.write_text(org_index_content.strip(), encoding="utf-8")
+        
+        temp_css = Path("temp_org_style.css")
+        temp_css.write_text("/* Clean reset - styling is self-contained in index.html */", encoding="utf-8")
+        
+        print("Uploading organization Space files (README.md, index.html, style.css) ...")
         try:
             api.upload_file(
-                path_or_fileobj=str(temp_file),
+                path_or_fileobj=str(temp_readme),
                 path_in_repo="README.md",
                 repo_id=org_repo,
                 repo_type="space",
-                commit_message="feat: upload Delentia organization card Space",
+                commit_message="feat: upload Delentia organization card Space README.md",
             )
-            print(f"  [OK] Organization card live: https://huggingface.co/spaces/Delentia/README (Renders on https://huggingface.co/Delentia)")
+            api.upload_file(
+                path_or_fileobj=str(temp_index),
+                path_in_repo="index.html",
+                repo_id=org_repo,
+                repo_type="space",
+                commit_message="feat: upload Delentia organization portal index.html",
+            )
+            api.upload_file(
+                path_or_fileobj=str(temp_css),
+                path_in_repo="style.css",
+                repo_id=org_repo,
+                repo_type="space",
+                commit_message="feat: upload Delentia organization portal style.css reset",
+            )
+            print(f"  [OK] Organization portal Space files live: https://huggingface.co/spaces/Delentia/README (Renders on https://huggingface.co/Delentia)")
         except Exception as e:
-            print(f"  [WARN] Failed to upload organization card: {e}")
+            print(f"  [WARN] Failed to upload organization Space files: {e}")
         finally:
-            if temp_file.exists():
-                temp_file.unlink()
+            for f in (temp_readme, temp_index, temp_css):
+                if f.exists():
+                    f.unlink()
 
     # ── 2. Create Personal Profile Card (Ittirit-delentia/Ittirit-delentia) ───
     personal_repo = "Ittirit-delentia/Ittirit-delentia"
