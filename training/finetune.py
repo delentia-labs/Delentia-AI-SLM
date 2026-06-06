@@ -229,7 +229,7 @@ def main(
         save_strategy=train_cfg.get("save_strategy", "epoch"),
         save_total_limit=train_cfg.get("save_total_limit", 3),
         logging_steps=train_cfg.get("logging_steps", 10),
-        evaluation_strategy=train_cfg.get("evaluation_strategy", "epoch"),
+        eval_strategy=train_cfg.get("eval_strategy") or train_cfg.get("evaluation_strategy", "epoch"),
         load_best_model_at_end=train_cfg.get("load_best_model_at_end", True),
         metric_for_best_model=train_cfg.get("metric_for_best_model", "eval_loss"),
         report_to=report_to_list,
