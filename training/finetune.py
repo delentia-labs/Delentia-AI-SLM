@@ -175,6 +175,43 @@ def main(
     console.print("[4/5] Starting training…")
     from transformers import TrainingArguments  # type: ignore
     from trl import SFTTrainer  # type: ignore
+    import torch
+
+    # Auto-detect device and bfloat16 support
+    supports_bf16 = False
+    if torch.cuda.is_available():
+        gpu_name = torch.cuda.get_device_name(0)
+        supports_bf16 = torch.cuda.is_bf16_supported()
+        console.print(f"  GPU detected: [cyan]{gpu_name}[/] (Supports BF16: [cyan]{supports_bf16}[/])")
+    else:
+        console.print("  [yellow]Warning:[/] No CUDA GPU detected. Using CPU fallback (Dry Run only).")
+
+    # Override config precision based on GPU hardware capability
+    use_bf16 = train_cfg.get("bf16", True) and supports_bf16
+    use_fp16 = train_cfg.get("fp16", False) or (not use_bf16 and torch.cuda.is_available())
+    console.print(f"  Training precision: bf16=[cyan]{use_bf16}[/], fp16=[cyan]{use_fp16}[/]")
+
+    # MLflow tracking initialization
+    mlflow_enabled = False
+    mlflow_cfg = cfg.get("mlflow", {})
+    tracking_uri = mlflow_cfg.get("tracking_uri", "http://localhost:5000")
+    
+    try:
+        import os
+        # Set authorization header if HF_TOKEN is available
+        hf_token = os.environ.get("HF_TOKEN", "")
+        if hf_token:
+            os.environ["MLFLOW_TRACKING_HEADERS"] = f"Authorization: Bearer {hf_token}"
+            
+        mlflow.set_tracking_uri(tracking_uri)
+        experiment_name = mlflow_cfg.get("experiment_name", "delentia-slm")
+        mlflow.set_experiment(experiment_name)
+        mlflow_enabled = True
+        console.print(f"  MLflow tracking enabled on server: [cyan]{tracking_uri}[/]")
+    except Exception as e:
+        console.print(f"  [yellow]Warning:[/] Failed to initialize MLflow client ({e}). Training will proceed with local logging only.")
+
+    report_to_list = ["mlflow"] if mlflow_enabled else []
 
     training_args = TrainingArguments(
         output_dir=train_cfg["output_dir"],
@@ -184,8 +221,8 @@ def main(
         learning_rate=train_cfg["learning_rate"],
         lr_scheduler_type=train_cfg["lr_scheduler_type"],
         warmup_ratio=train_cfg["warmup_ratio"],
-        bf16=train_cfg.get("bf16", True),
-        fp16=train_cfg.get("fp16", False),
+        bf16=use_bf16,
+        fp16=use_fp16,
         optim=train_cfg.get("optim", "adamw_8bit"),
         weight_decay=train_cfg.get("weight_decay", 0.01),
         max_grad_norm=train_cfg.get("max_grad_norm", 0.3),
@@ -195,7 +232,7 @@ def main(
         evaluation_strategy=train_cfg.get("evaluation_strategy", "epoch"),
         load_best_model_at_end=train_cfg.get("load_best_model_at_end", True),
         metric_for_best_model=train_cfg.get("metric_for_best_model", "eval_loss"),
-        report_to="none",  # MLflow handled separately
+        report_to=report_to_list,
     )
 
     trainer = SFTTrainer(
@@ -208,27 +245,30 @@ def main(
         args=training_args,
     )
 
-    # MLflow tracking
-    mlflow.set_tracking_uri(mlflow_cfg.get("tracking_uri", "http://localhost:5000"))
-    mlflow.set_experiment(mlflow_cfg.get("experiment_name", "delentia-slm"))
-
-    with mlflow.start_run():
-        mlflow.log_params({
-            "base_model": model_cfg["base_model"],
-            "lora_r": lora_cfg["r"],
-            "lora_alpha": lora_cfg["lora_alpha"],
-            "epochs": train_cfg["num_train_epochs"],
-            "lr": train_cfg["learning_rate"],
-            "train_size": len(train_ds),
-            "toon_format": toon,
-            "version": version_label,
-        })
-
+    if mlflow_enabled:
+        try:
+            with mlflow.start_run():
+                mlflow.log_params({
+                    "base_model": model_cfg["base_model"],
+                    "lora_r": lora_cfg["r"],
+                    "lora_alpha": lora_cfg["lora_alpha"],
+                    "epochs": train_cfg["num_train_epochs"],
+                    "lr": train_cfg["learning_rate"],
+                    "train_size": len(train_ds),
+                    "toon_format": toon,
+                    "version": version_label,
+                })
+                train_result = trainer.train()
+                mlflow.log_metrics({
+                    "train_loss": train_result.training_loss,
+                    "train_steps": train_result.global_step,
+                })
+        except Exception as e:
+            console.print(f"  [red]MLflow Error during logging:[/] {e}")
+            console.print("  Proceeding to run training without MLflow tracking...")
+            train_result = trainer.train()
+    else:
         train_result = trainer.train()
-        mlflow.log_metrics({
-            "train_loss": train_result.training_loss,
-            "train_steps": train_result.global_step,
-        })
 
     # ── Save adapter ──────────────────────────────────────────────────────────────────
     console.print("[5/5] Saving LoRA adapter…")
