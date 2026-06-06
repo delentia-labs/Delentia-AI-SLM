@@ -207,11 +207,20 @@ This Space hosts the JITNA intent compiler and TOON format simulator for Delenti
     proxy_content = r"""import os
 import subprocess
 import time
+import sqlite3
 from fastapi import FastAPI, Request
 from fastapi.responses import Response
 import httpx
 
 app = FastAPI()
+
+# Enable SQLite WAL (Write-Ahead Logging) mode to prevent write locking (SQLITE_BUSY) errors during training
+try:
+    conn = sqlite3.connect("mlflow.db")
+    conn.execute("PRAGMA journal_mode=WAL;")
+    conn.close()
+except Exception as e:
+    print(f"Failed to set WAL mode: {e}")
 
 # Start MLflow in background on port 7861
 subprocess.Popen([
