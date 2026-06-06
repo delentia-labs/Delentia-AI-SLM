@@ -13,9 +13,6 @@ unsloth[colab-new]>=2024.6
 # Experiment tracking
 mlflow>=2.13
 
-# Delentia OS SDK (dataset extraction + FDIA scoring)
-delentia-os>=2.0.0
-
 # Thai NLP validation
 pythainlp>=5.0
 
