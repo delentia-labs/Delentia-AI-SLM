@@ -173,8 +173,7 @@ def main(
 
     # ── Train ─────────────────────────────────────────────────────────────────
     console.print("[4/5] Starting training…")
-    from transformers import TrainingArguments  # type: ignore
-    from trl import SFTTrainer  # type: ignore
+    from trl import SFTConfig, SFTTrainer  # type: ignore
     import torch
 
     # Auto-detect device and bfloat16 support
@@ -213,7 +212,7 @@ def main(
 
     report_to_list = ["mlflow"] if mlflow_enabled else []
 
-    training_args = TrainingArguments(
+    training_args = SFTConfig(
         output_dir=train_cfg["output_dir"],
         num_train_epochs=train_cfg["num_train_epochs"],
         per_device_train_batch_size=train_cfg["per_device_train_batch_size"],
@@ -233,6 +232,8 @@ def main(
         load_best_model_at_end=train_cfg.get("load_best_model_at_end", True),
         metric_for_best_model=train_cfg.get("metric_for_best_model", "eval_loss"),
         report_to=report_to_list,
+        dataset_text_field="text",
+        max_seq_length=model_cfg["max_seq_length"],
     )
 
     trainer = SFTTrainer(
@@ -240,8 +241,6 @@ def main(
         tokenizer=tokenizer,
         train_dataset=train_ds,
         eval_dataset=eval_ds,
-        dataset_text_field="text",
-        max_seq_length=model_cfg["max_seq_length"],
         args=training_args,
     )
 
