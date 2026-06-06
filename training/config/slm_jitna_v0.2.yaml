@@ -20,7 +20,7 @@ model:
 lora:
   r: 32                         # increased from 16 — TOON structure needs more rank
   lora_alpha: 64                # 2×r for stability
-  lora_dropout: 0.05
+  lora_dropout: 0
   bias: "none"
   use_rslora: true              # Rank-Stabilized LoRA — critical for TOON convergence
   target_modules:
@@ -41,9 +41,9 @@ training:
   max_samples: null             # null = use all available
 
   # Batch & gradient
-  per_device_train_batch_size: 2
-  gradient_accumulation_steps: 4
-  # Effective batch = 2 × 4 = 8
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 8
+  # Effective batch = 1 × 8 = 8
 
   # Learning rate — lower for smoother TOON format convergence
   learning_rate: 1.0e-4
