@@ -208,31 +208,38 @@ This Space hosts the JITNA intent compiler and TOON format simulator for Delenti
 import subprocess
 import time
 import sqlite3
+import threading
 from fastapi import FastAPI, Request
-from fastapi.responses import Response
+from fastapi.responses import HTMLResponse, Response
 import httpx
 
 app = FastAPI()
 
-# Enable SQLite WAL (Write-Ahead Logging) mode to prevent write locking (SQLITE_BUSY) errors during training
-try:
-    conn = sqlite3.connect("mlflow.db")
-    conn.execute("PRAGMA journal_mode=WAL;")
-    conn.close()
-except Exception as e:
-    print(f"Failed to set WAL mode: {e}")
-
-# Start MLflow in background on port 7861
+# Start MLflow with exactly 1 worker to prevent database migration locks on multi-core CPU instances
 subprocess.Popen([
     "mlflow", "server",
     "--host", "127.0.0.1",
     "--port", "7861",
+    "--workers", "1",
     "--backend-store-uri", "sqlite:///mlflow.db",
     "--default-artifact-root", "./artifacts"
 ])
 
-# Wait for MLflow to start
-time.sleep(3)
+# Enable SQLite WAL mode in a background thread after mlflow.db file is initialized
+def enable_wal():
+    for _ in range(15):
+        if os.path.exists("mlflow.db"):
+            try:
+                conn = sqlite3.connect("mlflow.db")
+                conn.execute("PRAGMA journal_mode=WAL;")
+                conn.close()
+                print("WAL mode enabled successfully.")
+                break
+            except Exception as e:
+                print(f"Failed to set WAL mode: {e}")
+        time.sleep(2)
+
+threading.Thread(target=enable_wal, daemon=True).start()
 
 client = httpx.AsyncClient(base_url="http://127.0.0.1:7861")
 
@@ -256,7 +263,20 @@ async def proxy_req(request: Request, path: str):
             timeout=30.0
         )
     except Exception as e:
-        return Response(content=f"Proxy error: {e}", status_code=500)
+        return HTMLResponse(
+            content='''
+            <html>
+            <head><meta http-equiv="refresh" content="5"></head>
+            <body style="font-family: sans-serif; text-align: center; padding: 100px 50px; background: #0f172a; color: #f8fafc;">
+                <h2 style="font-weight: 600; color: #38bdf8;">Delentia Monitor is starting up...</h2>
+                <p style="color: #94a3b8; margin-top: 10px;">MLflow is initializing database tables. This page will automatically refresh in 5 seconds.</p>
+                <div style="margin: 30px auto; width: 50px; height: 50px; border: 5px solid #334155; border-top-color: #38bdf8; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+            </body>
+            </html>
+            ''',
+            status_code=503
+        )
     
     response_headers = dict(response.headers)
     response_headers.pop("x-frame-options", None)
