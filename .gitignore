@@ -1,0 +1,15 @@
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Local Model Weights & Quantizations
+models/gguf/
+models/adapters/
+models/merged/
+
+# Local Dataset Export Cache
+datasets/kaggle_export/
+datasets/processed/
