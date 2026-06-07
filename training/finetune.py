@@ -126,20 +126,28 @@ def main(
     eval_ds  = split["test"]
     console.print(f"  Train: {len(train_ds)}, Eval: {len(eval_ds)}")
 
+    import re
     # Tokenize with TOON-aware chat template
     if toon:
-        chat_template = (
-            "<|system|>\n"
-            "You are Delentia OS v0.2 — a constitutional AI operating under RCT v5 governance. "
-            "You process intents through the JITNA v3 protocol. "
-            "You respond in TOON format (Token-Oriented Object Notation) for token efficiency. "
-            "Your responses must be factual, safe, and PDPA-compliant. "
-            "You must respond using the 6 JITNA fields: I=Intent, D=Data, Δ=Delta, A=Approach, R=Reflection, M=Memory.\n"
-            "<|user|>\n{user_intent}\n"
-            "<|assistant|>\n{completion}"
-        )
+        config_template = cfg.get("chat_template")
+        if config_template:
+            chat_template = re.sub(r'\{\{\s*(\w+)\s*\}\}', r'{\1}', config_template)
+            if "{completion}" not in chat_template:
+                chat_template = chat_template.rstrip() + "\n{completion}"
+        else:
+            chat_template = (
+                "<|system|>\n"
+                "You are Delentia OS v0.2 — a constitutional AI operating under RCT v5 governance. "
+                "You process intents through the JITNA v3 protocol. "
+                "You respond in TOON format (Token-Oriented Object Notation) for token efficiency. "
+                "Your responses must be factual, safe, and PDPA-compliant. "
+                "You must respond using the 6 JITNA fields: I=Intent, D=Data, Δ=Delta, A=Approach, R=Reflection, M=Memory.\n"
+                "<|user|>\n{user_intent}\n"
+                "<|assistant|>\n{completion}"
+            )
     else:
         chat_template = cfg.get("chat_template", "{prompt}\n{completion}")
+        chat_template = re.sub(r'\{\{\s*(\w+)\s*\}\}', r'{\1}', chat_template)
 
     def format_pair(example: dict) -> dict:
         if toon:
