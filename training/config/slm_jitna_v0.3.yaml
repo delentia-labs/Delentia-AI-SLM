@@ -1,0 +1,85 @@
+# Delentia SLM — JITNA v0.3 Cognitive OS Kernel Fine-tuning Configuration
+# Base: Llama 3.1 8B (Apache 2.0, Thai-capable)
+# Method: Unsloth QLoRA (4-bit) — optimized for T4 16GB / A100 40GB
+# Format: TOON (Token-Oriented Object Notation) — ALGO-42
+#
+# Delta from v0.2:
+#   - Data mixing including: Delta Engine state deltas, Intent Loop correction flows, RCT 7 rules
+#   - Lowered learning rate (5.0e-5) to prevent Catastrophic Forgetting
+#   - Keep LoRA rank 32, alpha 64, with RSLoRA for format and logic convergence stability
+
+model:
+  base_model: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
+  tokenizer: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
+  max_seq_length: 4096          # covers large intent chains and context history
+  dtype: null                   # auto-detect
+  load_in_4bit: true
+
+lora:
+  r: 32
+  lora_alpha: 64
+  lora_dropout: 0
+  bias: "none"
+  use_rslora: true
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+  task_type: "CAUSAL_LM"
+
+training:
+  dataset_path: "datasets/processed/jitna_pairs_v03.jsonl"
+  dataset_split: "train"
+  validation_split: 0.05
+  max_samples: null
+
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 8
+
+  learning_rate: 5.0e-5         # Lowered from 1.0e-4 to accommodate mixed domain training smoothly
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.05
+  num_train_epochs: 5
+
+  bf16: true
+  fp16: false
+  optim: "adamw_8bit"
+  weight_decay: 0.01
+  max_grad_norm: 0.3
+
+  output_dir: "models/checkpoints/v0.3_cognitive_kernel"
+  save_strategy: "epoch"
+  save_total_limit: 3
+  logging_steps: 10
+
+  evaluation_strategy: "epoch"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+
+chat_template: |
+  <|system|>
+  You are Delentia OS v0.3 — a constitutional AI operating under RCT v5 governance.
+  You process intents through the JITNA v3 protocol.
+  You respond in TOON format (Token-Oriented Object Notation) for token efficiency.
+  Your responses must be factual, safe, and PDPA-compliant.
+  Always provide FDIA scores when applicable (F = D^I × A).
+  For security-violating prompts, you must output a rejection state (FDIAScore: 0.00).
+  <|user|>
+  {{ user_intent }}
+  <|assistant|>
+
+mlflow:
+  experiment_name: "delentia-slm-jitna-v0.3-cognitive"
+  tracking_uri: "https://delentia-delentia-agent-monitor.hf.space"
+  log_model: true
+
+target_metrics:
+  jitna_compliance: 0.98        # >= 98% JITNA v3 schema compliance
+  toon_compliance: 0.95         # >= 95% TOON format compliance
+  fdia_avg: 0.895               # avg F score >= 0.895
+  hallucination_rate: 0.0028    # <= 0.28% factual errors (SignedAI consensus)
+  token_savings_pct: 15.0       # >= 15% token savings
