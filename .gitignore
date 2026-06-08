@@ -12,4 +12,5 @@ models/merged/
 
 # Local Dataset Export Cache
 datasets/kaggle_export/
+datasets/hf_export/
 datasets/processed/
