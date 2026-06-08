@@ -776,7 +776,7 @@ pinned: false
 ## 👤 About Me / เกี่ยวกับฉัน
 
 ### **ภาษาไทย (Thai)**
-ผมคือผู้สร้างและผู้ออกแบบระบบ **RCT Ecosystem** และ **Delentia OS** จากห้องพักขนาดเล็กในสลัมคลองเตย กรุงเทพมหานคร ด้วยปณิธานที่ต้องการพิสูจน์ว่า:
+ผมคือผู้สร้างและผู้ออกแบบระบบ **RCT (Reverse Component Thinking) Ecosystem** และ **Delentia OS** จากห้องพักขนาดเล็กในสลัมคลองเตย กรุงเทพมหานคร ด้วยปณิธานที่ต้องการพิสูจน์ว่า:
 > *"การควบคุมและการรับประกันความปลอดภัยของระบบ AI (AI Governance & Safety) ควรได้รับการคุ้มครองด้วยการเข้ารหัสคณิตศาสตร์ในระดับโครงสร้างระบบปฏิบัติการ ไม่ใช่เป็นเพียงการตั้งค่าที่ปิด/เปิด หรือถูกบายพาสได้โดยง่าย"*
 
 ตั้งแต่ปี 2025 ผมได้ทุ่มเทพัฒนาโครงข่ายของ AI OS ทั้งหมดด้วยตัวคนเดียวแบบ 100% Offline เพื่อปกป้องอธิปไตยข้อมูลส่วนบุคคลของไทย (PDPA) และมุ่งเน้นการเพิ่มประสิทธิภาพโมเดลระดับ SLM ให้มีศักยภาพการประมวลผลที่เทียบเคียง Enterprise ระดับโลก
@@ -793,11 +793,26 @@ Through rigorous engineering, I have designed and coded:
 
 ---
 
-## 🧠 AI & ML Research Interests
+## 🧠 AI & ML Research Focus
 
-* **Thai NLP & Token Optimization:** Developing specialized tokenizers and syntaxes (TOON/ALGO-42) that optimize Thai text representation, reducing LLM API token overhead and context costs by 40-50%.
-* **Constitutional Alignment & Governance:** Designing deterministic gates (such as the FDIA State Engine) to enforce behavioral boundaries directly in model runtime logic.
-* **Offline Enterprise Infrastructure:** Fine-tuning specialized Small Language Models (SLMs) to execute complex intent recognition loops on standard consumer hardware.
+### 1. Cognitive OS Logic Mixing (v0.3 SLM)
+Fine-tuning Small Language Models (SLMs) to execute complex, multi-domain cognitive loops. This includes memory delta compression (Delta Engine), routing recovery mechanisms (Intent Loop), and PDPA-compliant zero-trust safety blocks (RCT 7 rules).
+
+### 2. Pluggable Regional LLMs & Sovereignty
+Integrating pluggable regional LLM adapters (Rakuten AI for JP, Solar Pro for KR, ViGPT for VN, Typhoon v2 for TH) to keep sensitive regional data in-region and guarantee PDPA compliance.
+
+### 3. Token Optimization & Hardware Accelerators
+Refining TOON (Token-Oriented Object Notation) for 15-50% token savings, and developing custom CUDA/Triton hardware-accelerated kernels (via Hugging Face Kernel Hub) to accelerate local agent loop executions.
+
+---
+
+## 🌐 Project Links & Spaces
+
+* **Official Dataset:** [delentia-rct-intent-dataset](https://huggingface.co/datasets/Delentia/delentia-rct-intent-dataset) — indexable intent, document, and artifact CSV sheets.
+* **Centralized Monitor:** [delentia-agent-monitor](https://huggingface.co/spaces/Delentia/delentia-agent-monitor) — Centralized MLflow tracking server.
+* **JITNA Benchmark:** [delentia-leaderboard](https://huggingface.co/spaces/Delentia/delentia-leaderboard) — JITNA compliance leaderboard.
+* **Chat Compiler Demo:** [delentia-slm-demo](https://huggingface.co/spaces/Delentia/delentia-slm-demo) — Interactive Gradio compiler.
+* **Guardrails Simulation:** [delentia-guardrails-demo](https://huggingface.co/spaces/Delentia/delentia-guardrails-demo) — Zero-trust intrusion block demo.
 
 ---
 
