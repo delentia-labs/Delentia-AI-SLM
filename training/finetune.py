@@ -42,6 +42,7 @@ def main(
     config: Path = typer.Option(CONFIG_DEFAULT, help="YAML config file"),  # noqa: B008
     dry_run: bool = typer.Option(False, help="Validate setup without training"),  # noqa: B008
     toon: bool = typer.Option(False, "--toon", help="Train with TOON v0.2 format"),  # noqa: B008
+    adapter_path: Path = typer.Option(None, help="LoRA adapter save directory"),  # noqa: B008
 ) -> None:
     version_label = "v0.2 TOON" if toon else "v0.1"
     msg = f"[bold blue]Delentia AI — SLM Fine-tuning ({version_label})[/]"
@@ -279,10 +280,13 @@ def main(
 
     # ── Save adapter ──────────────────────────────────────────────────────────────────
     console.print("[5/5] Saving LoRA adapter…")
-    adapter_version = "jitna_v0.2_toon" if toon else "jitna_v0.1"
-    adapter_path = f"models/adapters/{adapter_version}"
-    model.save_pretrained(adapter_path)
-    tokenizer.save_pretrained(adapter_path)
+    if adapter_path is None:
+        adapter_version = "jitna_v0.2_toon" if toon else "jitna_v0.1"
+        adapter_path = Path("models/adapters") / adapter_version
+    else:
+        adapter_path = Path(adapter_path)
+    model.save_pretrained(str(adapter_path))
+    tokenizer.save_pretrained(str(adapter_path))
     console.print(f"[bold green]Adapter saved → {adapter_path}[/]")
     console.print("\nNext steps:")
     console.print("  python training/evaluate.py")

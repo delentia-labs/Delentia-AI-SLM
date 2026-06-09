@@ -93,10 +93,16 @@ The heart of Delentia's security is the **FDIA equation**, which guarantees that
 
 $$F = D^I \\times A$$
 
-* **F (Future)**: The final composite evaluation score of the proposed state transition.
-* **D (Data Quality)**: Accuracy, freshness, and completeness of JITNA context inputs ($0.0 \\le D \\le 1.0$).
-* **I (Intent Precision)**: Acts as an **exponent** to amplify aligned intents ($I \\ge 1.0$).
-* **A (Architect Gate)**: A strict binary or continuous gate representing human authorization or cryptographic consent. **If $A = 0$, the state transition is mathematically blocked ($F = 0$), regardless of the agent's intelligence.**
+#### Component Breakdown:
+| Parameter | Definition | Range / Constraints |
+| :--- | :--- | :--- |
+| **F** (Future State) | The final composite evaluation score of the proposed state transition. | **F ≥ 0.5** (Authorized), **F < 0.5** (Blocked) |
+| **D** (Data Quality) | The accuracy, freshness, and completeness of context inputs. | **0.0 ≤ D ≤ 1.0** |
+| **I** (Intent Precision) | Exponent amplifying alignment; higher precision scales safety exponentially. | **I ≥ 1.0** |
+| **A** (Architect Gate) | Strict binary human approval or cryptographic signature verification. | **A ∈ {0, 1}** (0 = Rejected, 1 = Approved) |
+
+> [!IMPORTANT]
+> **Mathematical Alignment Guarantee:** By design, the human/architect gate (**A**) acts as a multiplicative element. If approval is rejected or signature verification fails (**A = 0**), the final output state transition (**F**) is mathematically reduced to **0**. This guarantees that security boundaries are absolutely bypassable-proof, preventing prompt injections or behavioral overrides.
 
 ---
 
@@ -124,17 +130,19 @@ $$F = D^I \\times A$$
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-dark: #060913;
-      --card-bg: rgba(13, 18, 38, 0.7);
-      --card-border: rgba(59, 130, 246, 0.15);
-      --card-border-glow: rgba(139, 92, 246, 0.35);
+      --bg-dark: #04060d;
+      --card-bg: rgba(9, 13, 29, 0.65);
+      --card-border: rgba(56, 189, 248, 0.15);
+      --card-border-glow: rgba(139, 92, 246, 0.4);
       --text-main: #f3f4f6;
       --text-muted: #9ca3af;
-      --primary: #3b82f6;
+      --primary: #0ea5e9;
       --accent: #8b5cf6;
       --success: #10b981;
       --error: #ef4444;
       --warning: #f59e0b;
+      --glow-cyan: rgba(14, 165, 233, 0.35);
+      --glow-purple: rgba(139, 92, 246, 0.35);
     }
     
     * {
@@ -146,8 +154,8 @@ $$F = D^I \\times A$$
     body {
       background-color: var(--bg-dark);
       background-image: 
-        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+        radial-gradient(circle at 10% 20%, var(--glow-cyan) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, var(--glow-purple) 0%, transparent 45%);
       color: var(--text-main);
       font-family: 'Inter', sans-serif;
       min-height: 100vh;
@@ -156,43 +164,48 @@ $$F = D^I \\times A$$
       align-items: center;
       justify-content: flex-start;
       padding: 40px 20px;
+      overflow-x: hidden;
     }
 
     header {
       text-align: center;
       margin-bottom: 40px;
       max-width: 800px;
+      animation: fadeIn 0.8s ease-out;
     }
 
     header h1 {
       font-family: 'Outfit', sans-serif;
-      font-size: 3rem;
+      font-size: 3.2rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #f472b6 100%);
+      background: linear-gradient(135deg, #38bdf8 0%, #8b5cf6 50%, #ec4899 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 12px;
-      letter-spacing: -1px;
+      margin-bottom: 14px;
+      letter-spacing: -1.5px;
+      filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.15));
     }
 
     header p {
       color: var(--text-muted);
       font-size: 1.15rem;
       line-height: 1.6;
+      font-weight: 300;
     }
 
     .container {
-      max-width: 1200px;
+      max-width: 1280px;
       width: 100%;
       display: grid;
       grid-template-columns: 1fr;
-      gap: 30px;
+      gap: 24px;
       margin-bottom: 30px;
+      animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    @media (min-width: 900px) {
+    @media (min-width: 1024px) {
       .container {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
       }
     }
 
@@ -200,43 +213,78 @@ $$F = D^I \\times A$$
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 16px;
-      padding: 30px;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 24px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .card:hover {
+      border-color: var(--card-border-glow);
+      box-shadow: 0 16px 40px 0 rgba(139, 92, 246, 0.18);
+      transform: translateY(-4px);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-content {
+      position: relative;
+      z-index: 1;
+      height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
 
-    .card:hover {
-      border-color: var(--card-border-glow);
-      box-shadow: 0 12px 40px 0 rgba(139, 92, 246, 0.15);
-      transform: translateY(-2px);
-    }
-
     .card-title {
       font-family: 'Outfit', sans-serif;
-      font-size: 1.5rem;
+      font-size: 1.4rem;
       font-weight: 600;
       margin-bottom: 20px;
       display: flex;
       align-items: center;
-      gap: 10px;
-      background: linear-gradient(90deg, #f3f4f6, #9ca3af);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      gap: 12px;
+      color: #ffffff;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 12px;
+    }
+
+    .card-title svg {
+      color: var(--primary);
+      filter: drop-shadow(0 0 8px var(--primary));
     }
 
     .form-group {
-      margin-bottom: 24px;
+      margin-bottom: 18px;
     }
 
     .form-group label {
       display: flex;
       justify-content: space-between;
       color: var(--text-muted);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       margin-bottom: 8px;
       font-weight: 500;
     }
@@ -244,44 +292,47 @@ $$F = D^I \\times A$$
     .form-group label span {
       color: var(--primary);
       font-weight: 600;
+      font-family: 'Fira Code', monospace;
     }
 
     input[type="range"] {
       width: 100%;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.1);
+      height: 5px;
+      background: rgba(255, 255, 255, 0.08);
       border-radius: 3px;
       outline: none;
       -webkit-appearance: none;
+      transition: background 0.3s;
     }
 
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
       cursor: pointer;
-      box-shadow: 0 0 10px var(--primary);
-      transition: all 0.2s;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+      transition: transform 0.2s, box-shadow 0.2s;
     }
 
     input[type="range"]::-webkit-slider-thumb:hover {
-      transform: scale(1.2);
+      transform: scale(1.25);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
     }
 
     .switch-container {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
 
     .switch {
       position: relative;
       display: inline-block;
-      width: 50px;
-      height: 26px;
+      width: 46px;
+      height: 24px;
     }
 
     .switch input {
@@ -298,7 +349,7 @@ $$F = D^I \\times A$$
       right: 0;
       bottom: 0;
       background-color: rgba(255, 255, 255, 0.1);
-      transition: .4s;
+      transition: .3s;
       border-radius: 34px;
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
@@ -306,99 +357,160 @@ $$F = D^I \\times A$$
     .slider:before {
       position: absolute;
       content: "";
-      height: 18px;
-      width: 18px;
+      height: 16px;
+      width: 16px;
       left: 3px;
       bottom: 3px;
-      background-color: white;
-      transition: .4s;
+      background-color: #ffffff;
+      transition: .3s;
       border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
     }
 
     input:checked + .slider {
-      background-color: var(--success);
+      background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
     }
 
     input:checked + .slider:before {
-      transform: translateX(24px);
+      transform: translateX(22px);
     }
 
     .result-display {
       background: rgba(255, 255, 255, 0.02);
       border: 1px solid rgba(255, 255, 255, 0.05);
       border-radius: 12px;
-      padding: 20px;
+      padding: 18px;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      margin-top: 15px;
+    }
+
+    .score-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 12px;
     }
 
     .score-circle {
-      width: 100px;
-      height: 100px;
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
-      border: 4px solid var(--primary);
+      border: 3px solid var(--primary);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.75rem;
+      font-size: 1.6rem;
       font-family: 'Outfit', sans-serif;
       font-weight: 700;
-      margin-bottom: 15px;
       position: relative;
-      box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
-      transition: all 0.3s;
+      box-shadow: 0 0 15px rgba(14, 165, 233, 0.2);
+      transition: all 0.3s ease;
+      background: rgba(0,0,0,0.2);
     }
 
     .score-circle.success {
       border-color: var(--success);
       color: var(--success);
-      box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
     }
 
     .score-circle.error {
       border-color: var(--error);
       color: var(--error);
-      box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.35);
+    }
+
+    .chart-container {
+      width: 100%;
+      height: 120px;
+      margin-top: 12px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      padding: 5px;
     }
 
     .status-text {
-      font-weight: 600;
+      font-weight: 700;
       font-size: 1.1rem;
-      margin-bottom: 5px;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
     }
 
     .status-desc {
       color: var(--text-muted);
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       line-height: 1.4;
     }
 
     .editor-container {
       display: flex;
       flex-direction: column;
-      gap: 15px;
-      height: 100%;
+      gap: 12px;
+    }
+
+    .preset-selector {
+      background: rgba(13, 18, 38, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      outline: none;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .preset-selector option {
+      background: #090d1d;
+    }
+
+    .split-editors {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    @media (min-width: 640px) {
+      .split-editors {
+        grid-template-columns: 1fr 1fr;
+      }
     }
 
     textarea {
       width: 100%;
-      height: 150px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      height: 120px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 8px;
       color: #38bdf8;
       font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      padding: 12px;
+      font-size: 0.78rem;
+      padding: 10px;
       resize: none;
       outline: none;
+      transition: border-color 0.3s;
     }
 
     textarea:focus {
       border-color: var(--primary);
+    }
+
+    .compress-output {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 10px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.78rem;
+      color: #a78bfa;
+      white-space: pre-wrap;
+      height: 120px;
+      overflow-y: auto;
     }
 
     .btn {
@@ -406,83 +518,171 @@ $$F = D^I \\times A$$
       border: none;
       border-radius: 8px;
       color: white;
-      padding: 12px;
+      padding: 10px 14px;
       font-weight: 600;
+      font-size: 0.9rem;
       cursor: pointer;
-      transition: opacity 0.2s;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
     }
 
     .btn:hover {
-      opacity: 0.9;
-    }
-
-    .compress-output {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
-      padding: 12px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85rem;
-      color: var(--text-main);
-      white-space: pre-wrap;
-      height: 150px;
-      overflow-y: auto;
+      opacity: 0.95;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(139, 92, 246, 0.35);
     }
 
     .stats-row {
       display: flex;
       justify-content: space-between;
       background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
       border-radius: 8px;
-      padding: 10px 15px;
-      font-size: 0.85rem;
+      padding: 8px 12px;
+      font-size: 0.8rem;
       color: var(--text-muted);
     }
 
-    .stats-row span strong {
+    .stats-row strong {
       color: var(--success);
+      font-family: 'Fira Code', monospace;
+    }
+
+    .router-display {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 10px;
+      font-size: 0.85rem;
+    }
+
+    .router-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .router-row:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .router-row span:first-child {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .router-row span:last-child {
+      font-family: 'Fira Code', monospace;
+      font-weight: 600;
+    }
+
+    .badge-secure {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.1);
+    }
+
+    .badge-global {
+      background: rgba(14, 165, 233, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(14, 165, 233, 0.3);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
     }
 
     .console-logs {
       grid-column: 1 / -1;
-      background: #020308;
-      border: 1px solid rgba(59, 130, 246, 0.1);
+      background: #02040a;
+      border: 1px solid rgba(56, 189, 248, 0.12);
       border-radius: 12px;
-      padding: 20px;
+      padding: 18px;
       font-family: 'Fira Code', monospace;
       font-size: 0.8rem;
-      height: 200px;
+      height: 180px;
       overflow-y: auto;
-      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.9);
+      box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.8);
+      position: relative;
+    }
+
+    .console-logs::before {
+      content: 'SYSTEM TELEMETRY LOGS';
+      position: absolute;
+      top: 6px;
+      right: 15px;
+      font-size: 0.65rem;
+      color: rgba(255, 255, 255, 0.2);
+      font-weight: 600;
+      letter-spacing: 1px;
     }
 
     .log-line {
-      margin-bottom: 6px;
+      margin-bottom: 5px;
       line-height: 1.4;
+      border-left: 2px solid transparent;
+      padding-left: 8px;
+      animation: logFade 0.3s ease-out;
     }
 
     .log-time {
-      color: var(--text-muted);
+      color: rgba(255, 255, 255, 0.35);
       margin-right: 10px;
     }
 
     .log-info {
       color: #60a5fa;
+      border-color: #60a5fa;
     }
 
     .log-success {
       color: #34d399;
+      border-color: #34d399;
     }
 
     .log-warning {
       color: #fbbf24;
+      border-color: #fbbf24;
+    }
+
+    .log-error {
+      color: #f87171;
+      border-color: #f87171;
     }
     
     footer {
-      margin-top: 20px;
+      margin-top: 30px;
       color: var(--text-muted);
       font-size: 0.85rem;
       text-align: center;
+      font-weight: 300;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes logFade {
+      from { opacity: 0; transform: translateX(-5px); }
+      to { opacity: 1; transform: translateX(0); }
     }
   </style>
 </head>
@@ -497,47 +697,98 @@ $$F = D^I \\times A$$
     
     <!-- Card 1: FDIA State Gatekeeper -->
     <div class="card">
-      <div>
-        <div class="card-title">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-          FDIA Algorithmic Gatekeeper
-        </div>
-        
-        <div class="form-group">
-          <label>Data Quality (D) <span id="valD">0.85</span></label>
-          <input type="range" id="inputD" min="0" max="1" step="0.01" value="0.85">
+      <div class="card-content">
+        <div>
+          <div class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            FDIA Algorithmic Gatekeeper
+          </div>
+          
+          <div class="form-group">
+            <label>Data Quality (D) <span id="valD">0.85</span></label>
+            <input type="range" id="inputD" min="0" max="1" step="0.01" value="0.85">
+          </div>
+
+          <div class="form-group">
+            <label>Intent Precision (I) <span id="valI">1.50</span></label>
+            <input type="range" id="inputI" min="1" max="3" step="0.05" value="1.50">
+          </div>
+
+          <div class="switch-container">
+            <span style="color: var(--text-muted); font-size: 0.88rem; font-weight: 500;">Human Architect Gate (A)</span>
+            <label class="switch">
+              <input type="checkbox" id="inputA" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label>Intent Precision (I) <span id="valI">1.50</span></label>
-          <input type="range" id="inputI" min="1" max="3" step="0.05" value="1.50">
-        </div>
+        <div>
+          <div class="chart-container">
+            <svg id="fdiaChart" width="100%" height="100%" viewBox="0 0 300 120" style="overflow: visible;">
+              <defs>
+                <linearGradient id="curveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.9"/>
+                </linearGradient>
+              </defs>
+              <!-- Grid lines -->
+              <line x1="40" y1="20" x2="260" y2="20" stroke="rgba(255,255,255,0.05)" stroke-dasharray="2,2"/>
+              <line x1="40" y1="70" x2="260" y2="70" stroke="rgba(255,255,255,0.05)" stroke-dasharray="2,2"/>
+              <line x1="40" y1="120" x2="260" y2="120" stroke="rgba(255,255,255,0.1)"/>
+              <line x1="40" y1="20" x2="40" y2="120" stroke="rgba(255,255,255,0.1)"/>
+              
+              <!-- Labels -->
+              <text x="35" y="24" fill="rgba(255,255,255,0.3)" font-size="7" text-anchor="end">1.0</text>
+              <text x="35" y="74" fill="rgba(255,255,255,0.3)" font-size="7" text-anchor="end">0.5</text>
+              <text x="35" y="124" fill="rgba(255,255,255,0.3)" font-size="7" text-anchor="end">0.0</text>
+              <text x="40" y="132" fill="rgba(255,255,255,0.3)" font-size="7" text-anchor="middle">D=0</text>
+              <text x="260" y="132" fill="rgba(255,255,255,0.3)" font-size="7" text-anchor="middle">D=1</text>
+              
+              <!-- Curve path -->
+              <path id="curvePath" d="M 40,120 Q 150,120 260,20" fill="none" stroke="url(#curveGrad)" stroke-width="2.5"/>
+              
+              <!-- Active Dot -->
+              <circle id="activeDot" cx="227" cy="48" r="5" fill="#10b981" style="filter: drop-shadow(0 0 6px #10b981); transition: cx 0.1s, cy 0.1s;"/>
+            </svg>
+          </div>
 
-        <div class="switch-container">
-          <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Human Architect Gate (A)</span>
-          <label class="switch">
-            <input type="checkbox" id="inputA" checked>
-            <span class="slider"></span>
-          </label>
+          <div class="result-display">
+            <div class="score-container">
+              <div class="score-circle success" id="scoreCircle">0.67</div>
+              <div style="text-align: left;">
+                <div class="status-text" id="statusText" style="color: var(--success);">State Authorized</div>
+                <div class="status-desc" id="statusDesc">State transition allowed under constitutional consensus constraints.</div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div class="result-display">
-        <div class="score-circle success" id="scoreCircle">0.67</div>
-        <div class="status-text" id="statusText">State Authorized</div>
-        <div class="status-desc" id="statusDesc">State transition allowed under constitutional consensus constraints.</div>
       </div>
     </div>
 
     <!-- Card 2: TOON Compressor -->
     <div class="card">
-      <div class="card-title">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6v6H4zm10 0h6v6h-6zM4 4h6v6H4zm10 0h6v6h-6z"/></svg>
-        TOON Protocol Compressor (ALGO-42)
-      </div>
-      
-      <div class="editor-container">
-        <textarea id="jsonInput">{
+      <div class="card-content">
+        <div>
+          <div class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6v6H4zm10 0h6v6h-6zM4 4h6v6H4zm10 0h6v6h-6z"/></svg>
+            TOON Protocol Compressor (ALGO-42)
+          </div>
+          
+          <div class="form-group">
+            <label style="margin-bottom: 6px;">Select Template Payload</label>
+            <select class="preset-selector" id="toonPreset" onchange="loadPreset()">
+              <option value="intent">Tax Calculation Intent</option>
+              <option value="simple">Simple System Command</option>
+              <option value="complex">Multi-Model Agent Plan</option>
+            </select>
+          </div>
+
+          <div class="editor-container">
+            <div class="split-editors">
+              <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600;">RAW JSON</span>
+                <textarea id="jsonInput" oninput="compress()">{
   "packet_id": "6afff5d6-7fa3-4f2c-92b0-b1a77fd42a93",
   "priority": 3,
   "payload": {
@@ -546,30 +797,82 @@ $$F = D^I \\times A$$
     "income": 1000000
   }
 }</textarea>
-        
-        <button class="btn" onclick="compress()">Compress to TOON</button>
-        
-        <div class="compress-output" id="toonOutput">packet_id: 6afff5d6-7fa3-4f2c-92b0-b1a77fd42a93
+              </div>
+              <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600;">COMPRESSED TOON</span>
+                <div class="compress-output" id="toonOutput">packet_id: 6afff5d6-7fa3-4f2c-92b0-b1a77fd42a93
 priority: 3
 payload:
   intent: คำนวณภาษีบุคคลธรรมดา 1 ล้านบาท
   currency: THB
   income: 1000000</div>
-        
-        <div class="stats-row">
-          <span>JSON: <span id="jsonBytes">198</span> chars</span>
-          <span>TOON: <span id="toonBytes">122</span> chars</span>
-          <span>Savings: <strong id="savingsPct">38.4%</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+          <button class="btn" onclick="compress()">Serialize context to TOON</button>
+          
+          <div class="stats-row">
+            <span>JSON: <span id="jsonBytes">198</span> chars</span>
+            <span>TOON: <span id="toonBytes">122</span> chars</span>
+            <span>Savings: <strong id="savingsPct">38.4%</strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Regional Sovereignty Router -->
+    <div class="card">
+      <div class="card-content">
+        <div>
+          <div class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            Regional Sovereignty Router
+          </div>
+
+          <div class="form-group">
+            <label>Sovereign Input Prompt / Test Message</label>
+            <textarea id="promptInput" style="height: 60px;" placeholder="Type localized prompt (e.g. สวัสดี, Japanese, etc.)..." oninput="routePrompt()">คำนวณสิทธิประโยชน์ทางภาษีตามเงื่อนไขของประเทศไทย</textarea>
+          </div>
+        </div>
+
+        <div>
+          <div class="router-display">
+            <div class="router-row">
+              <span>Detected Language</span>
+              <span id="resLang" style="color: #38bdf8;">th-TH (Thai)</span>
+            </div>
+            <div class="router-row">
+              <span>Target Region</span>
+              <span id="resRegion" style="color: #34d399;">ASEAN (th)</span>
+            </div>
+            <div class="router-row">
+              <span>Routed Model</span>
+              <span id="resModel" style="color: #a78bfa;">Typhoon-v2-7B-Instruct</span>
+            </div>
+            <div class="router-row" style="align-items: center;">
+              <span>PDPA Status</span>
+              <span id="resResidency"><span class="badge-secure">Sovereign safe</span></span>
+            </div>
+          </div>
+          <div class="result-display" style="padding: 10px; margin-top: 10px; background: rgba(16,185,129,0.05); border-color: rgba(16,185,129,0.15);">
+            <div style="font-size: 0.72rem; color: var(--success); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Regional Adapter Data Residency Restored Local
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Log Console -->
     <div class="console-logs" id="logs">
-      <div class="log-line"><span class="log-time">[15:00:00]</span><span class="log-info">[INIT] Delentia OS v3.0 Nodal Core initialized.</span></div>
-      <div class="log-line"><span class="log-time">[15:00:01]</span><span class="log-success">[SignedAI] HexaCore consensus node connected (Supreme Architect).</span></div>
-      <div class="log-line"><span class="log-time">[15:00:02]</span><span class="log-success">[SignedAI] 9 consensus roles online (TH-Local node active).</span></div>
-      <div class="log-line"><span class="log-time">[15:00:03]</span><span class="log-info">[DeltaEngine] Compression initialized. Base state caching active.</span></div>
+      <div class="log-line log-info"><span class="log-time">[09:00:00]</span>[INIT] Delentia OS v3.0 Nodal Core initialized.</div>
+      <div class="log-line log-success"><span class="log-time">[09:00:01]</span>[SignedAI] HexaCore consensus node connected (Supreme Architect).</div>
+      <div class="log-line log-success"><span class="log-time">[09:00:02]</span>[SignedAI] 9 consensus roles online (TH-Local node active).</div>
+      <div class="log-line log-info"><span class="log-time">[09:00:03]</span>[DeltaEngine] Compression initialized. Base state caching active.</div>
     </div>
 
   </div>
@@ -589,14 +892,55 @@ payload:
     const statusDesc = document.getElementById('statusDesc');
     const logs = document.getElementById('logs');
 
+    // Preset examples for TOON Compressor
+    const presets = {
+      intent: {
+        packet_id: "6afff5d6-7fa3-4f2c-92b0-b1a77fd42a93",
+        priority: 3,
+        payload: {
+          intent: "คำนวณภาษีบุคคลธรรมดา 1 ล้านบาท",
+          currency: "THB",
+          income: 1000000
+        }
+      },
+      simple: {
+        packet_id: "9f8e7d6c-5b4a-3f2e-1d0c-9b8a7f6e5d4c",
+        cmd: "sys_status",
+        target: "rct_kernel_v3.0",
+        verbose: true
+      },
+      complex: {
+        packet_id: "3a4b5c6d-7e8f-9a0b-1c2d-3e4f5a6b7c8d",
+        agent: "Delentia-Consensus-Supervisor",
+        steps: [
+          { action: "fetch_pdpa_policy", node: "TH-Local" },
+          { action: "run_consensus", threshold: 0.95 },
+          { action: "sign_execution_block", signature: "ed25519_node_signature" }
+        ],
+        checksum: "sha256_e3b0c442"
+      }
+    };
+
+    function loadPreset() {
+      const presetKey = document.getElementById('toonPreset').value;
+      const data = presets[presetKey];
+      document.getElementById('jsonInput').value = JSON.stringify(data, null, 2);
+      compress();
+    }
+
     function addLog(type, msg) {
       const now = new Date();
       const timeStr = now.toTimeString().split(' ')[0];
       const div = document.createElement('div');
-      div.className = 'log-line';
-      div.innerHTML = `<span class="log-time">[${timeStr}]</span><span class="${type}">${msg}</span>`;
+      div.className = `log-line ${type}`;
+      div.innerHTML = `<span class="log-time">[${timeStr}]</span>${msg}`;
       logs.appendChild(div);
       logs.scrollTop = logs.scrollHeight;
+      
+      // Limit total logs shown in DOM
+      if (logs.children.length > 50) {
+        logs.removeChild(logs.firstChild);
+      }
     }
 
     function calculateFDIA() {
@@ -628,15 +972,49 @@ payload:
         statusText.style.color = "var(--success)";
         statusDesc.textContent = "State transition allowed under constitutional consensus constraints.";
       }
+
+      updateSVGGraph(D, I, A);
+    }
+
+    function updateSVGGraph(D, I, A) {
+      const points = [];
+      const startX = 40;
+      const endX = 260;
+      const startY = 120;
+      const endY = 20;
+
+      for (let xVal = 0; xVal <= 1.05; xVal += 0.05) {
+        const yVal = Math.pow(xVal, I) * A;
+        const xSVG = startX + xVal * (endX - startX);
+        const ySVG = startY - yVal * (startY - endY);
+        points.push(`${xSVG},${ySVG}`);
+      }
+
+      const pathData = `M ${points.join(' L ')}`;
+      document.getElementById('curvePath').setAttribute('d', pathData);
+
+      // Active Dot
+      const currentF = Math.pow(D, I) * A;
+      const dotX = startX + D * (endX - startX);
+      const dotY = startY - currentF * (startY - endY);
+      const activeDot = document.getElementById('activeDot');
+      activeDot.setAttribute('cx', dotX);
+      activeDot.setAttribute('cy', dotY);
+
+      if (A === 0 || currentF < 0.5) {
+        activeDot.setAttribute('fill', 'var(--error)');
+        activeDot.style.filter = 'drop-shadow(0 0 6px var(--error))';
+      } else {
+        activeDot.setAttribute('fill', 'var(--success)');
+        activeDot.style.filter = 'drop-shadow(0 0 6px var(--success))';
+      }
     }
 
     inputD.addEventListener('input', () => {
       calculateFDIA();
-      addLog('log-info', `[FDIAGate] Input parameter D adjusted to ${inputD.value}`);
     });
     inputI.addEventListener('input', () => {
       calculateFDIA();
-      addLog('log-info', `[FDIAGate] Input parameter I adjusted to ${inputI.value}`);
     });
     inputA.addEventListener('change', () => {
       calculateFDIA();
@@ -690,13 +1068,88 @@ payload:
         jsonBytes.textContent = jsonLen;
         toonBytes.textContent = toonLen;
         savingsPct.textContent = savings.toFixed(1) + '%';
-        
-        addLog('log-success', `[TOON] Serialization complete. Token count reduced by ${savings.toFixed(1)}%`);
       } catch (e) {
-        alert("Invalid JSON payload. Please enter valid JSON formatting.");
-        addLog('log-warning', `[TOON] Serialization failed. Invalid JSON payload format.`);
+        toonOutput.textContent = "Error: Invalid JSON Input.";
       }
     }
+
+    // Regional Sovereignty Router simulator
+    function routePrompt() {
+      const prompt = document.getElementById('promptInput').value.trim().toLowerCase();
+      const resLang = document.getElementById('resLang');
+      const resRegion = document.getElementById('resRegion');
+      const resModel = document.getElementById('resModel');
+      const resResidency = document.getElementById('resResidency');
+
+      let lang = "en-US (English)";
+      let region = "Global (us)";
+      let model = "Qwen-2.5-7B-Instruct";
+      let statusHtml = '<span class="badge-global">Global Core</span>';
+
+      if (!prompt) {
+        resLang.textContent = "-";
+        resRegion.textContent = "-";
+        resModel.textContent = "-";
+        resResidency.innerHTML = "-";
+        return;
+      }
+
+      // Check Thai
+      if (/[ก-๙]/.test(prompt) || prompt.includes("thai") || prompt.includes("สวัสดี")) {
+        lang = "th-TH (Thai)";
+        region = "ASEAN (Thailand)";
+        model = "Typhoon-v2-7B-Instruct";
+        statusHtml = '<span class="badge-secure">Sovereign safe</span>';
+      }
+      // Check Japanese
+      else if (/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(prompt) || prompt.includes("japan") || prompt.includes("こんにちは")) {
+        lang = "ja-JP (Japanese)";
+        region = "East Asia (Japan)";
+        model = "Rakuten-AI-7B-Instruct";
+        statusHtml = '<span class="badge-secure">Sovereign safe</span>';
+      }
+      // Check Korean
+      else if (/[\uac00-\ud7a3]/.test(prompt) || prompt.includes("korea") || prompt.includes("안녕하세요")) {
+        lang = "ko-KR (Korean)";
+        region = "East Asia (Korea)";
+        model = "Solar-Pro-10.7B";
+        statusHtml = '<span class="badge-secure">Sovereign safe</span>';
+      }
+      // Check Vietnamese
+      else if (prompt.includes("viet") || prompt.includes("xin chào") || prompt.includes("thành phố") || prompt.includes("công nghiệp")) {
+        lang = "vi-VN (Vietnamese)";
+        region = "ASEAN (Vietnam)";
+        model = "ViGPT-7B-Instruct";
+        statusHtml = '<span class="badge-secure">Sovereign safe</span>';
+      }
+
+      resLang.textContent = lang;
+      resRegion.textContent = region;
+      resModel.textContent = model;
+      resResidency.innerHTML = statusHtml;
+    }
+
+    // Dynamic telemetry log updates
+    const logTemplates = [
+      { type: 'log-info', msg: '[Router] Active heartbeat check on regional nodes: TH-Local [OK], JP-East [OK], KR-Seoul [OK].' },
+      { type: 'log-success', msg: '[SignedAI] Consensus validated on block 429188. 9 consensus roles approved.' },
+      { type: 'log-info', msg: '[DeltaEngine] Memory cache compression sweep executed. Free memory space increased.' },
+      { type: 'log-success', msg: '[RCT-Guardrails] Security scan clean. Zero-trust validation token generated.' },
+      { type: 'log-warning', msg: '[Router] Processing transient latency anomaly on East-Asia regional proxy adapter.' },
+      { type: 'log-error', msg: '[SignedAI] Block verify warning: role 7 signature missing. Initiating automatic recovery route.' },
+      { type: 'log-success', msg: '[SignedAI] Consensus node signature recovered via fallback validator.' }
+    ];
+
+    setInterval(() => {
+      const idx = Math.floor(Math.random() * logTemplates.length);
+      const log = logTemplates[idx];
+      addLog(log.type, log.msg);
+    }, 6000);
+
+    // Initial run
+    calculateFDIA();
+    compress();
+    routePrompt();
   </script>
 </body>
 </html>
@@ -818,11 +1271,20 @@ Refining TOON (Token-Oriented Object Notation) for 15-50% token savings, and dev
 
 ## 🧮 Theoretical Foundation: The FDIA Equation
 
-My research leverages the **FDIA equation** to ensure absolute alignment:
+Our security architecture is governed by the **FDIA Equation** to ensure mathematical alignment:
 
 $$F = D^I \\times A$$
 
-By incorporating the human/architect gate ($A$) as a multiplicative element, the system guarantees that if $A = 0$ (meaning approval is rejected or signature verification fails), the final output state transition ($F$) is mathematically reduced to $0$. This ensures that security boundaries are not bypassable through prompt injection or behavioral overrides.
+#### Component Breakdown:
+| Parameter | Definition | Range / Constraints |
+| :--- | :--- | :--- |
+| **F** (Future State) | The final composite evaluation score of the proposed state transition. | **F ≥ 0.5** (Authorized), **F < 0.5** (Blocked) |
+| **D** (Data Quality) | The accuracy, freshness, and completeness of context inputs. | **0.0 ≤ D ≤ 1.0** |
+| **I** (Intent Precision) | Exponent amplifying alignment; higher precision scales safety exponentially. | **I ≥ 1.0** |
+| **A** (Architect Gate) | Strict binary human approval or cryptographic signature verification. | **A ∈ {0, 1}** (0 = Rejected, 1 = Approved) |
+
+> [!IMPORTANT]
+> **Mathematical Alignment Guarantee:** By design, the human/architect gate (**A**) acts as a multiplicative element. If approval is rejected or signature verification fails (**A = 0**), the final output state transition (**F**) is mathematically reduced to **0**. This guarantees that security boundaries are absolutely bypassable-proof, preventing prompt injections or behavioral overrides.
 
 ---
 

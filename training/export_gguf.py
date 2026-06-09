@@ -66,25 +66,34 @@ def main(
     skip_convert: bool = typer.Option(False, help="Skip GGUF conversion (if already done)"),  # noqa: B008
     toon: bool = typer.Option(False, "--toon", help="Export TOON v0.2 model"),  # noqa: B008
     dry_run: bool = typer.Option(False, "--dry-run", help="Validate setup without exporting"),  # noqa: B008
+    adapter_path: Path = typer.Option(None, help="LoRA adapter directory"),  # noqa: B008
+    gguf_path: Path = typer.Option(None, help="GGUF export file path"),  # noqa: B008
+    model_name: str = typer.Option(None, help="Ollama model register name"),  # noqa: B008
+    merged_path: Path = typer.Option(None, help="HuggingFace merged model output directory"),  # noqa: B008
 ) -> None:
     version_label = "v0.2 TOON" if toon else "v0.1"
-    console.print(Panel(f"[bold blue]Delentia AI — GGUF Export ({version_label})[/]", expand=False))
+    console.print(Panel(f"[bold blue]Delentia AI - GGUF Export ({version_label})[/]", expand=False))
 
     # Resolve paths and model name dynamically if toon is specified
     if toon:
-        model_name = "delentia-jitna-v0.2"
-        adapter_path = Path("models/adapters/jitna_v0.2_toon")
-        merged_path  = Path("models/merged/jitna_v0.2_toon")
-        gguf_path    = Path("models/gguf/delentia-jitna-v0.2-Q4_K_M.gguf")
+        def_model_name = "delentia-jitna-v0.2"
+        def_adapter_path = Path("models/adapters/jitna_v0.2_toon")
+        def_merged_path  = Path("models/merged/jitna_v0.2_toon")
+        def_gguf_path    = Path("models/gguf/delentia-jitna-v0.2-Q4_K_M.gguf")
         modelfile_template = OLLAMA_MODELFILE_TEMPLATE_V02
     else:
         # Load from config or default to v0.1
         cfg = load_config(config) if config.exists() else {}
-        model_name = "delentia-jitna-v0.1"
-        adapter_path = Path(cfg.get("adapter_path", "models/adapters/jitna_v0.1"))
-        merged_path  = Path(cfg.get("merged_path", "models/merged/jitna_v0.1"))
-        gguf_path = Path(cfg.get("gguf_path", "models/gguf/delentia-jitna-v0.1-Q4_K_M.gguf"))
+        def_model_name = "delentia-jitna-v0.1"
+        def_adapter_path = Path(cfg.get("adapter_path", "models/adapters/jitna_v0.1"))
+        def_merged_path  = Path(cfg.get("merged_path", "models/merged/jitna_v0.1"))
+        def_gguf_path = Path(cfg.get("gguf_path", "models/gguf/delentia-jitna-v0.1-Q4_K_M.gguf"))
         modelfile_template = OLLAMA_MODELFILE_TEMPLATE_V01
+
+    model_name = model_name or def_model_name
+    adapter_path = Path(adapter_path) if adapter_path else def_adapter_path
+    merged_path = Path(merged_path) if merged_path else def_merged_path
+    gguf_path = Path(gguf_path) if gguf_path else def_gguf_path
 
     console.print(f"Model Name:   [cyan]{model_name}[/]")
     console.print(f"Adapter Path: [cyan]{adapter_path}[/]")
@@ -107,7 +116,7 @@ def main(
         raise typer.Exit(1)
 
     # ── 1. Load base + adapter ────────────────────────────────────────────────
-    console.print("[1/4] Loading base model + LoRA adapter…")
+    console.print("[1/4] Loading base model + LoRA adapter...")
     if not dry_run and unsloth_available:
         model, tokenizer = FastLanguageModel.from_pretrained(
             model_name=str(adapter_path),
@@ -117,7 +126,7 @@ def main(
         )
 
     # ── 2. Merge LoRA into base ───────────────────────────────────────────────
-    console.print("[2/4] Merging LoRA weights into base model…")
+    console.print("[2/4] Merging LoRA weights into base model...")
     if not dry_run and unsloth_available:
         merged_path.mkdir(parents=True, exist_ok=True)
         model.save_pretrained_merged(
@@ -125,13 +134,13 @@ def main(
             tokenizer,
             save_method="merged_16bit",
         )
-        console.print(f"  Merged model saved → {merged_path}")
+        console.print(f"  Merged model saved -> {merged_path}")
     else:
         console.print("[yellow]Dry run / Mock: Skipped merging weights[/]")
 
     # ── 3. Convert to GGUF ────────────────────────────────────────────────────
     if not skip_convert:
-        console.print("[3/4] Converting to GGUF Q4_K_M…")
+        console.print("[3/4] Converting to GGUF Q4_K_M...")
         if not dry_run and unsloth_available:
             gguf_path.parent.mkdir(parents=True, exist_ok=True)
             model.save_pretrained_gguf(
@@ -139,7 +148,7 @@ def main(
                 tokenizer,
                 quantization_method="q4_k_m",
             )
-            console.print(f"  GGUF saved → {gguf_path.parent}")
+            console.print(f"  GGUF saved -> {gguf_path.parent}")
         else:
             console.print("[yellow]Dry run / Mock: Skipped GGUF conversion[/]")
     else:
@@ -147,7 +156,7 @@ def main(
 
     # ── 4. Test with Ollama ───────────────────────────────────────────────────
     if test_ollama:
-        console.print("[4/4] Testing with Ollama…")
+        console.print("[4/4] Testing with Ollama...")
         gguf_file = gguf_path
         # In dry run, or if gguf file doesn't exist, create a mock file
         # to verify Modelfile generation.
@@ -163,7 +172,7 @@ def main(
             modelfile_template.format(gguf_path=gguf_file.absolute()),
             encoding="utf-8"
         )
-        console.print(f"  Ollama Modelfile generated → {modelfile_path}")
+        console.print(f"  Ollama Modelfile generated -> {modelfile_path}")
 
         if dry_run:
             console.print("[yellow]Dry run: Skipped registering and testing with Ollama process[/]")
@@ -186,8 +195,8 @@ def main(
                     capture_output=True, text=True, timeout=60
                 )
                 if test_result.returncode == 0:
-                    console.print("[green]✓ Ollama inference test PASSED[/]")
-                    console.print(f"  Response preview: {test_result.stdout[:200]}…")
+                    console.print("[green][OK] Ollama inference test PASSED[/]")
+                    console.print(f"  Response preview: {test_result.stdout[:200]}...")
                 else:
                     console.print(f"[yellow]Ollama test failed:[/] {test_result.stderr}")
 
@@ -196,7 +205,7 @@ def main(
         f"GGUF Path: {gguf_path.parent}\n"
         f"Ollama model: [cyan]{model_name}[/]\n\n"
         f"To use in Delentia OS:\n"
-        f"  Set HexaCoreRole OLLAMA_ADAPTER → model_id: {model_name}",
+        f"  Set HexaCoreRole OLLAMA_ADAPTER -> model_id: {model_name}",
         expand=False,
     ))
 
