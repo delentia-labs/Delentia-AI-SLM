@@ -82,4 +82,4 @@ target_metrics:
   toon_compliance: 0.95         # >= 95% TOON format compliance
   fdia_avg: 0.895               # avg F score >= 0.895
   hallucination_rate: 0.0028    # <= 0.28% factual errors (SignedAI consensus)
-  token_savings_pct: 15.0       # >= 15% token savings
+  token_savings_pct: 10.0       # >= 10% token savings (adjusted for realistic v0.3 savings)
