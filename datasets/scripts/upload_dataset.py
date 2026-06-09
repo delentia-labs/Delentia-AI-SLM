@@ -159,7 +159,9 @@ def upload_dataset():
     # Repositories targets
     repos = [
         "Ittirit-delentia/delentia-rct-intent-dataset",
-        "Delentia/delentia-rct-intent-dataset"
+        "Delentia/delentia-rct-intent-dataset",
+        "Ittirit-delentia/Ittirit-delentia",
+        "Delentia/Delentia"
     ]
     
     # Check if we have README_DATASET.md

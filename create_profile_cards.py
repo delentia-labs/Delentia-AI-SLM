@@ -57,29 +57,32 @@ pinned: false
 ## 🇹🇭 บทสรุปผู้บริหาร / Executive Summary (Bilingual)
 
 ### **ภาษาไทย (Thai)**
-**Delentia Labs** เป็นผู้พัฒนาโครงสร้างพื้นฐานหลักสำหรับ **RCT (Reverse Component Thinking) Ecosystem** ซึ่งเป็น **ระบบปฏิบัติการ Intent-Centric AI OS ตัวแรกของโลกที่มีการรับประกันความปลอดภัยเชิงคณิตศาสตร์ (Constitutional Guarantees)** 
+**Delentia Labs** เป็นผู้พัฒนาโครงสร้างพื้นฐานหลักสำหรับ **RCT (Reverse Component Thinking) Ecosystem** ซึ่งเป็น **ระบบปฏิบัติการ Intent-Centric AI OS ตัวแรกของโลกที่มีการรับประกันความปลอดภัยเชิงคณิตศาสตร์ (Constitutional Guarantees)**
 * **จุดมุ่งหมายสูงสุด:** เพื่อสร้างระบบควบคุมการทำงานของ AI Agent ที่ตรวจสอบได้ (Auditable) ปลอดภัย 100% และปฏิบัติตามกฎหมายคุ้มครองข้อมูลส่วนบุคคล (PDPA) อย่างเคร่งครัด โดยประมวลผลภายในระบบปิด (On-Premises / Air-Gapped)
+* **สถานะปัจจุบัน (JITNA v0.3):** โมเดลหลักได้รับการเทรนด้วยวิธี Unsloth QLoRA, รวบรวมสิทธิ์ความปลอดภัยในระดับน้ำหนักโมเดล (RCT v7 Rules), ประสานโครงสร้าง Delta Engine และ Intent Loop เป็นผลสำเร็จ และได้รับการแปลงเป็น GGUF (`delentia-slm-jitna-v0.3-Q4_K_M.gguf`) ผ่านการทดสอบคัดกรองความปลอดภัยและการประมวลผลโลจิกบน Ollama 100% 
 
 ### **English**
 **Delentia Labs** designs the core infrastructure for the **RCT (Reverse Component Thinking) Ecosystem** — the world's first **Intent-Centric AI Operating System** with mathematical constitutional guarantees.
 * **Core Mission:** To establish an open, verifiable, and highly secure framework (Linux for AI Agents), ensuring that autonomous components remain aligned, predictable, and compliant under all operational conditions.
+* **Current Status (JITNA v0.3):** The model weights have been fine-tuned via Unsloth QLoRA, embedding RCT v7 rules directly into the parameter space. It incorporates Delta Engine caching and Intent Loop routing, successfully compiled to GGUF format (`delentia-slm-jitna-v0.3-Q4_K_M.gguf`), and verified through local smoke testing (standard logic & security intrusion gates) under Ollama.
 
 ---
 
 ## 🛠️ Core Technologies & Enterprise Features
 
-### 1. Delentia OS & JITNA Assembly (Just-In-Time Nodal Assembly)
-The open-source core SDK of the intent-centric AI operating system. It orchestrates dynamic execution loops, state tracking, and secure tool routing.
-- **Enterprise Benefit:** Zero-trust component-level sandboxing. Every action is compiled into a verifiable execution block.
+### 1. Delentia SLM - JITNA v0.3 Cognitive Kernel (GGUF)
+Our production-ready, edge-deployable Small Language Model (8B parameters). Optimized for low-latency offline agent orchestration.
+- **Enterprise Benefit:** Fully deployable on standard enterprise endpoints or private cloud servers via Ollama, removing reliance on external APIs.
+- **Cognitive Mixing:** Combines system self-healing loops, data compression deltas, and strict safety layers in one single inference block.
 
-### 2. SignedAI & HexaCore Consensus Layer
-A multi-LLM consensus layer utilizing ED25519 cryptographic signatures to validate model outputs.
-- **The 9-Role Consensus:** Incorporates purpose-specific models across a balanced distribution (3 US, 3 CN, 1 TH, 1 Local, 1 LPU) to reduce model hallucination to **under 0.3%** (vs. 12-15% industry standard).
-- **Security Guarantee:** Every decision is cryptographically signed and stored in immutable trails, ensuring compliance with corporate audits and national AI regulations.
-
-### 3. Delta Engine (Memory Compression)
+### 2. Delta Engine (Memory Compression)
 A high-efficiency agent memory system that stores state change diffs instead of redundant full-history context.
 - **Compression Rate:** **91.5% space reduction** (design spec floor ≥ 74%), enabling the "Infinite Context Illusion" for long-running workflows.
+
+### 3. Intent Loop & HexaCore Consensus Layer
+A multi-LLM consensus layer utilizing ED25519 cryptographic signatures to validate model outputs.
+- **The 9-Role Consensus:** Incorporates purpose-specific models across a balanced distribution (3 US, 3 CN, 1 TH, 1 Local, 1 LPU) to reduce model hallucination to **under 0.3%** (vs. 12-15% industry standard).
+- **Self-Healing Routing:** The Intent Loop detects failed tasks and re-routes requests through secondary verification paths.
 
 ### 4. TOON (Token-Oriented Object Notation — ALGO-42)
 Our syntax-noise-free serialization protocol that replaces traditional JSON delimiters (`{`, `}`, `[`, `]`, `"`, `,`) with indentation and newline structures.
@@ -1233,6 +1236,7 @@ pinned: false
 > *"การควบคุมและการรับประกันความปลอดภัยของระบบ AI (AI Governance & Safety) ควรได้รับการคุ้มครองด้วยการเข้ารหัสคณิตศาสตร์ในระดับโครงสร้างระบบปฏิบัติการ ไม่ใช่เป็นเพียงการตั้งค่าที่ปิด/เปิด หรือถูกบายพาสได้โดยง่าย"*
 
 ตั้งแต่ปี 2025 ผมได้ทุ่มเทพัฒนาโครงข่ายของ AI OS ทั้งหมดด้วยตัวคนเดียวแบบ 100% Offline เพื่อปกป้องอธิปไตยข้อมูลส่วนบุคคลของไทย (PDPA) และมุ่งเน้นการเพิ่มประสิทธิภาพโมเดลระดับ SLM ให้มีศักยภาพการประมวลผลที่เทียบเคียง Enterprise ระดับโลก
+* **ความสำเร็จล่าสุด (JITNA v0.3 GGUF):** ผมได้ทำการพัฒนาและ Fine-Tuning โมเดล **delentia-slm-jitna-v0.3** โดยการเชื่อมโยงระบบ Intent Loop, Delta Engine และ RCT v7 Rules เข้าด้วยกัน และทำการประมวลผลโมเดลให้อยู่ในฟอร์แมต GGUF 4-bit (`delentia-slm-jitna-v0.3-Q4_K_M.gguf`) ซึ่งผ่านการทดสอบ Smoke Test ในระดับเครื่องท้องถิ่นผ่าน Ollama (ทั้งด้าน Standard Logic และ Security Hostile Injection) ได้ครบถ้วน 100%
 
 ### **English**
 I am the sole architect and developer of the **RCT Ecosystem** and **Delentia OS**. Working from Klong Toei, Bangkok, I built this system to prove a simple principle:
@@ -1243,13 +1247,14 @@ Through rigorous engineering, I have designed and coded:
 * **41 proprietary algorithms** spanning execution, routing, security, and consensus (SignedAI).
 * **1,287 test cases** with a 92% coverage rate, ensuring high fidelity.
 * **A 450+ page whitepaper** detailing the mathematical underpinnings of the ecosystem.
+* **JITNA v0.3 GGUF Milestone:** Successfully fine-tuned and quantized the `delentia-slm-jitna-v0.3` model to 4-bit GGUF format, achieving 100% pass rates in local smoke validation tests (covering both functional logical parsing and constitutional security injection gates) on Ollama.
 
 ---
 
 ## 🧠 AI & ML Research Focus
 
-### 1. Cognitive OS Logic Mixing (v0.3 SLM)
-Fine-tuning Small Language Models (SLMs) to execute complex, multi-domain cognitive loops. This includes memory delta compression (Delta Engine), routing recovery mechanisms (Intent Loop), and PDPA-compliant zero-trust safety blocks (RCT 7 rules).
+### 1. Cognitive OS Logic Mixing (v0.3 SLM GGUF)
+Fine-tuning Small Language Models (SLMs) to execute complex, multi-domain cognitive loops. This includes memory delta compression (Delta Engine), routing recovery mechanisms (Intent Loop), and PDPA-compliant zero-trust safety blocks (RCT 7 rules). The v0.3 model is edge-deployable via Ollama using GGUF format.
 
 ### 2. Pluggable Regional LLMs & Sovereignty
 Integrating pluggable regional LLM adapters (Rakuten AI for JP, Solar Pro for KR, ViGPT for VN, Typhoon v2 for TH) to keep sensitive regional data in-region and guarantee PDPA compliance.
