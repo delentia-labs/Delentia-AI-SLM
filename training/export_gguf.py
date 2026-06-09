@@ -91,9 +91,9 @@ def main(
         modelfile_template = OLLAMA_MODELFILE_TEMPLATE_V01
 
     model_name = model_name or def_model_name
-    adapter_path = Path(adapter_path) if adapter_path else def_adapter_path
-    merged_path = Path(merged_path) if merged_path else def_merged_path
-    gguf_path = Path(gguf_path) if gguf_path else def_gguf_path
+    adapter_path = Path(adapter_path).resolve() if adapter_path else def_adapter_path.resolve()
+    merged_path = Path(merged_path).resolve() if merged_path else def_merged_path.resolve()
+    gguf_path = Path(gguf_path).resolve() if gguf_path else def_gguf_path.resolve()
 
     console.print(f"Model Name:   [cyan]{model_name}[/]")
     console.print(f"Adapter Path: [cyan]{adapter_path}[/]")
