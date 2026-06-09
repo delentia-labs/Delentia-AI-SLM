@@ -148,7 +148,21 @@ def main(
                 tokenizer,
                 quantization_method="q4_k_m",
             )
-            console.print(f"  GGUF saved -> {gguf_path.parent}")
+            # Locate and move the opinionated file path Unsloth creates
+            unsloth_gguf_dir = Path(str(gguf_path.parent) + "_gguf")
+            if unsloth_gguf_dir.exists():
+                generated_files = list(unsloth_gguf_dir.glob("*.gguf"))
+                if generated_files:
+                    generated_file = generated_files[0]
+                    if gguf_path.exists():
+                        gguf_path.unlink()
+                    import shutil
+                    shutil.move(str(generated_file), str(gguf_path))
+                    console.print(f"  [OK] Moved GGUF model to target path: {gguf_path}")
+                    shutil.rmtree(str(unsloth_gguf_dir), ignore_errors=True)
+                else:
+                    console.print("[yellow]Warning: No GGUF files found in Unsloth output directory.[/]")
+            console.print(f"  GGUF saved -> {gguf_path}")
         else:
             console.print("[yellow]Dry run / Mock: Skipped GGUF conversion[/]")
     else:
