@@ -178,27 +178,31 @@ def main(
             console.print("[yellow]Dry run: Skipped registering and testing with Ollama process[/]")
         else:
             # Create Ollama model
-            result = subprocess.run(
-                ["ollama", "create", model_name, "-f", str(modelfile_path)],
-                capture_output=True, text=True
-            )
-            if result.returncode != 0:
-                console.print(f"[yellow]Ollama create failed:[/] {result.stderr}")
-                console.print("  Install Ollama: https://ollama.com")
-            else:
-                console.print(f"[green]Ollama model created:[/] {model_name}")
-
-                # Quick sanity test
-                test_result = subprocess.run(
-                    ["ollama", "run", model_name,
-                     "List 3 key features of Delentia OS JITNA v3 protocol."],
-                    capture_output=True, text=True, timeout=60
+            try:
+                result = subprocess.run(
+                    ["ollama", "create", model_name, "-f", str(modelfile_path)],
+                    capture_output=True, text=True
                 )
-                if test_result.returncode == 0:
-                    console.print("[green][OK] Ollama inference test PASSED[/]")
-                    console.print(f"  Response preview: {test_result.stdout[:200]}...")
+                if result.returncode != 0:
+                    console.print(f"[yellow]Ollama create failed:[/] {result.stderr}")
+                    console.print("  Install Ollama: https://ollama.com")
                 else:
-                    console.print(f"[yellow]Ollama test failed:[/] {test_result.stderr}")
+                    console.print(f"[green]Ollama model created:[/] {model_name}")
+
+                    # Quick sanity test
+                    test_result = subprocess.run(
+                        ["ollama", "run", model_name,
+                         "List 3 key features of Delentia OS JITNA v3 protocol."],
+                        capture_output=True, text=True, timeout=60
+                    )
+                    if test_result.returncode == 0:
+                        console.print("[green][OK] Ollama inference test PASSED[/]")
+                        console.print(f"  Response preview: {test_result.stdout[:200]}...")
+                    else:
+                        console.print(f"[yellow]Ollama test failed:[/] {test_result.stderr}")
+            except FileNotFoundError:
+                console.print("[yellow]Warning: ollama command not found on this system. Skipping Ollama model registration.[/]")
+                console.print("  To install Ollama, visit: https://ollama.com")
 
     console.print(Panel(
         f"[bold green]Export process completed![/]\n"
