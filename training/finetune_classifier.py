@@ -107,12 +107,70 @@ def main(
             bnb_4bit_use_double_quant=True,
         )
 
-        model = AutoModelForSequenceClassification.from_pretrained(
-            model_cfg["base_model"],
-            num_labels=class_cfg["num_labels"],
-            quantization_config=quantization_config,
-            device_map="auto",
-        )
+        import torch.nn.init as torch_init
+        import transformers.initialization as hf_init
+
+        # Save original init functions
+        orig_normal = torch_init.normal_
+        orig_uniform = torch_init.uniform_
+
+        def safe_normal(tensor, mean=0.0, std=1.0, generator=None):
+            if tensor.dtype in [torch.uint8, torch.int8, torch.int16, torch.int32, torch.int64]:
+                return tensor
+            return orig_normal(tensor, mean=mean, std=std, generator=generator)
+
+        def safe_uniform(tensor, a=0.0, b=1.0, generator=None):
+            if tensor.dtype in [torch.uint8, torch.int8, torch.int16, torch.int32, torch.int64]:
+                return tensor
+            return orig_uniform(tensor, a=a, b=b, generator=generator)
+
+        # Apply patches
+        torch_init.normal_ = safe_normal
+        torch_init.uniform_ = safe_uniform
+        if hasattr(hf_init, "TORCH_INIT_FUNCTIONS"):
+            if "normal_" in hf_init.TORCH_INIT_FUNCTIONS:
+                hf_init.TORCH_INIT_FUNCTIONS["normal_"] = safe_normal
+            if "uniform_" in hf_init.TORCH_INIT_FUNCTIONS:
+                hf_init.TORCH_INIT_FUNCTIONS["uniform_"] = safe_uniform
+
+        orig_llama_init_weights = None
+        LlamaPreTrainedModel = None
+        try:
+            from transformers.models.llama.modeling_llama import LlamaPreTrainedModel
+            orig_llama_init_weights = LlamaPreTrainedModel._init_weights
+
+            def safe_llama_init_weights(self, module):
+                try:
+                    orig_llama_init_weights(self, module)
+                except Exception as e:
+                    if "not implemented for" in str(e) or "Byte" in str(e) or "normal_kernel_cuda" in str(e):
+                        pass
+                    else:
+                        raise e
+
+            LlamaPreTrainedModel._init_weights = safe_llama_init_weights
+        except Exception:
+            pass
+
+        try:
+            model = AutoModelForSequenceClassification.from_pretrained(
+                model_cfg["base_model"],
+                num_labels=class_cfg["num_labels"],
+                quantization_config=quantization_config,
+                device_map="auto",
+            )
+        finally:
+            # Restore original functions and methods
+            torch_init.normal_ = orig_normal
+            torch_init.uniform_ = orig_uniform
+            if hasattr(hf_init, "TORCH_INIT_FUNCTIONS"):
+                if "normal_" in hf_init.TORCH_INIT_FUNCTIONS:
+                    hf_init.TORCH_INIT_FUNCTIONS["normal_"] = orig_normal
+                if "uniform_" in hf_init.TORCH_INIT_FUNCTIONS:
+                    hf_init.TORCH_INIT_FUNCTIONS["uniform_"] = orig_uniform
+            if LlamaPreTrainedModel is not None and orig_llama_init_weights is not None:
+                LlamaPreTrainedModel._init_weights = orig_llama_init_weights
+
         model.config.pad_token_id = tokenizer.pad_token_id
     else:
         from unittest.mock import MagicMock
