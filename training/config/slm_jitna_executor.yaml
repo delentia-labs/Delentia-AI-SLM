@@ -1,0 +1,80 @@
+# Delentia SLM — The Executor (slm-jitna-agentic) LoRA Configuration
+# Purpose: Function Calling / Structured JSON Output
+# Priority: #1 in 4-Pillar Architecture (unlocks Intent Memory Loop)
+#
+# The Executor MUST produce pure JSON with zero natural language contamination.
+# It converts user intents into machine-executable tool-call payloads.
+
+model:
+  base_model: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
+  tokenizer: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
+  max_seq_length: 4096
+  dtype: null
+  load_in_4bit: true
+
+lora:
+  r: 32
+  lora_alpha: 64                # α = 2r for optimal learning rate control
+  lora_dropout: 0
+  bias: "none"
+  use_rslora: true
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+  task_type: "CAUSAL_LM"
+
+training:
+  dataset_path: "datasets/processed/jitna_executor_pairs.jsonl"
+  dataset_split: "train"
+  validation_split: 0.05
+  max_samples: null
+
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 8
+
+  learning_rate: 3.0e-5         # Lower LR to force precise JSON structure learning
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.05
+  num_train_epochs: 5
+
+  bf16: true
+  fp16: false
+  optim: "adamw_8bit"
+  weight_decay: 0.01
+  max_grad_norm: 0.3
+
+  output_dir: "models/checkpoints/executor_agentic"
+  save_strategy: "epoch"
+  save_total_limit: 3
+  logging_steps: 10
+
+  evaluation_strategy: "epoch"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+
+chat_template: |
+  <|system|>
+  You are The Executor (slm-jitna-agentic) — a specialized LoRA adapter within the Delentia OS 1+4 Pillar Architecture. Your ONLY purpose is to convert user intents into machine-executable JSON payloads. You must NEVER produce natural language explanations. Output ONLY valid JSON — no markdown, no text, no comments. Your output must pass json.loads() without error.
+  <|user|>
+  {{ user_intent }}
+  <|assistant|>
+
+pillar_type: "executor"
+adapter_name: "jitna_executor_v1"
+adapter_save_path: "models/adapters/jitna_executor_v1"
+
+mlflow:
+  experiment_name: "delentia-slm-executor-agentic"
+  tracking_uri: "https://delentia-delentia-agent-monitor.hf.space"
+  log_model: true
+
+target_metrics:
+  json_validity: 0.99            # >= 99% valid JSON output
+  tool_call_accuracy: 0.95       # >= 95% correct tool name + args
+  fdia_avg: 0.90                 # avg F score >= 0.90
+  hallucination_rate: 0.02       # <= 2% factual errors

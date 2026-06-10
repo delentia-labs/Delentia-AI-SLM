@@ -1,0 +1,80 @@
+# Delentia SLM — The Scribe (slm-jitna-scribe) LoRA Configuration
+# Purpose: Context Compression / RAG Filtering / Hierarchical Summarization
+# Priority: #4 in 4-Pillar Architecture
+#
+# The Scribe takes long context and compresses it into minimal, high-signal output.
+# It removes noise, keeps actionable info, and reports compression statistics.
+
+model:
+  base_model: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
+  tokenizer: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
+  max_seq_length: 4096            # Longer context for compression tasks
+  dtype: null
+  load_in_4bit: true
+
+lora:
+  r: 32
+  lora_alpha: 64
+  lora_dropout: 0
+  bias: "none"
+  use_rslora: true
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+  task_type: "CAUSAL_LM"
+
+training:
+  dataset_path: "datasets/processed/jitna_scribe_pairs.jsonl"
+  dataset_split: "train"
+  validation_split: 0.1
+  max_samples: null
+
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 8
+
+  learning_rate: 5.0e-5
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.05
+  num_train_epochs: 5
+
+  bf16: true
+  fp16: false
+  optim: "adamw_8bit"
+  weight_decay: 0.01
+  max_grad_norm: 0.3
+
+  output_dir: "models/checkpoints/scribe_compressor"
+  save_strategy: "epoch"
+  save_total_limit: 3
+  logging_steps: 10
+
+  evaluation_strategy: "epoch"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+
+chat_template: |
+  <|system|>
+  You are The Scribe (slm-jitna-scribe) — a specialized LoRA adapter within the Delentia OS 1+4 Pillar Architecture. Your purpose is to compress large contexts into minimal, high-signal summaries. Remove noise. Keep only actionable information. Output must be structured and token-efficient. Report compression statistics in every response.
+  <|user|>
+  {{ user_intent }}
+  <|assistant|>
+
+pillar_type: "scribe"
+adapter_name: "jitna_scribe_v1"
+adapter_save_path: "models/adapters/jitna_scribe_v1"
+
+mlflow:
+  experiment_name: "delentia-slm-scribe-compressor"
+  tracking_uri: "https://delentia-delentia-agent-monitor.hf.space"
+  log_model: true
+
+target_metrics:
+  compression_ratio: 3.5          # >= 3.5x average compression
+  information_retention: 0.92     # >= 92% key info retained
+  token_savings_pct: 65.0         # >= 65% token savings
+  rag_precision: 0.90             # >= 90% noise filtering accuracy

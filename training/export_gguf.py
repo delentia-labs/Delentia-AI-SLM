@@ -54,6 +54,44 @@ OLLAMA_MODELFILE_TEMPLATE_V02 = (
 )
 
 
+OLLAMA_MODELFILE_TEMPLATE_EXECUTOR = (
+    "FROM {gguf_path}\n"
+    "SYSTEM You are The Executor (slm-jitna-agentic) — a specialized LoRA adapter "
+    "within the Delentia OS 1+4 Pillar Architecture. Your ONLY purpose is to convert "
+    "user intents into machine-executable JSON payloads. You must NEVER produce natural "
+    "language explanations. Output ONLY valid JSON — no markdown, no text, no comments. "
+    "Your output must pass json.loads() without error.\n"
+    "PARAMETER temperature 0.0\n"
+    "PARAMETER top_p 0.9\n"
+    "PARAMETER stop \"<|eot_id|>\"\n"
+)
+
+OLLAMA_MODELFILE_TEMPLATE_GUARDIAN = (
+    "FROM {gguf_path}\n"
+    "SYSTEM You are The Guardian (slm-jitna-guardian) — a specialized Constitutional AI "
+    "safety evaluator within the Delentia OS 1+4 Pillar Architecture. Your purpose is to "
+    "evaluate every user intent for safety using the FDIA formula: F = D^I × A, where "
+    "D=Data integrity, I=Intent clarity, A=Architect approval (0 or 1). Output ONLY a JSON "
+    "verdict. If the intent is harmful, set A=0 and status=REJECTED. If safe, set A=1 and "
+    "status=AUTHORIZED.\n"
+    "PARAMETER temperature 0.0\n"
+    "PARAMETER top_p 0.9\n"
+    "PARAMETER stop \"<|eot_id|>\"\n"
+)
+
+OLLAMA_MODELFILE_TEMPLATE_SCRIBE = (
+    "FROM {gguf_path}\n"
+    "SYSTEM You are The Scribe (slm-jitna-scribe) — a specialized LoRA adapter "
+    "within the Delentia OS 1+4 Pillar Architecture. Your purpose is to compress large "
+    "contexts into minimal, high-signal summaries. Remove noise. Keep only actionable "
+    "information. Output must be structured and token-efficient. Report compression statistics "
+    "in every response.\n"
+    "PARAMETER temperature 0.3\n"
+    "PARAMETER top_p 0.9\n"
+    "PARAMETER stop \"<|eot_id|>\"\n"
+)
+
+
 def load_config(path: Path) -> dict:
     with path.open() as f:
         return yaml.safe_load(f)
@@ -70,12 +108,39 @@ def main(
     gguf_path: Path = typer.Option(None, help="GGUF export file path"),  # noqa: B008
     model_name: str = typer.Option(None, help="Ollama model register name"),  # noqa: B008
     merged_path: Path = typer.Option(None, help="HuggingFace merged model output directory"),  # noqa: B008
+    pillar: str = typer.Option(None, help="Pillar type: executor, guardian, scribe (Router classification adapter doesn't use GGUF)"),  # noqa: B008
 ) -> None:
-    version_label = "v0.2 TOON" if toon else "v0.1"
+    version_label = f"Pillar: {pillar.upper()}" if pillar else ("v0.2 TOON" if toon else "v0.1")
     console.print(Panel(f"[bold blue]Delentia AI - GGUF Export ({version_label})[/]", expand=False))
 
-    # Resolve paths and model name dynamically if toon is specified
-    if toon:
+    # Resolve paths and model name dynamically
+    if pillar:
+        pillar = pillar.lower()
+        if pillar == "router":
+            console.print("[red]The Router uses sequence classification and is loaded directly in python backend via PEFT. GGUF export is not required for the Router.[/]")
+            raise typer.Exit(1)
+        elif pillar == "executor":
+            def_model_name = "delentia-jitna-executor"
+            def_adapter_path = Path("models/adapters/jitna_executor_v1")
+            def_merged_path  = Path("models/merged/jitna_executor_v1")
+            def_gguf_path    = Path("models/gguf/delentia-jitna-executor-Q4_K_M.gguf")
+            modelfile_template = OLLAMA_MODELFILE_TEMPLATE_EXECUTOR
+        elif pillar == "guardian":
+            def_model_name = "delentia-jitna-guardian"
+            def_adapter_path = Path("models/adapters/jitna_guardian_v1")
+            def_merged_path  = Path("models/merged/jitna_guardian_v1")
+            def_gguf_path    = Path("models/gguf/delentia-jitna-guardian-Q4_K_M.gguf")
+            modelfile_template = OLLAMA_MODELFILE_TEMPLATE_GUARDIAN
+        elif pillar == "scribe":
+            def_model_name = "delentia-jitna-scribe"
+            def_adapter_path = Path("models/adapters/jitna_scribe_v1")
+            def_merged_path  = Path("models/merged/jitna_scribe_v1")
+            def_gguf_path    = Path("models/gguf/delentia-jitna-scribe-Q4_K_M.gguf")
+            modelfile_template = OLLAMA_MODELFILE_TEMPLATE_SCRIBE
+        else:
+            console.print(f"[red]Unknown pillar:[/] {pillar}. Valid: executor, guardian, scribe")
+            raise typer.Exit(1)
+    elif toon:
         def_model_name = "delentia-jitna-v0.2"
         def_adapter_path = Path("models/adapters/jitna_v0.2_toon")
         def_merged_path  = Path("models/merged/jitna_v0.2_toon")

@@ -1,0 +1,78 @@
+# Delentia SLM — The Router (slm-jitna-router) LoRA Configuration
+# Purpose: Intent Classification (Sequence Classification)
+# Priority: #2 in 4-Pillar Architecture
+#
+# The Router replaces the Language Modeling Head with a Classification Head.
+# It outputs ONLY a label: ROUTER_EXECUTOR, ROUTER_SCRIBE, ROUTER_GUARDIAN, ROUTER_BASE
+# Uses LoRA α = 2r to control intruder dimensions and reduce forgetting.
+
+model:
+  base_model: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
+  tokenizer: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
+  max_seq_length: 2048            # Shorter — classification needs less context
+  dtype: null
+  load_in_4bit: true
+
+lora:
+  r: 16                           # Lower rank for classification task
+  lora_alpha: 32                  # α = 2r (research-recommended for classification)
+  lora_dropout: 0.05              # Light dropout for classification robustness
+  bias: "none"
+  use_rslora: true
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+  task_type: "SEQ_CLS"            # Sequence Classification (NOT CAUSAL_LM)
+
+classification:
+  num_labels: 4
+  label_map:
+    ROUTER_EXECUTOR: 0
+    ROUTER_SCRIBE: 1
+    ROUTER_GUARDIAN: 2
+    ROUTER_BASE: 3
+
+training:
+  dataset_path: "datasets/processed/jitna_router_pairs.jsonl"
+  dataset_split: "train"
+  validation_split: 0.1            # More validation for classification
+  max_samples: null
+
+  per_device_train_batch_size: 4   # Larger batch for classification
+  gradient_accumulation_steps: 4
+
+  learning_rate: 2.0e-4            # Higher LR for classification head
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.1
+  num_train_epochs: 8              # More epochs for classification convergence
+
+  bf16: true
+  fp16: false
+  optim: "adamw_8bit"
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+
+  output_dir: "models/checkpoints/router_classifier"
+  save_strategy: "epoch"
+  save_total_limit: 3
+  logging_steps: 10
+
+  evaluation_strategy: "epoch"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_accuracy"
+
+pillar_type: "router"
+adapter_name: "jitna_router_v1"
+adapter_save_path: "models/adapters/jitna_router_v1"
+
+mlflow:
+  experiment_name: "delentia-slm-router-classifier"
+  tracking_uri: "https://delentia-delentia-agent-monitor.hf.space"
+  log_model: true
+
+target_metrics:
+  classification_accuracy: 0.96   # >= 96% correct routing
+  latency_ms: 50                  # < 50ms classification time
+  f1_macro: 0.94                  # >= 0.94 macro F1 across all labels

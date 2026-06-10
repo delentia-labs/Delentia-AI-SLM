@@ -3,13 +3,18 @@
 finetune.py
 
 Unsloth-accelerated QLoRA fine-tuning for the Delentia SLM.
-Configuration: training/config/slm_jitna_v0.1.yaml (or v0.2 for TOON)
+Supports Base Kernel (v0.1/v0.2/v0.3) and 4-Pillar LoRA adapters.
 
 Usage:
   python training/finetune.py
-  python training/finetune.py --toon           # TOON v0.2 format training
-  python training/finetune.py --config training/config/slm_jitna_v0.2.yaml --toon
+  python training/finetune.py --toon                              # TOON v0.2
+  python training/finetune.py --pillar executor                   # The Executor
+  python training/finetune.py --pillar guardian                   # The Guardian
+  python training/finetune.py --pillar scribe                     # The Scribe
+  python training/finetune.py --config training/config/slm_jitna_executor.yaml --pillar executor
   delentia-train  (if installed via pyproject.toml scripts)
+
+Note: The Router uses finetune_classifier.py (Sequence Classification task).
 
 Requirements:
   - GPU with >= 16 GB VRAM recommended (T4 16GB or A100 40GB)
@@ -37,14 +42,45 @@ def load_config(config_path: Path) -> dict:
         return yaml.safe_load(f)
 
 
+# ── Pillar config auto-detection ──────────────────────────────────────────
+PILLAR_CONFIGS = {
+    "executor": Path(__file__).parent / "config" / "slm_jitna_executor.yaml",
+    "guardian": Path(__file__).parent / "config" / "slm_jitna_guardian.yaml",
+    "scribe":  Path(__file__).parent / "config" / "slm_jitna_scribe.yaml",
+}
+
+PILLAR_LABELS = {
+    "executor": "The Executor (slm-jitna-agentic)",
+    "guardian": "The Guardian (slm-jitna-guardian)",
+    "scribe":  "The Scribe (slm-jitna-scribe)",
+}
+
+
 @app.command()
 def main(
     config: Path = typer.Option(CONFIG_DEFAULT, help="YAML config file"),  # noqa: B008
     dry_run: bool = typer.Option(False, help="Validate setup without training"),  # noqa: B008
     toon: bool = typer.Option(False, "--toon", help="Train with TOON v0.2 format"),  # noqa: B008
     adapter_path: Path = typer.Option(None, help="LoRA adapter save directory"),  # noqa: B008
+    pillar: str = typer.Option(None, help="Pillar type: executor, guardian, scribe (Router uses finetune_classifier.py)"),  # noqa: B008
 ) -> None:
-    version_label = "v0.2 TOON" if toon else "v0.1"
+    # Auto-select config and label based on pillar type
+    if pillar:
+        pillar = pillar.lower()
+        if pillar == "router":
+            console.print("[red]The Router uses Sequence Classification. Use finetune_classifier.py instead.[/]")
+            raise typer.Exit(1)
+        if pillar not in PILLAR_CONFIGS:
+            console.print(f"[red]Unknown pillar:[/] {pillar}. Valid: executor, guardian, scribe")
+            raise typer.Exit(1)
+        # Use pillar-specific config if user didn't provide a custom one
+        if config == CONFIG_DEFAULT:
+            config = PILLAR_CONFIGS[pillar]
+        version_label = PILLAR_LABELS[pillar]
+    elif toon:
+        version_label = "v0.2 TOON"
+    else:
+        version_label = "v0.1"
     msg = f"[bold blue]Delentia AI — SLM Fine-tuning ({version_label})[/]"
     console.print(Panel(msg, expand=False))
 
@@ -165,11 +201,17 @@ def main(
                 completion=example["completion"],
             ) + tokenizer.eos_token
         else:
+            prompt_str = example["prompt"]
+            pillar_type = cfg.get("pillar_type")
+            if pillar_type in ["executor", "guardian", "scribe"]:
+                parts = prompt_str.split("\n\n", 1)
+                if len(parts) > 1:
+                    prompt_str = parts[1]
             text = chat_template.format(
                 system_context=(
                     "You are Delentia OS — constitutional AI under RCT v5 governance."
                 ),
-                user_intent=example["prompt"],
+                user_intent=prompt_str,
             ) + example["completion"] + tokenizer.eos_token
         return {"text": text}
 
@@ -281,16 +323,26 @@ def main(
     # ── Save adapter ──────────────────────────────────────────────────────────────────
     console.print("[5/5] Saving LoRA adapter…")
     if adapter_path is None:
-        adapter_version = "jitna_v0.2_toon" if toon else "jitna_v0.1"
-        adapter_path = Path("models/adapters") / adapter_version
+        # Check config for pillar-specific save path
+        adapter_save = cfg.get("adapter_save_path")
+        if adapter_save:
+            adapter_path = Path(adapter_save)
+        elif toon:
+            adapter_path = Path("models/adapters/jitna_v0.2_toon")
+        else:
+            adapter_path = Path("models/adapters/jitna_v0.1")
     else:
         adapter_path = Path(adapter_path)
     model.save_pretrained(str(adapter_path))
     tokenizer.save_pretrained(str(adapter_path))
     console.print(f"[bold green]Adapter saved → {adapter_path}[/]")
     console.print("\nNext steps:")
-    console.print("  python training/evaluate.py")
-    console.print("  python training/export_gguf.py")
+    if pillar:
+        console.print(f"  python training/evaluate.py --pillar {pillar}")
+        console.print(f"  python training/export_gguf.py --pillar {pillar}")
+    else:
+        console.print("  python training/evaluate.py")
+        console.print("  python training/export_gguf.py")
 
 
 if __name__ == "__main__":
