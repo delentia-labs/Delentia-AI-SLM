@@ -275,10 +275,10 @@ def main():
             invalid += 1
 
     print(f"Generated {len(pairs)} Executor training pairs")
-    print(f"  - Single tool calls (EN): 200")
-    print(f"  - Multi-tool chains:      80")
-    print(f"  - Thai-language pairs:    150")
-    print(f"  - Error handling:          40")
+    print("  - Single tool calls (EN): 200")
+    print("  - Multi-tool chains:      80")
+    print("  - Thai-language pairs:    150")
+    print("  - Error handling:          40")
     print(f"  - JSON validation errors:  {invalid}")
 
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)

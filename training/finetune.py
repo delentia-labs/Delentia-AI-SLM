@@ -224,8 +224,8 @@ def main(
 
     # ── Train ─────────────────────────────────────────────────────────────────
     console.print("[4/5] Starting training…")
-    from trl import SFTConfig, SFTTrainer  # type: ignore
     import torch
+    from trl import SFTConfig, SFTTrainer  # type: ignore
 
     # Auto-detect device and bfloat16 support
     supports_bf16 = False

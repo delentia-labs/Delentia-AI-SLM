@@ -268,7 +268,7 @@ def _gen_rag_filter_pair(idx: int) -> dict:
             f"{SYSTEM_CONTEXT}\n\n"
             f"Query: {query}\n\n"
             f"Retrieved documents:\n" + "\n".join(all_docs) + "\n\n"
-            f"Filter noise and return only relevant results."
+            "Filter noise and return only relevant results."
         ),
         "completion": completion,
     }
@@ -296,7 +296,7 @@ def main():
         pairs.append(_gen_rag_filter_pair(i + 1000))
 
     # 4. Multi-document compression (combining 2-3 docs)
-    for i in range(30):
+    for _ in range(30):
         docs = random.sample(LONG_DOCUMENTS, min(2, len(LONG_DOCUMENTS)))
         combined_content = "\n\n---\n\n".join(d["content"] for d in docs)
         combined_summary = {
@@ -314,10 +314,10 @@ def main():
     random.shuffle(pairs)
 
     print(f"Generated {len(pairs)} Scribe compression pairs")
-    print(f"  - Single doc compression (EN): 40")
-    print(f"  - Single doc compression (TH): 30")
-    print(f"  - RAG filtering pairs:         50")
-    print(f"  - Multi-doc compression:       30")
+    print("  - Single doc compression (EN): 40")
+    print("  - Single doc compression (TH): 30")
+    print("  - RAG filtering pairs:         50")
+    print("  - Multi-doc compression:       30")
 
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     with OUTPUT.open("w", encoding="utf-8") as f:

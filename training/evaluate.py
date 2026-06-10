@@ -246,8 +246,8 @@ def main(
             import torch
             if pillar == "router":
                 # Sequence classification needs special model loading configuration
-                from transformers import AutoModelForSequenceClassification, AutoTokenizer
                 from peft import PeftModel
+                from transformers import AutoModelForSequenceClassification, AutoTokenizer, BitsAndBytesConfig
                 quantization_config = BitsAndBytesConfig(
                     load_in_4bit=True,
                     bnb_4bit_quant_type="nf4",

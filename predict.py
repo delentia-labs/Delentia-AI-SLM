@@ -1,9 +1,11 @@
 # predict.py for Replicate deployment
 import os
+
 import torch
+from cog import BasePredictor, Input
 from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from cog import BasePredictor, Input, Path
+
 
 class Predictor(BasePredictor):
     def setup(self):

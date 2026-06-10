@@ -1,11 +1,11 @@
 import os
 import sys
-import json
 from pathlib import Path
+
 
 def main():
     try:
-        from huggingface_hub import HfApi, login, get_token
+        from huggingface_hub import HfApi, get_token, login
     except ImportError:
         print("ERROR: huggingface_hub not installed.")
         sys.exit(1)

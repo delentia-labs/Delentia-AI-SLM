@@ -48,7 +48,6 @@ except ImportError:
 
 # Optional: Thai NLP validation
 try:
-    from pythainlp.util import normalize as thai_normalize  # type: ignore
     from pythainlp.tokenize import word_tokenize as thai_tokenize  # type: ignore
     THAI_AVAILABLE = True
 except ImportError:

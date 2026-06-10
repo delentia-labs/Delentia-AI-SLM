@@ -2,9 +2,10 @@ import os
 import sys
 from pathlib import Path
 
+
 def main():
     try:
-        from huggingface_hub import HfApi, login, get_token
+        from huggingface_hub import HfApi, get_token, login
     except ImportError:
         print("ERROR: huggingface_hub not installed.")
         print("Run: pip install huggingface_hub")
@@ -1191,7 +1192,7 @@ payload:
                 repo_type="space",
                 commit_message="feat: upload Delentia organization portal style.css reset",
             )
-            print(f"  [OK] Organization portal Space files live: https://huggingface.co/spaces/Delentia/README (Renders on https://huggingface.co/Delentia)")
+            print("  [OK] Organization portal Space files live: https://huggingface.co/spaces/Delentia/README (Renders on https://huggingface.co/Delentia)")
         except Exception as e:
             print(f"  [WARN] Failed to upload organization Space files: {e}")
         finally:
@@ -1310,7 +1311,7 @@ $$F = D^I \\times A$$
                 repo_type="dataset",
                 commit_message="feat: upload Ittirit Saengow personal card",
             )
-            print(f"  [OK] Personal card live: https://huggingface.co/Ittirit-delentia")
+            print("  [OK] Personal card live: https://huggingface.co/Ittirit-delentia")
         except Exception as e:
             print(f"  [WARN] Failed to upload personal card: {e}")
         finally:

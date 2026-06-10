@@ -18,7 +18,6 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from inference.jitna_validator import JITNAValidator
 from inference.ollama_adapter import OllamaAdapter
 
 console = Console()
@@ -59,7 +58,6 @@ def main(
         )
         raise typer.Exit(1)
 
-    validator = JITNAValidator()
     prompts = BENCHMARK_PROMPTS[:samples]
 
     latencies:      list[float] = []
@@ -88,7 +86,7 @@ def main(
         # FDIA heuristic
         words = len(resp.output.split())
         D = min(1.0, words / 50)
-        I = min(1.0, len(prompt) / 40)
+        I = min(1.0, len(prompt) / 40)  # noqa: E741
         A = min(1.0, (1 - (resp.output.count("?") / max(1, words))))
         F = (D ** I) * A
         fdia_scores.append(F)

@@ -63,7 +63,7 @@ def export_to_csv():
     documents = []
     artifacts = []
     
-    with open(jsonl_path, "r", encoding="utf-8") as f:
+    with open(jsonl_path, encoding="utf-8") as f:
         for i, line in enumerate(f, 1):
             pair = json.loads(line)
             prompt = pair["prompt"]

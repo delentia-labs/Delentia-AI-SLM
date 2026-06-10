@@ -11,17 +11,16 @@ Usage:
   python training/finetune_classifier.py --dry-run
 """
 
-import json
 from pathlib import Path
-import re
+
+import mlflow
 import numpy as np
+import torch
 import typer
 import yaml
+from peft import LoraConfig, TaskType, get_peft_model
 from rich.console import Console
 from rich.panel import Panel
-
-import torch
-from datasets import load_dataset
 from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
@@ -29,8 +28,8 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
-from peft import LoraConfig, get_peft_model, TaskType
-import mlflow
+
+from datasets import load_dataset
 
 console = Console()
 app = typer.Typer()
@@ -49,7 +48,6 @@ def compute_metrics(eval_pred):
     acc = float((preds == labels).mean())
     
     # Compute manual macro F1 score
-    classes = np.unique(labels)
     f1s = []
     for c in range(4):  # We have exactly 4 routing labels
         tp = np.sum((preds == c) & (labels == c))
