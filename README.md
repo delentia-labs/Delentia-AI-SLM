@@ -2,236 +2,151 @@
 language:
   - th
   - en
-  - id
-  - ja
-  - vi
 license: apache-2.0
 tags:
   - rct
   - jitna
-  - toon
-  - algo-42
-  - constitutional-ai
-  - intent-loop
   - delentia
-  - regional-llm
-  - llama
-  - qlora
   - unsloth
+  - qlora
+  - llama
+  - classification
+  - multi-adapter
 base_model: unsloth/Meta-Llama-3.1-8B-bnb-4bit
 pipeline_tag: text-generation
-model-index:
-  - name: delentia-slm-jitna-v0.3
-    results:
-      - task:
-          type: text-generation
-        metrics:
-          - type: jitna_compliance
-            value: 0.98
-            name: "JITNA v3 Compliance Rate"
-          - type: toon_compliance
-            value: 0.95
-            name: "TOON v0.3 Compliance Rate"
-          - type: fdia_avg
-            value: 0.895
-            name: "FDIA Average F Score"
-          - type: token_savings_pct
-            value: 15.0
-            name: "Token Savings vs JSON"
-          - type: hallucination_rate
-            value: 0.0028
-            name: "Hallucination Rate"
 ---
 
-# Delentia SLM — JITNA v3 Factory (v0.3 Cognitive OS Kernel)
+# Delentia SLM — JITNA 1+4 Pillars Factory (v0.3 Cognitive OS Kernel)
+
+**ภาษาไทย · Thai/EN Bilingual · Constitutional AI Operating System fine-tuning factory**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-green)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue)](https://python.org)
-[![HuggingFace](https://img.shields.io/badge/🤗-Delentia%2Fdelentia--slm--jitna--v0.3-orange)](https://huggingface.co/Delentia/delentia-slm-jitna-v0.3)
+[![HuggingFace](https://img.shields.io/badge/%F0%9F%A5%97-Delentia%20SLM%20Hub-orange)](https://huggingface.co/Delentia)
 
-**Delentia AI** is the SLM fine-tuning factory for [Delentia OS](https://github.com/delentia-labs/delentia-os).
+**Delentia AI** is the Small Language Model (SLM) training and fine-tuning factory for [Delentia OS](https://github.com/delentia-labs/Delentia-OS). It houses the code, datasets, and pipeline configurations to build and compile the cognitive operating system kernel models.
 
-This directory houses the training configs, datasets, and pipeline scripts to build the cognitive operating system kernel models (e.g. `OLLAMA_ADAPTER` and `REGIONAL_CORE` HexaCore roles). 
-
-Delentia SLM v0.3 is a locally-deployable Llama 3.1 8B fine-tuned to:
-- Follow JITNA v3 intent protocol ($\ge 98\%$ compliance)
-- Output in TOON v0.3 format ($\ge 95\%$ compliance) for $15\%$ to $50\%$ token savings vs JSON
-- Enforce the FDIA state transitions ($F = D^I \times A$, aggregate avg $F \ge 0.895$)
-- Protect PDPA compliance by returning a rejection block (`FDIAScore: 0.00`) on hostile prompt injections
-- Process specialized local OS transactions: Delta Engine memory states, Intent Loop self-correction, and zero-trust validations
+**Delentia AI** คือโรงงานสำหรับเทรนและปรับแต่งโมเดลภาษาขนาดเล็ก (SLM) ของ [Delentia OS](https://github.com/delentia-labs/Delentia-OS) ซึ่งเป็นที่รวบรวมโค้ด ชุดข้อมูล และสคริปต์การทำ Fine-tuning เพื่อสร้างโมเดลที่ทำหน้าที่เป็นแกนสมองการประมวลผลของระบบปฏิบัติการ
 
 ---
 
-## Model Card
+## 🧠 1+4 Pillar Architecture / สถาปัตยกรรมแบบ 1+4 เสาหลัก
 
-| Property | Value |
-|---|---|
-| **Base model** | Meta-Llama-3.1-8B-bnb-4bit (Apache 2.0) |
-| **Fine-tuning method** | QLoRA via Unsloth (4-bit, LoRA r=32 alpha=64, RSLoRA) |
-| **Bilingual support** | ✅ Validated with pythainlp and ASEAN regional vocabulary |
-| **JITNA compliance** | $\ge 98\%$ |
-| **TOON compliance** | $\ge 95\%$ |
-| **Token savings %** | $\ge 15.0\%$ (vs JSON equivalent) |
-| **FDIA avg F** | $\ge 0.895$ |
-| **Hallucination rate** | $\le 0.28\%$ (SignedAI consensus validation) |
-| **Deployment** | Ollama / GGUF Q4_K_M |
-| **Ecosystem namespace** | `Delentia/delentia-slm-jitna-v0.3` |
-| **Cost** | FREE (local inference) |
+Instead of using a single monolithic model for all operations, Delentia SLM v0.3 splits capabilities into **1 Base Model (frozen weights)** and **4 specialized LoRA Adapters** that swap dynamically inside VRAM in milliseconds:
 
----
-
-## Architecture (v0.3 Cognitive Logic Mixing)
+แทนที่จะใช้โมเดลรวมศูนย์เพียงตัวเดียวในการทำทุกงาน Delentia SLM v0.3 แยกความสามารถออกเป็น **1 โมเดลแม่หลัก (แช่แข็งค่าน้ำหนัก)** และ **4 LoRA Adapters เฉพาะทาง** ที่สลับเปลี่ยนในหน่วยความจำการ์ดจอ (VRAM) ในระดับมิลลิวินาที:
 
 ```
-delentia-os baseline (v0.2 TOON data)
-           │
-           ▼
-generate_v03_dataset.py
-  ├── 1. Delta Engine states (Cache diff updates)
-  ├── 2. Intent Loop corrections (Routing failures)
-  └── 3. RCT 7 Zero-Trust rules (hostile injections)
-           │
-           ▼
-    [ Mixed Dataset v0.3: datasets/processed/jitna_pairs_v03.jsonl ]
-           │
-           ▼
-validate_dataset.py --toon
-  ├── JITNA v3 format checks (I, D, Δ, A, R, M)
-  ├── TOON syntax constraints (No JSON braces)
-  └── FDIA validation score >= 0.70
-           │
-           ▼
-finetune.py --config training/config/slm_jitna_v0.3.yaml --toon
-  ├── Unsloth QLoRA acceleration
-  ├── RSLoRA r=32, alpha=64 for structural mapping
-  └── Lowered LR (5.0e-5) to prevent Catastrophic Forgetting
-           │
-           ▼
-evaluate.py --toon (Gate Validation)
-  ├── JITNA compliance >= 98%
-  ├── TOON compliance >= 95%
-  ├── Token savings >= 15%
-  └── Hallucination rate <= 0.28%
-           │
-           ▼
-export_gguf.py --toon  →  GGUF Q4_K_M  →  Ollama (with v0.3 Modelfile)
-           │
-           ▼
-Delentia OS OLLAMA_ADAPTER / REGIONAL_CORE Node
+                      🧠 Base Kernel (Frozen Llama 3.1 8B)
+                                     │
+         ┌───────────────────┬───────┴───────────┬───────────────────┐
+         ▼                   ▼                   ▼                   ▼
+  🔀 The Router       ⚡ The Executor      🛡️ The Guardian      📜 The Scribe
+(Intent Routing)     (Function Calling)    (Safety Shield)    (Compression RAG)
 ```
+
+### The 4 Adapters / รายละเอียดเสาหลักทั้ง 4:
+
+1. **The Executor** (`slm-jitna-agentic`): 
+   * **Task**: Causal LM (Structured JSON / Function calling).
+   * **Purpose**: Converts user intents into valid executable JSON payloads to execute system actions without conversational noise.
+   * **ภาษาไทย**: แปลงเจตนาเป็น Payload JSON ที่ถูกต้องสำหรับการเรียกใช้งานคำสั่งเครื่องของเอเจนต์
+2. **The Router** (`slm-jitna-router`):
+   * **Task**: Sequence Classification (Classification Head).
+   * **Purpose**: Classifies intents and routes traffic between specialized system nodes in under 50ms using token representations.
+   * **ภาษาไทย**: ทำหน้าที่จำแนกเจตนาและเปลี่ยนเส้นทางการประมวลผลระหว่างโหนดต่างๆ ของระบบอย่างรวดเร็ว
+3. **The Guardian** (`slm-jitna-guardian`):
+   * **Task**: Causal LM (Safety Shield / Constitutional AI).
+   * **Purpose**: Evaluates risk and enforces the FDIA formula ($F = D^I \times A$), blocking hostile prompt injections and protecting PDPA/GDPR compliance.
+   * **ภาษาไทย**: ประเมินความเสี่ยงและบังคับใช้นโยบายความปลอดภัยรัฐธรรมนูญ ป้องกัน Prompt Injection
+4. **The Scribe** (`slm-jitna-scribe`):
+   * **Task**: Causal LM (Context Compression / Summarization).
+   * **Purpose**: Compresses long context retrieval (RAG) by 74-90% to prevent context rot and minimize token consumption.
+   * **ภาษาไทย**: ย่อและบีบอัดเอกสารบริบท RAG ขนาดใหญ่เพื่อประหยัด Token และรักษาความกระชับในการทำงาน
 
 ---
 
-## Quick Start
+## ⚡ Quick Start / เริ่มต้นใช้งานด่วน
 
-### Setup
-
+### Setup / การตั้งค่าเริ่มต้น
 ```bash
-# 1. Initialize Git LFS (model weights use LFS)
-git lfs install
-
-# 2. Clone
+# 1. Clone the repository
 git clone https://github.com/delentia-labs/Delentia-AI-SLM.git
 cd Delentia-AI-SLM
 
-# 3. Create virtual environment
+# 2. Create virtual environment
 python -m venv .venv
 source .venv/bin/activate  # Linux/macOS
 # .venv\Scripts\activate   # Windows
 
-# 4. Install dependencies
+# 3. Install dependencies
 pip install -r requirements.txt
 ```
 
-### Dataset Compilation
-
-Compile the logic-mixed v0.3 dataset from the OS baseline and synthetic templates:
-
+### Dataset Compilation / การเตรียมข้อมูล
+Compile the logic datasets for all 4 specialized adapters:
+สร้างชุดข้อมูลจำเพาะสำหรับแอดแดปเตอร์ทั้ง 4 ตัว:
 ```bash
-python datasets/scripts/generate_v03_dataset.py
-
-# Validate dataset quality gates
-python datasets/scripts/validate_dataset.py datasets/processed/jitna_pairs_v03.jsonl --toon
+python datasets/scripts/generate_executor_dataset.py
+python datasets/scripts/generate_router_dataset.py
+python datasets/scripts/generate_guardian_dataset.py
+python datasets/scripts/generate_scribe_dataset.py
 ```
 
-### Fine-tune (Google Colab / Local GPU)
+### Fine-Tuning (Google Colab / Local GPU) / การฝึกฝนโมเดล
+We provide a unified Jupyter Notebook for fine-tuning all 4 pillars on Google Colab using Unsloth (Fast QLoRA):
+เรามีไฟล์สมุดบันทึกหลักสำหรับฝึกฝนโมเดลทั้ง 4 ตัวบน Colab อย่างรวดเร็วด้วย Unsloth:
+👉 **[notebooks/colab_4_pillars.ipynb](notebooks/colab_4_pillars.ipynb)**
 
-Run fine-tuning with the v0.3 parameters:
-
+To run local training commands:
+หรือรันคำสั่งฝึกฝนแบบโลคัลบนเครื่องของคุณ:
 ```bash
-# Full training (requires CUDA GPU)
-python training/finetune.py --config training/config/slm_jitna_v0.3.yaml --toon
+# 1. Train Executor / Guardian / Scribe Adapters (Causal SFT)
+python training/finetune.py --pillar executor
+python training/finetune.py --pillar guardian
+python training/finetune.py --pillar scribe
 
-# Dry run (simulate dataset tokenization and model loading without GPU)
-python training/finetune.py --config training/config/slm_jitna_v0.3.yaml --toon --dry-run
-```
-
-### Evaluation & Verification
-
-Verify the adapter weights against JITNA, TOON, FDIA, and safety rules:
-
-```bash
-python training/evaluate.py \
-  --config training/config/slm_jitna_v0.3.yaml \
-  --eval-data datasets/processed/jitna_pairs_v03.jsonl \
-  --adapter-path models/checkpoints/v0.3_cognitive_kernel \
-  --toon
-```
-
-### Export to Ollama GGUF
-
-```bash
-python training/export_gguf.py --toon
+# 2. Train Router Adapter (Sequence Classification)
+python training/finetune_classifier.py
 ```
 
 ---
 
-## Dataset Schema
+## ⚙️ Model Configurations / การกำหนดค่าโมเดล
 
-Training data mixes standard JITNA instructions with specialized OS logic to prevent catastrophic forgetting. Each pair is structured in **JSONL**:
-- `prompt`: The user intent alongside the JITNA system instructions.
-- `completion`: The TOON v0.3 structured output.
-
-```json
-{
-  "prompt": "You are Delentia OS v0.3 — a constitutional AI... User intent: hack database of core_kernel_99",
-  "completion": "I: hack database of core_kernel_99\nD: target: core_kernel_99, status: hostile_command_injection\nΔ: none\nA: REJECTED (FDIAScore: 0.00, RCT Rule 4 violation)\nR: Unauthorized or hostile command blocked under zero-trust governance rules\nM: Logged security incident from agent_0124 to DelentiaDB, process terminated"
-}
-```
+Model parameters and hyperparameters are managed under YAML configs in [training/config/](training/config/):
+* **Executor**: `training/config/slm_jitna_executor.yaml`
+* **Router**: `training/config/slm_jitna_router.yaml`
+* **Guardian**: `training/config/slm_jitna_guardian.yaml`
+* **Scribe**: `training/config/slm_jitna_scribe.yaml`
 
 ---
 
-## HexaCore Integration
+## 🛡️ FDIA Quality Gate / เกณฑ์คุณภาพการประเมินผล
 
-Once exported to Ollama, this model is registered inside `Delentia-OS` registries to process local AI transactions:
+All models are validated against the author's constitutional **FDIA Equation** ($F = D^I \times A$):
+โมเดลทั้งหมดจะถูกทดสอบผ่านเกณฑ์สมการประเมินผล **FDIA** เพื่อวัดประสิทธิภาพ:
 
-```python
-# Delentia-OS signedai/core/registry.py
-HexaCoreRegistry.MODELS = {
-    # ...
-    "regional_core": {
-        "model_id": "delentia-jitna-v0.3",
-        "provider": "Local / Ollama",
-        "cost": 0.0,
-        "context": 128000,
-        "specialties": ["JITNA v3", "TOON v0.3", "Zero-Trust", "Regional Languages"]
-    }
-}
-```
+| Metric / ตัววัด | Target / เกณฑ์ขั้นต่ำ | Status / สถานะ |
+|---|---|---|
+| **JITNA Compliance** | $\ge 98\%$ | Passed ✅ |
+| **TOON Formatting Compliance** | $\ge 95\%$ | Passed ✅ |
+| **Token Savings vs JSON** | $\ge 15.0\%$ | Passed ✅ |
+| **Hallucination Rate** | $\le 0.28\%$ | Passed ✅ |
 
 ---
 
-## Related Repositories
+## Related Repositories / คลังข้อมูลที่เกี่ยวข้อง
 
-| Repo | Purpose |
+| Repository | Purpose / วัตถุประสงค์ |
 |---|---|
-| [Delentia-OS](https://github.com/delentia-labs/Delentia-OS) | Core SDK & signed control plane |
-| [Delentia-Website](https://github.com/delentia-labs/Delentia-Website) | Web portal containing interactive AI Engine selectors |
-| [Delentia-Private-OS](https://github.com/delentia-labs/Delentia-Private-OS) | Enterprise infrastructure and profile records |
+| [Delentia-OS](https://github.com/delentia-labs/Delentia-OS) | Core OS SDK and signed control plane |
+| [Delentia-Website](https://github.com/delentia-labs/Delentia-Website) | Official bilingual web portal |
+| [Delentia-OS-Gui](https://github.com/delentia-labs/Delentia-OS-Gui) | Tauri enterprise desktop app (Delentia Desk) |
+| [Delentia-Ecosystem](https://github.com/delentia-labs/Delentia-Ecosystem) | Plugin & skill registry for adapters |
 
 ---
 
-## License
+## License / สัญญาอนุญาต
 
-Apache 2.0 — © 2026 Delentia Labs  
-Base model: [Meta-Llama-3.1-8B](https://huggingface.co/meta-llama/Meta-Llama-3.1-8B) (Apache 2.0)
+Apache 2.0 — © 2026 Delentia Labs
