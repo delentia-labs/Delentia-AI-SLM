@@ -254,13 +254,50 @@ def main(
                     bnb_4bit_compute_dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16,
                     bnb_4bit_use_double_quant=True,
                 )
-                base_name = "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
-                model = AutoModelForSequenceClassification.from_pretrained(
-                    base_name,
-                    num_labels=4,
-                    quantization_config=quantization_config,
-                    device_map="auto"
-                )
+                
+                # Monkeypatch weight initialization for quantized tensors to prevent Byte tensor initialization crash
+                import torch.nn.init as torch_init
+                import transformers.initialization as hf_init
+
+                orig_normal = torch_init.normal_
+                orig_uniform = torch_init.uniform_
+
+                def safe_normal(tensor, mean=0.0, std=1.0, generator=None):
+                    if tensor.dtype in [torch.uint8, torch.int8, torch.int16, torch.int32, torch.int64]:
+                        return tensor
+                    return orig_normal(tensor, mean=mean, std=std, generator=generator)
+
+                def safe_uniform(tensor, a=0.0, b=1.0, generator=None):
+                    if tensor.dtype in [torch.uint8, torch.int8, torch.int16, torch.int32, torch.int64]:
+                        return tensor
+                    return orig_uniform(tensor, a=a, b=b, generator=generator)
+
+                torch_init.normal_ = safe_normal
+                torch_init.uniform_ = safe_uniform
+                if hasattr(hf_init, "TORCH_INIT_FUNCTIONS"):
+                    if "normal_" in hf_init.TORCH_INIT_FUNCTIONS:
+                        hf_init.TORCH_INIT_FUNCTIONS["normal_"] = safe_normal
+                    if "uniform_" in hf_init.TORCH_INIT_FUNCTIONS:
+                        hf_init.TORCH_INIT_FUNCTIONS["uniform_"] = safe_uniform
+                
+                try:
+                    base_name = "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
+                    model = AutoModelForSequenceClassification.from_pretrained(
+                        base_name,
+                        num_labels=4,
+                        quantization_config=quantization_config,
+                        device_map="auto"
+                    )
+                finally:
+                    # Restore original functions to avoid side effects
+                    torch_init.normal_ = orig_normal
+                    torch_init.uniform_ = orig_uniform
+                    if hasattr(hf_init, "TORCH_INIT_FUNCTIONS"):
+                        if "normal_" in hf_init.TORCH_INIT_FUNCTIONS:
+                            hf_init.TORCH_INIT_FUNCTIONS["normal_"] = orig_normal
+                        if "uniform_" in hf_init.TORCH_INIT_FUNCTIONS:
+                            hf_init.TORCH_INIT_FUNCTIONS["uniform_"] = orig_uniform
+
                 import torch.nn as nn
                 for head_name in ["score", "classifier"]:
                     if hasattr(model, head_name):
