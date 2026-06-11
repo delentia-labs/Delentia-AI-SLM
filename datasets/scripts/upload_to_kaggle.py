@@ -128,9 +128,10 @@ def upload_dataset():
     """Upload dataset directory to Kaggle Hub."""
     username = os.environ.get("KAGGLE_USERNAME")
     key = os.environ.get("KAGGLE_KEY")
+    api_token = os.environ.get("KAGGLE_API_TOKEN")
     
-    if not username or not key:
-        print("Skipping Kaggle upload: KAGGLE_USERNAME or KAGGLE_KEY environment variables not set.")
+    if not (api_token or (username and key)):
+        print("Skipping Kaggle upload: KAGGLE_USERNAME/KAGGLE_KEY or KAGGLE_API_TOKEN environment variables not set.")
         return
         
     try:
