@@ -261,6 +261,18 @@ def main(
                     quantization_config=quantization_config,
                     device_map="auto"
                 )
+                import torch.nn as nn
+                for head_name in ["score", "classifier"]:
+                    if hasattr(model, head_name):
+                        orig_head = getattr(model, head_name)
+                        if not isinstance(orig_head, nn.Linear) or type(orig_head).__name__ != 'Linear':
+                            in_features = orig_head.in_features
+                            out_features = orig_head.out_features
+                            has_bias = getattr(orig_head, "bias", None) is not None
+                            new_head = nn.Linear(in_features, out_features, bias=has_bias)
+                            new_head = new_head.to(torch.float32)
+                            setattr(model, head_name, new_head)
+                            console.print(f"✅ Replaced quantized {head_name} head with standard float32 nn.Linear.")
                 model = PeftModel.from_pretrained(model, str(adapter_path))
                 tokenizer = AutoTokenizer.from_pretrained(str(adapter_path))
                 model.config.pad_token_id = tokenizer.pad_token_id
@@ -300,7 +312,7 @@ def main(
         if model_loaded:
             device = "cuda" if hasattr(model, "device") else "cpu"
             if pillar == "router":
-                inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=2048, padding="max_length").to(device)
+                inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=512).to(device)
                 with torch.no_grad():
                     outputs = model(**inputs)
                     pred_id = int(outputs.logits.argmax(dim=-1).item())
