@@ -54,8 +54,6 @@ PILLAR_LABELS = {
     "guardian": "The Guardian (slm-jitna-guardian)",
     "scribe":  "The Scribe (slm-jitna-scribe)",
 }
-
-
 @app.command()
 def main(
     config: Path = typer.Option(CONFIG_DEFAULT, help="YAML config file"),  # noqa: B008
@@ -63,8 +61,8 @@ def main(
     toon: bool = typer.Option(False, "--toon", help="Train with TOON v0.2 format"),  # noqa: B008
     adapter_path: Path = typer.Option(None, help="LoRA adapter save directory"),  # noqa: B008
     pillar: str = typer.Option(None, help="Pillar type: executor, guardian, scribe (Router uses finetune_classifier.py)"),  # noqa: B008
-) -> None:
-    # Auto-select config and label based on pillar type
+    push_to_hub: bool = typer.Option(False, "--push-to-hub", help="Push checkpoints to HF Hub"),  # noqa: B008
+):
     if pillar:
         pillar = pillar.lower()
         if pillar == "router":
@@ -240,7 +238,6 @@ def main(
     use_bf16 = train_cfg.get("bf16", True) and supports_bf16
     use_fp16 = train_cfg.get("fp16", False) or (not use_bf16 and torch.cuda.is_available())
     console.print(f"  Training precision: bf16=[cyan]{use_bf16}[/], fp16=[cyan]{use_fp16}[/]")
-
     # MLflow tracking initialization
     mlflow_enabled = False
     mlflow_cfg = cfg.get("mlflow", {})
@@ -263,29 +260,62 @@ def main(
 
     report_to_list = ["mlflow"] if mlflow_enabled else []
 
-    training_args = SFTConfig(
-        output_dir=train_cfg["output_dir"],
-        num_train_epochs=train_cfg["num_train_epochs"],
-        per_device_train_batch_size=train_cfg["per_device_train_batch_size"],
-        gradient_accumulation_steps=train_cfg["gradient_accumulation_steps"],
-        learning_rate=train_cfg["learning_rate"],
-        lr_scheduler_type=train_cfg["lr_scheduler_type"],
-        warmup_ratio=train_cfg["warmup_ratio"],
-        bf16=use_bf16,
-        fp16=use_fp16,
-        optim=train_cfg.get("optim", "adamw_8bit"),
-        weight_decay=train_cfg.get("weight_decay", 0.01),
-        max_grad_norm=train_cfg.get("max_grad_norm", 0.3),
-        save_strategy=train_cfg.get("save_strategy", "epoch"),
-        save_total_limit=train_cfg.get("save_total_limit", 3),
-        logging_steps=train_cfg.get("logging_steps", 10),
-        eval_strategy=train_cfg.get("eval_strategy") or train_cfg.get("evaluation_strategy", "epoch"),
-        load_best_model_at_end=train_cfg.get("load_best_model_at_end", True),
-        metric_for_best_model=train_cfg.get("metric_for_best_model", "eval_loss"),
-        report_to=report_to_list,
-        dataset_text_field="text",
-        max_seq_length=model_cfg["max_seq_length"],
-    )
+    # Hugging Face Login for streaming checkpoints
+    hf_token = os.environ.get("HF_TOKEN", "")
+    hub_model_id = None
+    if push_to_hub:
+        if not hf_token:
+            console.print("[red]Error: --push-to-hub is active but HF_TOKEN is not set.[/]")
+            raise typer.Exit(1)
+        try:
+            from huggingface_hub import login
+            login(token=hf_token)
+            console.print("✅ Logged in to Hugging Face Hub successfully.")
+            # Set Model ID
+            if pillar:
+                hub_model_id = f"delentia-labs/delentia-slm-jitna-{pillar}"
+            elif toon:
+                hub_model_id = "delentia-labs/delentia-slm-jitna-v0.2-toon"
+            else:
+                hub_model_id = "delentia-labs/delentia-slm-jitna-v0.1"
+            console.print(f"  Hub Repository ID: [cyan]{hub_model_id}[/]")
+        except Exception as e:
+            console.print(f"  [red]Failed to login to Hugging Face Hub:[/] {e}")
+            raise typer.Exit(1)
+
+    import inspect
+    sig = inspect.signature(SFTConfig.__init__)
+    eval_strategy_key = "eval_strategy" if "eval_strategy" in sig.parameters else "evaluation_strategy"
+
+    sft_config_kwargs = {
+        "output_dir": train_cfg["output_dir"],
+        "num_train_epochs": train_cfg["num_train_epochs"],
+        "per_device_train_batch_size": train_cfg["per_device_train_batch_size"],
+        "gradient_accumulation_steps": train_cfg["gradient_accumulation_steps"],
+        "learning_rate": train_cfg["learning_rate"],
+        "lr_scheduler_type": train_cfg["lr_scheduler_type"],
+        "warmup_ratio": train_cfg["warmup_ratio"],
+        "bf16": use_bf16,
+        "fp16": use_fp16,
+        "optim": train_cfg.get("optim", "adamw_8bit"),
+        "weight_decay": train_cfg.get("weight_decay", 0.01),
+        "max_grad_norm": train_cfg.get("max_grad_norm", 0.3),
+        "save_strategy": "steps" if push_to_hub else train_cfg.get("save_strategy", "epoch"),
+        "save_steps": 100 if push_to_hub else train_cfg.get("save_steps", 500),
+        "save_total_limit": train_cfg.get("save_total_limit", 3),
+        "logging_steps": train_cfg.get("logging_steps", 10),
+        eval_strategy_key: train_cfg.get("eval_strategy") or train_cfg.get("evaluation_strategy", "epoch"),
+        "load_best_model_at_end": train_cfg.get("load_best_model_at_end", True) if not push_to_hub else False,
+        "metric_for_best_model": train_cfg.get("metric_for_best_model", "eval_loss"),
+        "report_to": report_to_list,
+        "dataset_text_field": "text",
+        "max_seq_length": model_cfg["max_seq_length"],
+        "push_to_hub": push_to_hub,
+        "hub_model_id": hub_model_id,
+        "hub_strategy": "every_save" if push_to_hub else "every_save",
+        "hub_token": hf_token if push_to_hub else None,
+    }
+    training_args = SFTConfig(**sft_config_kwargs)
 
     trainer = SFTTrainer(
         model=model,
@@ -336,6 +366,13 @@ def main(
     model.save_pretrained(str(adapter_path))
     tokenizer.save_pretrained(str(adapter_path))
     console.print(f"[bold green]Adapter saved → {adapter_path}[/]")
+    if push_to_hub:
+        console.print("[bold blue]Pushing final adapter weights to Hugging Face Hub…[/]")
+        try:
+            trainer.push_to_hub()
+            console.print("🎉 Final adapter weights pushed to Hugging Face Hub successfully!")
+        except Exception as e:
+            console.print(f"  [red]Failed to push final weights to Hugging Face Hub:[/] {e}")
     console.print("\nNext steps:")
     if pillar:
         console.print(f"  python training/evaluate.py --pillar {pillar}")

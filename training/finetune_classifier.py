@@ -31,6 +31,21 @@ from transformers import (
 
 from datasets import load_dataset
 
+# Monkeypatch PEFT to prevent gradient errors on non-float tensors (specifically for QLoRA classification)
+try:
+    import peft.utils.other
+    def safe_set_layer_requires_grad(layer, requires_grad=True):
+        for param in layer.parameters():
+            if param.is_leaf:
+                if torch.is_tensor(param) and param.is_floating_point():
+                    param.requires_grad_(requires_grad)
+                else:
+                    param.requires_grad = False
+    peft.utils.other._set_layer_requires_grad = safe_set_layer_requires_grad
+    print("✅ Applied PEFT gradient safety monkeypatch.")
+except Exception as e:
+    print(f"⚠️ PEFT monkeypatch warning: {e}")
+
 console = Console()
 app = typer.Typer()
 
@@ -68,6 +83,7 @@ def main(
     config: Path = typer.Option(CONFIG_DEFAULT, help="YAML config file"),  # noqa: B008
     dry_run: bool = typer.Option(False, help="Validate setup without training"),  # noqa: B008
     adapter_path: Path = typer.Option(None, help="LoRA adapter save directory"),  # noqa: B008
+    push_to_hub: bool = typer.Option(False, "--push-to-hub", help="Push checkpoints to HF Hub"),  # noqa: B008
 ) -> None:
     msg = "[bold blue]Delentia AI — SLM Sequence Classification (The Router)[/]"
     console.print(Panel(msg, expand=False))
@@ -105,6 +121,7 @@ def main(
             bnb_4bit_quant_type="nf4",
             bnb_4bit_compute_dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16,
             bnb_4bit_use_double_quant=True,
+            llm_int8_skip_modules=["score", "classifier"],
         )
 
         import torch.nn.init as torch_init
@@ -171,6 +188,20 @@ def main(
             if LlamaPreTrainedModel is not None and orig_llama_init_weights is not None:
                 LlamaPreTrainedModel._init_weights = orig_llama_init_weights
 
+        # Replace Linear4bit/quantized heads with standard float32 nn.Linear
+        import torch.nn as nn
+        for head_name in ["score", "classifier"]:
+            if hasattr(model, head_name):
+                orig_head = getattr(model, head_name)
+                if not isinstance(orig_head, nn.Linear) or type(orig_head).__name__ != 'Linear':
+                    in_features = orig_head.in_features
+                    out_features = orig_head.out_features
+                    has_bias = getattr(orig_head, "bias", None) is not None
+                    new_head = nn.Linear(in_features, out_features, bias=has_bias)
+                    new_head = new_head.to(torch.float32)
+                    setattr(model, head_name, new_head)
+                    console.print(f"✅ Replaced quantized {head_name} head with standard float32 nn.Linear.")
+
         model.config.pad_token_id = tokenizer.pad_token_id
     else:
         from unittest.mock import MagicMock
@@ -181,6 +212,13 @@ def main(
     # ── Apply SEQ_CLS LoRA adapter ────────────────────────────────────────────
     console.print("[3/5] Applying Sequence Classification LoRA adapter…")
     if not dry_run:
+        from peft import prepare_model_for_kbit_training
+        model = prepare_model_for_kbit_training(model)
+        
+        # Cast classification head explicitly to float32 to prevent PEFT gradient error
+        if hasattr(model, "score"):
+            model.score = model.score.to(torch.float32)
+
         peft_config = LoraConfig(
             task_type=TaskType.SEQ_CLS,
             inference_mode=False,
@@ -220,7 +258,6 @@ def main(
             examples["prompt"],
             truncation=True,
             max_length=model_cfg.get("max_seq_length", 2048),
-            padding="max_length",  # Classification benefits from padded inputs
         )
         result["labels"] = [label_map[label] for label in examples["label"]]
         return result
@@ -261,28 +298,58 @@ def main(
 
     report_to_list = ["mlflow"] if mlflow_enabled else []
 
-    training_args = TrainingArguments(
-        output_dir=train_cfg["output_dir"],
-        num_train_epochs=train_cfg["num_train_epochs"],
-        per_device_train_batch_size=train_cfg["per_device_train_batch_size"],
-        gradient_accumulation_steps=train_cfg["gradient_accumulation_steps"],
-        learning_rate=float(train_cfg["learning_rate"]),
-        lr_scheduler_type=train_cfg["lr_scheduler_type"],
-        warmup_ratio=train_cfg["warmup_ratio"],
-        bf16=use_bf16,
-        fp16=use_fp16,
-        optim=train_cfg.get("optim", "adamw_8bit"),
-        weight_decay=train_cfg.get("weight_decay", 0.01),
-        max_grad_norm=train_cfg.get("max_grad_norm", 1.0),
-        save_strategy=train_cfg.get("save_strategy", "epoch"),
-        save_total_limit=train_cfg.get("save_total_limit", 3),
-        logging_steps=train_cfg.get("logging_steps", 10),
-        eval_strategy=train_cfg.get("evaluation_strategy", "epoch"),
-        load_best_model_at_end=train_cfg.get("load_best_model_at_end", True),
-        metric_for_best_model=train_cfg.get("metric_for_best_model", "eval_accuracy"),
-        report_to=report_to_list,
-        remove_unused_columns=False,
-    )
+    # Hugging Face Login for streaming checkpoints
+    hf_token = os.environ.get("HF_TOKEN", "")
+    hub_model_id = None
+    if push_to_hub:
+        if not hf_token:
+            console.print("[red]Error: --push-to-hub is active but HF_TOKEN is not set.[/]")
+            raise typer.Exit(1)
+        try:
+            from huggingface_hub import login
+            login(token=hf_token)
+            console.print("✅ Logged in to Hugging Face Hub successfully.")
+            hub_model_id = "delentia-labs/delentia-slm-jitna-router"
+            console.print(f"  Hub Repository ID: [cyan]{hub_model_id}[/]")
+        except Exception as e:
+            console.print(f"  [red]Failed to login to Hugging Face Hub:[/] {e}")
+            raise typer.Exit(1)
+
+    import inspect
+    sig = inspect.signature(TrainingArguments.__init__)
+    eval_strategy_key = "eval_strategy" if "eval_strategy" in sig.parameters else "evaluation_strategy"
+
+    training_args_kwargs = {
+        "output_dir": train_cfg["output_dir"],
+        "num_train_epochs": train_cfg["num_train_epochs"],
+        "per_device_train_batch_size": train_cfg["per_device_train_batch_size"],
+        "gradient_accumulation_steps": train_cfg["gradient_accumulation_steps"],
+        "learning_rate": float(train_cfg["learning_rate"]),
+        "lr_scheduler_type": train_cfg["lr_scheduler_type"],
+        "warmup_ratio": train_cfg["warmup_ratio"],
+        "bf16": use_bf16,
+        "fp16": use_fp16,
+        "optim": train_cfg.get("optim", "adamw_8bit"),
+        "weight_decay": train_cfg.get("weight_decay", 0.01),
+        "max_grad_norm": train_cfg.get("max_grad_norm", 1.0),
+        "save_strategy": "steps" if push_to_hub else train_cfg.get("save_strategy", "epoch"),
+        "save_steps": 100 if push_to_hub else train_cfg.get("save_steps", 500),
+        "save_total_limit": train_cfg.get("save_total_limit", 3),
+        "logging_steps": train_cfg.get("logging_steps", 10),
+        eval_strategy_key: train_cfg.get("evaluation_strategy", "epoch"),
+        "load_best_model_at_end": train_cfg.get("load_best_model_at_end", True) if not push_to_hub else False,
+        "metric_for_best_model": train_cfg.get("metric_for_best_model", "eval_accuracy"),
+        "report_to": report_to_list,
+        "remove_unused_columns": False,
+        "push_to_hub": push_to_hub,
+        "hub_model_id": hub_model_id,
+        "hub_strategy": "every_save" if push_to_hub else "every_save",
+        "hub_token": hf_token if push_to_hub else None,
+    }
+    training_args = TrainingArguments(**training_args_kwargs)
+
+    from transformers import DataCollatorWithPadding
+    data_collator = DataCollatorWithPadding(tokenizer=tokenizer, pad_to_multiple_of=8)
 
     trainer = Trainer(
         model=model,
@@ -290,6 +357,7 @@ def main(
         train_dataset=train_ds,
         eval_dataset=eval_ds,
         compute_metrics=compute_metrics,
+        data_collator=data_collator,
     )
 
     if mlflow_enabled:
@@ -327,6 +395,13 @@ def main(
     model.save_pretrained(str(adapter_path))
     tokenizer.save_pretrained(str(adapter_path))
     console.print(f"[bold green]Classifier Adapter saved → {adapter_path}[/]")
+    if push_to_hub:
+        console.print("[bold blue]Pushing final classifier weights to Hugging Face Hub…[/]")
+        try:
+            trainer.push_to_hub()
+            console.print("🎉 Final classifier weights pushed to Hugging Face Hub successfully!")
+        except Exception as e:
+            console.print(f"  [red]Failed to push final weights to Hugging Face Hub:[/] {e}")
 
 
 if __name__ == "__main__":

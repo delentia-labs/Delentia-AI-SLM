@@ -8,7 +8,7 @@ trl>=0.9
 bitsandbytes>=0.43
 
 # Unsloth fine-tuning acceleration (Colab/T4 compatible)
-unsloth[colab-new]>=2024.6
+# unsloth[colab-new]>=2024.6
 
 # Experiment tracking
 mlflow>=2.13
