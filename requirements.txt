@@ -12,6 +12,7 @@ bitsandbytes>=0.43
 
 # Experiment tracking
 mlflow>=2.13
+kagglehub>=0.2.0
 
 # Thai NLP validation
 pythainlp>=5.0
