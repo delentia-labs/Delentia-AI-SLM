@@ -155,7 +155,7 @@ def upload_dataset():
         # Call upload API
         path = kagglehub.dataset_upload(
             handle=dataset_handle,
-            local_package_dir=str(KAGGLE_EXPORT_DIR)
+            local_dataset_dir=str(KAGGLE_EXPORT_DIR)
         )
         print(f"Successfully uploaded dataset! Access URL: {path}")
     except ImportError:
