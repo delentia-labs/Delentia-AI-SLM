@@ -25,6 +25,7 @@ pipeline_tag: text-generation
 [![License](https://img.shields.io/badge/License-Apache_2.0-green)](LICENSE)
 [![Base Model](https://img.shields.io/badge/Base-Llama_3.1_8B-blue)](https://huggingface.co/meta-llama/Meta-Llama-3.1-8B)
 [![Compliance](https://img.shields.io/badge/JITNA_Compliance-98%25+-brightgreen)](#)
+[![asciicast](https://asciinema.org/a/dcpm_trace_simulation.svg)](https://asciinema.org/a/dcpm_trace_simulation)
 
 ---
 
@@ -47,6 +48,15 @@ This model repository hosts the four specialized LoRA adapter checkpoints config
 4. **The Scribe (`delentia-slm-jitna-scribe`)**
    * **Task Type**: Context Compression & Synthesis
    * **Target**: Compresses long context arrays down to summaries and metadata points, saving up to $74\%$ memory context.
+
+```bash
+# ตัวอย่างการแสดงผล Trace Tree
+🪵  Trace Tree - intent_001_safe_action
+├── Step 1: Input Control (TOON Compression / ALGO-42) -> Savings: 26.5%
+├── Step 2: Local SLM Control Plane
+│   ├── 🛡️ [Guardian Safety Shield] | Status: AUTHORIZED | Formula: F = D^I * A (F=0.9310)
+│   └── 🔀 [Router Classification] | Decision: ROUTER_EXECUTOR
+```
 
 ---
 
