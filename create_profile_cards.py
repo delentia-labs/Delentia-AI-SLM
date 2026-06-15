@@ -59,7 +59,7 @@ pinned: false
 
 * **Intent-Centric AI OS with <0.3% Hallucination Rate**
 * **Powered by RCT v7 Architecture — 10 Layers, 41 Algorithms, 7 Genomes**
-* **Mathematical AI Governance Guarantee — $F = D^I \times A$ Boundary Control**
+* **Mathematical AI Governance Guarantee — F = D<sup>I</sup> &times; A Boundary Control**
 * **Sovereign Compliance — PDPA & GDPR Aligned, 100% Local-first & Offline Ready**
 
 ---
@@ -104,7 +104,9 @@ Our syntax-noise-free serialization protocol that replaces traditional JSON deli
 
 The heart of Delentia's security is the **FDIA equation**, which guarantees that AI agents cannot bypass safety thresholds:
 
-$$F = D^I \times A$$
+<div align="center" style="margin: 16px 0; font-size: 22px; font-weight: bold; color: #ffd700;">
+  F = D<sup>I</sup> &times; A
+</div>
 
 #### Component Breakdown:
 | Parameter | Definition | Range / Constraints |
@@ -209,18 +211,18 @@ $$F = D^I \times A$$
     }
 
     .container {
-      max-width: 1280px;
+      max-width: 900px;
       width: 100%;
       display: grid;
       grid-template-columns: 1fr;
-      gap: 24px;
-      margin-bottom: 30px;
+      gap: 20px;
+      margin-bottom: 24px;
       animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    @media (min-width: 1024px) {
+    @media (min-width: 768px) {
       .container {
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 1.1fr 0.9fr;
       }
     }
 
@@ -620,14 +622,13 @@ $$F = D^I \times A$$
     }
 
     .console-logs {
-      grid-column: 1 / -1;
       background: #02040a;
       border: 1px solid rgba(56, 189, 248, 0.12);
       border-radius: 12px;
       padding: 18px;
       font-family: 'Fira Code', monospace;
-      font-size: 0.8rem;
-      height: 180px;
+      font-size: 0.78rem;
+      height: 320px;
       overflow-y: auto;
       box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.8);
       position: relative;
@@ -709,16 +710,21 @@ $$F = D^I \times A$$
     }
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
       animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (max-width: 600px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
     }
     .stat-card {
       background: rgba(13, 18, 38, 0.45);
       border: 1px solid rgba(56, 189, 248, 0.12);
       border-radius: 14px;
-      padding: 24px;
+      padding: 18px 12px;
       text-align: center;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
@@ -731,13 +737,13 @@ $$F = D^I \times A$$
     }
     .stat-value {
       font-family: 'Outfit', sans-serif;
-      font-size: 2.4rem;
+      font-size: 2rem;
       font-weight: 800;
       background: linear-gradient(135deg, #38bdf8 0%, #8b5cf6 50%, #ec4899 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
-      letter-spacing: -1px;
+      margin-bottom: 4px;
+      letter-spacing: -0.5px;
     }
     .stat-label {
       font-family: 'Outfit', sans-serif;
@@ -753,11 +759,16 @@ $$F = D^I \times A$$
     }
     .info-section {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 24px;
-      margin-top: 30px;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      margin-top: 20px;
       margin-bottom: 10px;
       animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (min-width: 768px) {
+      .info-section {
+        grid-template-columns: 1.1fr 0.9fr;
+      }
     }
     .info-card {
       background: var(--card-bg);
@@ -833,8 +844,8 @@ $$F = D^I \times A$$
 <body>
 
   <header>
-    <div class="logo-container">
-      <svg viewBox="0 0 450 70" class="logo-svg">
+    <div class="logo-container" style="display: flex; justify-content: center; width: 100%; margin-bottom: 15px;">
+      <svg viewBox="0 0 500 120" class="logo-svg" style="max-width: 500px; width: 100%;">
         <defs>
           <linearGradient id="cyber-grad" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stop-color="#38bdf8" />
@@ -848,17 +859,32 @@ $$F = D^I \times A$$
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
+          <filter id="soft-glow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="8" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
-        <line x1="0" y1="5" x2="450" y2="5" stroke="url(#cyber-grad)" stroke-width="1.5" stroke-opacity="0.3" />
-        <line x1="0" y1="65" x2="450" y2="65" stroke="url(#cyber-grad)" stroke-width="1.5" stroke-opacity="0.3" />
-        <path d="M 15 15 L 5 15 L 5 55 L 15 55" fill="none" stroke="#38bdf8" stroke-width="2" />
-        <path d="M 435 15 L 445 15 L 445 55 L 435 55" fill="none" stroke="#ec4899" stroke-width="2" />
-        <text x="50%" y="45" font-family="'Outfit', sans-serif" font-size="30" font-weight="900" fill="url(#cyber-grad)" text-anchor="middle" letter-spacing="4" filter="url(#glow)">
+        <!-- Stylized HexaCore logo symbol in center -->
+        <g transform="translate(250, 35)">
+          <polygon points="0,-24 21,-12 21,12 0,24 -21,12 -21,-12" fill="none" stroke="url(#cyber-grad)" stroke-width="2" filter="url(#glow)" />
+          <circle cx="0" cy="0" r="8" fill="url(#cyber-grad)" filter="url(#soft-glow)" />
+          <line x1="0" y1="0" x2="0" y2="-24" stroke="rgba(56, 189, 248, 0.5)" stroke-width="1" />
+          <line x1="0" y1="0" x2="21" y2="12" stroke="rgba(139, 92, 246, 0.5)" stroke-width="1" />
+          <line x1="0" y1="0" x2="-21" y2="12" stroke="rgba(236, 72, 153, 0.5)" stroke-width="1" />
+        </g>
+        <!-- Horizontal glowing lines -->
+        <line x1="20" y1="35" x2="180" y2="35" stroke="url(#cyber-grad)" stroke-width="1" stroke-opacity="0.4" />
+        <line x1="320" y1="35" x2="480" y2="35" stroke="url(#cyber-grad)" stroke-width="1" stroke-opacity="0.4" />
+        <!-- Text elements -->
+        <text x="50%" y="90" font-family="'Outfit', sans-serif" font-size="28" font-weight="900" fill="url(#cyber-grad)" text-anchor="middle" letter-spacing="6" filter="url(#glow)">
           DELENTIA LABS
         </text>
       </svg>
     </div>
-    <p class="subtitle">Enterprise Agentic Infrastructure (EAI) powered by the RCT Ecosystem. Mathematically aligned and optimized for standard resource deployment.</p>
+    <p class="subtitle" style="text-align: center; margin: 0 auto; max-width: 800px;">Enterprise Agentic Infrastructure (EAI) powered by the RCT Ecosystem. Mathematically aligned and optimized for standard resource deployment.</p>
   </header>
 
   <div class="stats-grid">
@@ -880,134 +906,6 @@ $$F = D^I \times A$$
   </div>
 
   <div class="container">
-    
-    <!-- Card 1: FDIA State Gatekeeper -->
-    <div class="card">
-      <div class="card-content">
-        <div>
-          <div class="card-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            FDIA Algorithmic Gatekeeper
-          </div>
-          
-          <div class="form-group">
-            <label>Data Quality (D) <span id="valD">0.85</span></label>
-            <input type="range" id="inputD" min="0" max="1" step="0.01" value="0.85">
-          </div>
-
-          <div class="form-group">
-            <label>Intent Precision (I) <span id="valI">1.50</span></label>
-            <input type="range" id="inputI" min="1" max="3" step="0.05" value="1.50">
-          </div>
-
-          <div class="switch-container">
-            <span style="color: var(--text-muted); font-size: 0.88rem; font-weight: 500;">Human Architect Gate (A)</span>
-            <label class="switch">
-              <input type="checkbox" id="inputA" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
-
-        <div>
-          <div class="chart-container">
-            <svg id="fdiaChart" width="100%" height="100%" viewBox="0 0 300 120" style="overflow: visible;">
-              <defs>
-                <linearGradient id="curveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.3"/>
-                  <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.9"/>
-                </linearGradient>
-              </defs>
-              <!-- Grid lines -->
-              <line x1="40" y1="20" x2="260" y2="20" stroke="rgba(255,255,255,0.05)" stroke-dasharray="2,2"/>
-              <line x1="40" y1="70" x2="260" y2="70" stroke="rgba(255,255,255,0.05)" stroke-dasharray="2,2"/>
-              <line x1="40" y1="120" x2="260" y2="120" stroke="rgba(255,255,255,0.1)"/>
-              <line x1="40" y1="20" x2="40" y2="120" stroke="rgba(255,255,255,0.1)"/>
-              
-              <!-- Labels -->
-              <text x="35" y="24" fill="rgba(255,255,255,0.3)" font-size="7" text-anchor="end">1.0</text>
-              <text x="35" y="74" fill="rgba(255,255,255,0.3)" font-size="7" text-anchor="end">0.5</text>
-              <text x="35" y="124" fill="rgba(255,255,255,0.3)" font-size="7" text-anchor="end">0.0</text>
-              <text x="40" y="132" fill="rgba(255,255,255,0.3)" font-size="7" text-anchor="middle">D=0</text>
-              <text x="260" y="132" fill="rgba(255,255,255,0.3)" font-size="7" text-anchor="middle">D=1</text>
-              
-              <!-- Curve path -->
-              <path id="curvePath" d="M 40,120 Q 150,120 260,20" fill="none" stroke="url(#curveGrad)" stroke-width="2.5"/>
-              
-              <!-- Active Dot -->
-              <circle id="activeDot" cx="227" cy="48" r="5" fill="#10b981" style="filter: drop-shadow(0 0 6px #10b981); transition: cx 0.1s, cy 0.1s;"/>
-            </svg>
-          </div>
-
-          <div class="result-display">
-            <div class="score-container">
-              <div class="score-circle success" id="scoreCircle">0.67</div>
-              <div style="text-align: left;">
-                <div class="status-text" id="statusText" style="color: var(--success);">State Authorized</div>
-                <div class="status-desc" id="statusDesc">State transition allowed under constitutional consensus constraints.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card 2: TOON Compressor -->
-    <div class="card">
-      <div class="card-content">
-        <div>
-          <div class="card-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6v6H4zm10 0h6v6h-6zM4 4h6v6H4zm10 0h6v6h-6z"/></svg>
-            TOON Protocol Compressor (ALGO-42)
-          </div>
-          
-          <div class="form-group">
-            <label style="margin-bottom: 6px;">Select Template Payload</label>
-            <select class="preset-selector" id="toonPreset" onchange="loadPreset()">
-              <option value="intent">Tax Calculation Intent</option>
-              <option value="simple">Simple System Command</option>
-              <option value="complex">Multi-Model Agent Plan</option>
-            </select>
-          </div>
-
-          <div class="editor-container">
-            <div class="split-editors">
-              <div>
-                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600;">RAW JSON</span>
-                <textarea id="jsonInput" oninput="compress()">{
-  "packet_id": "6afff5d6-7fa3-4f2c-92b0-b1a77fd42a93",
-  "priority": 3,
-  "payload": {
-    "intent": "คำนวณภาษีบุคคลธรรมดา 1 ล้านบาท",
-    "currency": "THB",
-    "income": 1000000
-  }
-}</textarea>
-              </div>
-              <div>
-                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600;">COMPRESSED TOON</span>
-                <div class="compress-output" id="toonOutput">packet_id: 6afff5d6-7fa3-4f2c-92b0-b1a77fd42a93
-priority: 3
-payload:
-  intent: คำนวณภาษีบุคคลธรรมดา 1 ล้านบาท
-  currency: THB
-  income: 1000000</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
-          <button class="btn" onclick="compress()">Serialize context to TOON</button>
-          
-          <div class="stats-row">
-            <span>JSON: <span id="jsonBytes">198</span> chars</span>
-            <span>TOON: <span id="toonBytes">122</span> chars</span>
-            <span>Savings: <strong id="savingsPct">38.4%</strong></span>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Card 3: Regional Sovereignty Router -->
     <div class="card">
@@ -1302,7 +1200,9 @@ Refining TOON (Token-Oriented Object Notation) for 15-50% token savings, and dev
 
 Our security architecture is governed by the **FDIA Equation** to ensure mathematical alignment:
 
-$$F = D^I \\times A$$
+<div align="center" style="margin: 16px 0; font-size: 22px; font-weight: bold; color: #ffd700;">
+  F = D<sup>I</sup> &times; A
+</div>
 
 #### Component Breakdown:
 | Parameter | Definition | Range / Constraints |
