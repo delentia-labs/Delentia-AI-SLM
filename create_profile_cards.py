@@ -702,7 +702,7 @@ The heart of Delentia's security is the **FDIA equation**, which guarantees that
     }
 
     /* Rebranding Enterprise Additions */
-    .container, .stats-grid, .info-section, .console-logs {
+    header, .container, .stats-grid, .info-section, .console-logs {
       max-width: 900px !important;
       margin-left: auto !important;
       margin-right: auto !important;
@@ -843,32 +843,46 @@ The heart of Delentia's security is the **FDIA equation**, which guarantees that
 </head>
 <body>
 
-  <header>
+  <header class="header">
     <div class="logo-container" style="display: flex; justify-content: center; width: 100%; margin-bottom: 15px;">
-      <svg viewBox="0 0 500 120" class="logo-svg" style="max-width: 500px; width: 100%;">
+      <svg viewBox="0 0 500 120" class="logo-svg" style="max-width: 500px; width: 100%; overflow: visible;">
         <defs>
+          <pattern id="pixel-grid" width="10" height="10" patternUnits="userSpaceOnUse">
+            <rect width="10" height="10" fill="none" />
+            <circle cx="5" cy="5" r="0.7" fill="#38bdf8" fill-opacity="0.12" />
+          </pattern>
           <linearGradient id="cyber-grad" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stop-color="#38bdf8" />
             <stop offset="50%" stop-color="#8b5cf6" />
             <stop offset="100%" stop-color="#ec4899" />
           </linearGradient>
-          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="4" result="blur" />
+          <!-- Reduced glow blur standard deviation (0.8 instead of 4) -->
+          <filter id="glow" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur stdDeviation="0.8" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          <filter id="soft-glow" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="8" result="blur" />
+          <!-- Reduced soft-glow blur standard deviation (2.0 instead of 8) -->
+          <filter id="soft-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2.0" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
         </defs>
+        <!-- Background pixel grid -->
+        <rect x="0" y="0" width="500" height="120" fill="url(#pixel-grid)" rx="8" />
+        <rect x="2" y="2" width="496" height="116" fill="none" stroke="url(#cyber-grad)" stroke-width="1" stroke-opacity="0.1" rx="8" />
+        
+        <!-- Cyberpunk brackets -->
+        <path d="M 25 20 L 10 20 L 10 100 L 25 100" fill="none" stroke="#38bdf8" stroke-width="2.5" />
+        <path d="M 475 20 L 490 20 L 490 100 L 475 100" fill="none" stroke="#ec4899" stroke-width="2.5" />
+        
         <!-- Stylized HexaCore logo symbol in center -->
-        <g transform="translate(250, 35)">
+        <g transform="translate(250, 45)">
           <polygon points="0,-24 21,-12 21,12 0,24 -21,12 -21,-12" fill="none" stroke="url(#cyber-grad)" stroke-width="2" filter="url(#glow)" />
           <circle cx="0" cy="0" r="8" fill="url(#cyber-grad)" filter="url(#soft-glow)" />
           <line x1="0" y1="0" x2="0" y2="-24" stroke="rgba(56, 189, 248, 0.5)" stroke-width="1" />

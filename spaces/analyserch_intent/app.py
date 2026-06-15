@@ -17,6 +17,8 @@ import math
 import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
+import threading
+import requests
 import gradio as gr
 
 # Ensure the current directory is in Python path for importing local modules
@@ -37,6 +39,21 @@ def init_telemetry():
             writer = csv.DictWriter(f, fieldnames=TELEMETRY_HEADERS)
             writer.writeheader()
 
+def _post_to_supabase_async(url: str, key: str, row: dict):
+    try:
+        headers = {
+            "apikey": key,
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal"
+        }
+        endpoint = f"{url.rstrip('/')}/rest/v1/analyserch_telemetry_logs"
+        response = requests.post(endpoint, json=row, headers=headers, timeout=5)
+        if response.status_code >= 400:
+            print(f"[Telemetry] Supabase API rejected payload. Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        print(f"[Telemetry] Supabase connection failed: {e}")
+
 def log_telemetry(row: dict):
     try:
         init_telemetry()
@@ -45,6 +62,20 @@ def log_telemetry(row: dict):
             writer.writerow(row)
     except Exception:
         pass
+
+    # Log to Supabase asynchronously if credentials are set
+    supabase_url = os.environ.get("SUPABASE_URL")
+    supabase_key = os.environ.get("RCT_CORE_BRAIN_KEY")
+    if supabase_url and supabase_key:
+        try:
+            thread = threading.Thread(
+                target=_post_to_supabase_async,
+                args=(supabase_url, supabase_key, row),
+                daemon=True
+            )
+            thread.start()
+        except Exception as e:
+            print(f"[Telemetry] Failed to spawn logging thread: {e}")
 
 # ── Entropy and GIGO Logic ─────────────────────────────────────────────────────
 def calculate_shannon_entropy(text: str) -> float:
@@ -552,26 +583,32 @@ with gr.Blocks(css=custom_css, title="Delentia OS — Analyserch Intent Simulato
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
     <div class='header-glow'>
       <div style="display: flex; justify-content: center; align-items: center; padding: 10px 0; margin-bottom: 15px;">
-        <svg viewBox="0 0 450 60" style="width: 100%; max-width: 450px; height: auto; background: transparent; overflow: visible; display: block; margin: 0 auto;">
+        <svg viewBox="0 0 500 80" style="width: 100%; max-width: 500px; height: auto; background: transparent; overflow: visible; display: block; margin: 0 auto;">
           <defs>
+            <pattern id="pixel-grid" width="10" height="10" patternUnits="userSpaceOnUse">
+              <rect width="10" height="10" fill="none" />
+              <circle cx="5" cy="5" r="0.7" fill="#38bdf8" fill-opacity="0.12" />
+            </pattern>
             <linearGradient id="cyber-grad-purple" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#a78bfa" />
-              <stop offset="50%" stop-color="#ff8c00" />
-              <stop offset="100%" stop-color="#00ffcc" />
+              <stop offset="0%" stop-color="#38bdf8" />
+              <stop offset="50%" stop-color="#8b5cf6" />
+              <stop offset="100%" stop-color="#ec4899" />
             </linearGradient>
-            <filter id="glow-purple" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
+            <filter id="glow-purple" x="-10%" y="-10%" width="120%" height="120%">
+              <feGaussianBlur stdDeviation="0.8" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
           </defs>
-          <line x1="0" y1="5" x2="450" y2="5" stroke="url(#cyber-grad-purple)" stroke-width="1.5" stroke-opacity="0.3" />
-          <line x1="0" y1="55" x2="450" y2="55" stroke="url(#cyber-grad-purple)" stroke-width="1.5" stroke-opacity="0.3" />
-          <path d="M 15 15 L 5 15 L 5 45 L 15 45" fill="none" stroke="#a78bfa" stroke-width="2" />
-          <path d="M 435 15 L 445 15 L 445 45 L 435 45" fill="none" stroke="#00ffcc" stroke-width="2" />
-          <text x="50%" y="38" font-family="'Outfit', sans-serif" font-size="24" font-weight="900" fill="url(#cyber-grad-purple)" text-anchor="middle" letter-spacing="3" filter="url(#glow-purple)">
+          <rect x="0" y="0" width="500" height="80" fill="url(#pixel-grid)" rx="6" />
+          <rect x="2" y="2" width="496" height="76" fill="none" stroke="url(#cyber-grad-purple)" stroke-width="1" stroke-opacity="0.1" rx="6" />
+          <path d="M 25 15 L 10 15 L 10 65 L 25 65" fill="none" stroke="#38bdf8" stroke-width="2.5" />
+          <path d="M 475 15 L 490 15 L 490 65 L 475 65" fill="none" stroke="#ec4899" stroke-width="2.5" />
+          <line x1="30" y1="15" x2="470" y2="15" stroke="url(#cyber-grad-purple)" stroke-width="1.5" stroke-opacity="0.4" />
+          <line x1="30" y1="65" x2="470" y2="65" stroke="url(#cyber-grad-purple)" stroke-width="1.5" stroke-opacity="0.4" />
+          <text x="50%" y="48" font-family="'Outfit', sans-serif" font-size="24" font-weight="900" fill="url(#cyber-grad-purple)" text-anchor="middle" letter-spacing="5" filter="url(#glow-purple)">
             DELENTIA ANALYSEARCH
           </text>
         </svg>
