@@ -6,3 +6,5 @@ rich
 cryptography
 requests
 python-dotenv
+openai
+anthropic

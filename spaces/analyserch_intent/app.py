@@ -26,6 +26,18 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
+# Try to import real compiler
+try:
+    from rct_control_plane.intent_compiler import IntentCompiler
+    _HAS_REAL_COMPILER = True
+    print("[INFO] app.py: Successfully loaded real IntentCompiler.")
+    print(f"[INFO] app.py: OPENAI_API_KEY present: {bool(os.environ.get('OPENAI_API_KEY'))}")
+    print(f"[INFO] app.py: ANTHROPIC_API_KEY present: {bool(os.environ.get('ANTHROPIC_API_KEY'))}")
+    print(f"[INFO] app.py: RCT_LLM_PROVIDER: {os.environ.get('RCT_LLM_PROVIDER', 'not set')}")
+except Exception as e:
+    _HAS_REAL_COMPILER = False
+    print(f"[WARN] app.py: Failed to load real IntentCompiler ({e}). Using emulation fallback.")
+
 # ── Telemetry Setup ────────────────────────────────────────────────────────────
 TELEMETRY_FILE = Path("telemetry_log.csv")
 TELEMETRY_HEADERS = [
@@ -426,15 +438,129 @@ def run_analyserch_pipeline(intent_text: str):
     # Extract keywords (Crystallizer)
     extracted = extract_keywords(intent_text)
     
-    # Generate UI Cards for keywords
-    keywords_cards_html = build_keyword_cards_html(extracted)
-    
-    # Generate Mirror Mode dialog
-    mirror_dialog_html = generate_mirror_dialog(intent_text, extracted)
-    
-    # Build synthesis visual map
-    synthesis_map_html = build_synthesis_graph_html(extracted)
-    
+    # Generate compiler cards & dynamic simulations if compiler is active
+    if _HAS_REAL_COMPILER:
+        try:
+            compiler = IntentCompiler()
+            comp_res = compiler.compile(intent_text, user_id="usr_whale", user_tier="PRO")
+            if comp_res.success and comp_res.intent:
+                intent = comp_res.intent
+                intent_type = intent.intent_type.value if hasattr(intent.intent_type, 'value') else str(intent.intent_type)
+                scope_type = intent.scope.scope_type.value if hasattr(intent.scope.scope_type, 'value') else str(intent.scope.scope_type)
+                target = intent.scope.target
+                priority = intent.priority.value if hasattr(intent.priority, 'value') else str(intent.priority)
+                risk = intent.risk_profile.value if hasattr(intent.risk_profile, 'value') else str(intent.risk_profile)
+                cost = f"${intent.budget.max_cost_usd:.2f}" if intent.budget and intent.budget.max_cost_usd else "N/A"
+                provider = compiler.llm_provider.upper()
+                model_name = "gpt-4o-mini (OpenAI API)" if provider == "OPENAI" else ("claude-3-haiku (Anthropic API)" if provider == "ANTHROPIC" else "Regex Rule-based Classifier Model")
+                
+                # Active model indicator card
+                model_badge_color = "#38bdf8" if provider == "REGEX" else "#a78bfa"
+                metadata_card_html = f"""
+                <div style='background:rgba(13, 18, 32, 0.9); border:1px solid #1e2d45; border-radius:10px; padding:15px; margin-bottom:15px; border-left: 4px solid {model_badge_color};'>
+                    <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;'>
+                        <span style='font-size:15px; font-weight:bold; color:#ffffff;'>🤖 Active Classifier Model</span>
+                        <span style='background:rgba(56,189,248,0.15); border:1px solid {model_badge_color}; color:{model_badge_color}; padding:2px 8px; border-radius:12px; font-size:10px; font-weight:600;'>{provider}</span>
+                    </div>
+                    <div style='font-size:13px; color:#c9d9f0; line-height:1.4; margin-bottom:10px; font-family:"JetBrains Mono", monospace;'>
+                        Engine: {model_name}
+                    </div>
+                    <div style='font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#6b7fa3; font-weight:bold; margin-bottom:8px;'>
+                        Compiler Metadata Output:
+                    </div>
+                    <div style='font-size:12px; color:#a8b9d3; line-height:1.5; font-family:"JetBrains Mono", monospace; background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; border:1px solid rgba(255,255,255,0.03);'>
+                        • Intent Type: <span style='color:#ffd700; font-weight:bold;'>{intent_type}</span><br>
+                        • Scope Type: {scope_type}<br>
+                        • Target: <span style='color:#00ffcc;'>{target}</span><br>
+                        • Priority: {priority}<br>
+                        • Risk Profile: {risk}<br>
+                        • Cost Budget: {cost}<br>
+                        • Validation: <span style='color:#00e676;'>VALID</span>
+                    </div>
+                </div>
+                """
+                
+                keywords_cards_html = metadata_card_html + build_keyword_cards_html(extracted)
+                
+                # Dynamic Propose/Counter/Refine dialog
+                propose_html = f"""
+                <div style='display:flex; margin-bottom:14px; align-items:flex-start;'>
+                    <div style='background:#ff8c00; color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; margin-right:12px; flex-shrink:0;'>P</div>
+                    <div style='background:rgba(255, 140, 0, 0.08); border:1px solid rgba(255, 140, 0, 0.25); padding:12px; border-radius:0 12px 12px 12px; color:#c9d9f0; font-size:13px; line-height:1.4;'>
+                        <b style='color:#ff8c00; font-size:12px;'>PROPOSER AGENT (LoRA-Adapt)</b><br>
+                        I propose compiling and executing a <b>[{intent_type}]</b> plan. 
+                        We should target scope <code>{scope_type}</code> at target <b>[{target}]</b>, and run a local database configuration. Estimated latency: ~30ms.
+                    </div>
+                </div>
+                """
+                
+                counter_html = f"""
+                <div style='display:flex; margin-bottom:14px; align-items:flex-start;'>
+                    <div style='background:#ff3b3b; color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; margin-right:12px; flex-shrink:0;'>C</div>
+                    <div style='background:rgba(255, 59, 59, 0.08); border:1px solid rgba(255, 59, 59, 0.25); padding:12px; border-radius:0 12px 12px 12px; color:#c9d9f0; font-size:13px; line-height:1.4;'>
+                        <b style='color:#ff3b3b; font-size:12px;'>COUNTER AGENT (Consensus Checker)</b><br>
+                        Objection! The compiled risk profile is <b>[{risk}]</b>. 
+                        We must keep execution strictly local to handle target <code>{target}</code> under strict budget constraints.
+                    </div>
+                </div>
+                """
+                
+                refine_html = f"""
+                <div style='display:flex; margin-bottom:6px; align-items:flex-start;'>
+                    <div style='background:#00ffcc; color:#0d1220; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; margin-right:12px; flex-shrink:0;'>R</div>
+                    <div style='background:rgba(0, 255, 204, 0.08); border:1px solid rgba(0, 255, 204, 0.25); padding:12px; border-radius:0 12px 12px 12px; color:#c9d9f0; font-size:13px; line-height:1.4;'>
+                        <b style='color:#00ffcc; font-size:12px;'>REFINER AGENT (Agreement Reached)</b><br>
+                        Consensus achieved. Refined execution plan for <b>{intent_type}</b>: run vector comparisons in local memory. 
+                        All operations for target <b>{target}</b> will be compiled with <b>{priority}</b> priority. 
+                        TOON payload compression active to minimize costs within the <b>{cost}</b> budget limit.
+                    </div>
+                </div>
+                """
+                
+                mirror_dialog_html = f"<div style='display:flex; flex-direction:column;'>{propose_html}{counter_html}{refine_html}</div>"
+                
+                # Dynamic Synthesis graph nodes
+                nodes_html = [
+                    "<div class='syn-node root-node'>USER INTENT</div>",
+                    f"<div class='syn-node key-node'>{intent_type}</div>",
+                    f"<div class='syn-node tech-node'>{scope_type}:{target}</div>",
+                    f"<div class='syn-node key-node'>{priority}</div>",
+                    f"<div class='syn-node tech-node'>MODEL: {provider}</div>"
+                ]
+                edges_html = [
+                    f"USER INTENT ➔ {intent_type}",
+                    f"{intent_type} ➔ {scope_type}:{target}",
+                    f"{scope_type}:{target} ➔ {priority}",
+                    f"{priority} ➔ MODEL: {provider}"
+                ]
+                
+                synthesis_map_html = f"""
+                <div style='background:rgba(13, 18, 32, 0.7); border:1px solid #1e2d45; border-radius:10px; padding:15px;'>
+                    <div style='display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px;'>
+                        {"".join(nodes_html)}
+                    </div>
+                    <div style='border-top:1px solid rgba(30, 45, 69, 0.6); padding-top:10px;'>
+                        <div style='font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#6b7fa3; font-weight:bold; margin-bottom:6px;'>
+                            Cross-Disciplinary Synthesizer Edges:
+                        </div>
+                        {"".join([f"<div style='font-size:12px; color:#ff8c00; margin-bottom:4px;'>🔗 {edge}</div>" for edge in edges_html])}
+                    </div>
+                </div>
+                """
+            else:
+                keywords_cards_html = build_keyword_cards_html(extracted)
+                mirror_dialog_html = generate_mirror_dialog(intent_text, extracted)
+                synthesis_map_html = build_synthesis_graph_html(extracted)
+        except Exception as e:
+            print(f"[ERROR] Failed to run real compile: {e}")
+            keywords_cards_html = build_keyword_cards_html(extracted)
+            mirror_dialog_html = generate_mirror_dialog(intent_text, extracted)
+            synthesis_map_html = build_synthesis_graph_html(extracted)
+    else:
+        keywords_cards_html = build_keyword_cards_html(extracted)
+        mirror_dialog_html = generate_mirror_dialog(intent_text, extracted)
+        synthesis_map_html = build_synthesis_graph_html(extracted)
+        
     latency_ms = (time.perf_counter() - start_time) * 1000
     
     # Log to Telemetry CSV

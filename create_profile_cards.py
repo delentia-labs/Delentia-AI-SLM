@@ -845,7 +845,7 @@ The heart of Delentia's security is the **FDIA equation**, which guarantees that
 
   <header class="header">
     <div class="logo-container" style="display: flex; justify-content: center; width: 100%; margin-bottom: 15px;">
-      <svg viewBox="0 0 500 120" class="logo-svg" style="max-width: 500px; width: 100%; overflow: visible;">
+      <svg viewBox="0 0 500 80" class="logo-svg" style="max-width: 500px; width: 100%; overflow: visible;">
         <defs>
           <pattern id="pixel-grid" width="10" height="10" patternUnits="userSpaceOnUse">
             <rect width="10" height="10" fill="none" />
@@ -864,36 +864,21 @@ The heart of Delentia's security is the **FDIA equation**, which guarantees that
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          <!-- Reduced soft-glow blur standard deviation (2.0 instead of 8) -->
-          <filter id="soft-glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="2.0" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
         </defs>
         <!-- Background pixel grid -->
-        <rect x="0" y="0" width="500" height="120" fill="url(#pixel-grid)" rx="8" />
-        <rect x="2" y="2" width="496" height="116" fill="none" stroke="url(#cyber-grad)" stroke-width="1" stroke-opacity="0.1" rx="8" />
+        <rect x="0" y="0" width="500" height="80" fill="url(#pixel-grid)" rx="8" />
+        <rect x="2" y="2" width="496" height="76" fill="none" stroke="url(#cyber-grad)" stroke-width="1" stroke-opacity="0.1" rx="8" />
         
         <!-- Cyberpunk brackets -->
-        <path d="M 25 20 L 10 20 L 10 100 L 25 100" fill="none" stroke="#38bdf8" stroke-width="2.5" />
-        <path d="M 475 20 L 490 20 L 490 100 L 475 100" fill="none" stroke="#ec4899" stroke-width="2.5" />
+        <path d="M 25 15 L 10 15 L 10 65 L 25 65" fill="none" stroke="#38bdf8" stroke-width="2.5" />
+        <path d="M 475 15 L 490 15 L 490 65 L 475 65" fill="none" stroke="#ec4899" stroke-width="2.5" />
         
-        <!-- Stylized HexaCore logo symbol in center -->
-        <g transform="translate(250, 45)">
-          <polygon points="0,-24 21,-12 21,12 0,24 -21,12 -21,-12" fill="none" stroke="url(#cyber-grad)" stroke-width="2" filter="url(#glow)" />
-          <circle cx="0" cy="0" r="8" fill="url(#cyber-grad)" filter="url(#soft-glow)" />
-          <line x1="0" y1="0" x2="0" y2="-24" stroke="rgba(56, 189, 248, 0.5)" stroke-width="1" />
-          <line x1="0" y1="0" x2="21" y2="12" stroke="rgba(139, 92, 246, 0.5)" stroke-width="1" />
-          <line x1="0" y1="0" x2="-21" y2="12" stroke="rgba(236, 72, 153, 0.5)" stroke-width="1" />
-        </g>
-        <!-- Horizontal glowing lines -->
-        <line x1="20" y1="35" x2="180" y2="35" stroke="url(#cyber-grad)" stroke-width="1" stroke-opacity="0.4" />
-        <line x1="320" y1="35" x2="480" y2="35" stroke="url(#cyber-grad)" stroke-width="1" stroke-opacity="0.4" />
+        <!-- Top and bottom horizontal lines, similar to space banner style -->
+        <line x1="30" y1="15" x2="470" y2="15" stroke="url(#cyber-grad)" stroke-width="1.5" stroke-opacity="0.4" />
+        <line x1="30" y1="65" x2="470" y2="65" stroke="url(#cyber-grad)" stroke-width="1.5" stroke-opacity="0.4" />
+        
         <!-- Text elements -->
-        <text x="50%" y="90" font-family="'Outfit', sans-serif" font-size="28" font-weight="900" fill="url(#cyber-grad)" text-anchor="middle" letter-spacing="6" filter="url(#glow)">
+        <text x="50%" y="48" font-family="'Outfit', sans-serif" font-size="28" font-weight="900" fill="url(#cyber-grad)" text-anchor="middle" letter-spacing="6" filter="url(#glow)">
           DELENTIA LABS
         </text>
       </svg>
