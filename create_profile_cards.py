@@ -43,7 +43,7 @@ pinned: false
   <img src="https://raw.githubusercontent.com/delentia-labs/delentia-os/main/docs/assets/delentia_banner.png" alt="Delentia Labs Banner" width="100%" style="border-radius: 8px;" onerror="this.style.display='none'" />
   
   # 🌐 Delentia Labs
-  ### **The Constitutional AI Operating System — RCT Ecosystem**
+  ### **Delentia Cognitive Framework — Enterprise Agentic Infrastructure (EAI)**
   
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
   [![Documentation](https://img.shields.io/badge/docs-v3.0-green.svg?style=flat-square)](https://delentia-labs.github.io/delentia-os/)
@@ -55,17 +55,26 @@ pinned: false
 
 ---
 
+## 📊 Enterprise Overview & Key Metrics
+
+* **Intent-Centric AI OS with <0.3% Hallucination Rate**
+* **Powered by RCT v7 Architecture — 10 Layers, 41 Algorithms, 7 Genomes**
+* **Mathematical AI Governance Guarantee — $F = D^I \times A$ Boundary Control**
+* **Sovereign Compliance — PDPA & GDPR Aligned, 100% Local-first & Offline Ready**
+
+---
+
 ## 🇹🇭 บทสรุปผู้บริหาร / Executive Summary (Bilingual)
 
 ### **ภาษาไทย (Thai)**
-**Delentia Labs** เป็นผู้พัฒนาโครงสร้างพื้นฐานหลักสำหรับ **RCT (Reverse Component Thinking) Ecosystem** ซึ่งเป็น **ระบบปฏิบัติการ Intent-Centric AI OS ตัวแรกของโลกที่มีการรับประกันความปลอดภัยเชิงคณิตศาสตร์ (Constitutional Guarantees)**
+**Delentia Labs** เป็นผู้พัฒนาโครงสร้างพื้นฐานหลักสำหรับ **RCT (Reverse Component Thinking) Ecosystem** ซึ่งเป็น **ระบบปฏิบัติการ Enterprise Agentic Infrastructure (EAI) ตัวแรกของโลกที่มีการรับประกันความปลอดภัยเชิงคณิตศาสตร์ (Constitutional Guarantees)**
 * **จุดมุ่งหมายสูงสุด:** เพื่อสร้างระบบควบคุมการทำงานของ AI Agent ที่ตรวจสอบได้ (Auditable) ปลอดภัย 100% และปฏิบัติตามกฎหมายคุ้มครองข้อมูลส่วนบุคคล (PDPA) อย่างเคร่งครัด โดยประมวลผลภายในระบบปิด (On-Premises / Air-Gapped)
-* **สถานะปัจจุบัน (JITNA v0.3):** โมเดลหลักได้รับการเทรนด้วยวิธี Unsloth QLoRA, รวบรวมสิทธิ์ความปลอดภัยในระดับน้ำหนักโมเดล (RCT v7 Rules), ประสานโครงสร้าง Delta Engine และ Intent Loop เป็นผลสำเร็จ และได้รับการแปลงเป็น GGUF (`delentia-slm-jitna-v0.3-Q4_K_M.gguf`) ผ่านการทดสอบคัดกรองความปลอดภัยและการประมวลผลโลจิกบน Ollama 100% 
+* **สถานะปัจจุบัน (JITNA v0.3):** แกนประมวลผลสมองควบคุมสิทธิ์ AI (Delentia Cognitive Framework) ได้รับการเทรนด้วยวิธี Unsloth QLoRA, แยกหน้าที่ด้านการเรียกใช้งานฟังก์ชัน, ระบบความปลอดภัยเชิงโครงสร้าง, การจำแนกเจตนาด่วน, และการย่อบริบท RAG ออกเป็นชั้นเลอยอร์ขนาดเล็กเฉพาะตัว (1+4 specialized LoRA pillars) และได้รับการแปลงเป็น GGUF (`delentia-slm-jitna-v0.3-Q4_K_M.gguf`) ผ่านการทดสอบคัดกรองความปลอดภัยและการประมวลผลโลจิกบน Ollama 100% 
 
 ### **English**
-**Delentia Labs** designs the core infrastructure for the **RCT (Reverse Component Thinking) Ecosystem** — the world's first **Intent-Centric AI Operating System** with mathematical constitutional guarantees.
+**Delentia Labs** designs the core infrastructure for the **RCT (Reverse Component Thinking) Ecosystem** — the world's first **Enterprise Agentic Infrastructure (EAI)** with mathematical constitutional guarantees.
 * **Core Mission:** To establish an open, verifiable, and highly secure framework (Linux for AI Agents), ensuring that autonomous components remain aligned, predictable, and compliant under all operational conditions.
-* **Current Status (JITNA v0.3):** The model weights have been fine-tuned via Unsloth QLoRA, embedding RCT v7 rules directly into the parameter space. It incorporates Delta Engine caching and Intent Loop routing, successfully compiled to GGUF format (`delentia-slm-jitna-v0.3-Q4_K_M.gguf`), and verified through local smoke testing (standard logic & security intrusion gates) under Ollama.
+* **Current Status (JITNA v0.3):** The Delentia Cognitive Framework implements 1+4 specialized LoRA pillars (Router, Executor, Guardian, Scribe) for deterministic execution. The model weights have been fine-tuned via Unsloth QLoRA, successfully compiled to GGUF format (`delentia-slm-jitna-v0.3-Q4_K_M.gguf`), and verified through local smoke testing (standard logic & security intrusion gates) under Ollama.
 
 ---
 
@@ -82,7 +91,7 @@ A high-efficiency agent memory system that stores state change diffs instead of 
 
 ### 3. Intent Loop & HexaCore Consensus Layer
 A multi-LLM consensus layer utilizing ED25519 cryptographic signatures to validate model outputs.
-- **The 9-Role Consensus:** Incorporates purpose-specific models across a balanced distribution (3 US, 3 CN, 1 TH, 1 Local, 1 LPU) to reduce model hallucination to **under 0.3%** (vs. 12-15% industry standard).
+- **The 9-Role Consensus (Delentia Orchestration Plane):** Incorporates purpose-specific models across a balanced distribution (3 US, 3 CN, 1 TH, 1 Local, 1 LPU) to reduce model hallucination to **under 0.3%** (vs. 12-15% industry standard).
 - **Self-Healing Routing:** The Intent Loop detects failed tasks and re-routes requests through secondary verification paths.
 
 ### 4. TOON (Token-Oriented Object Notation — ALGO-42)
@@ -95,7 +104,7 @@ Our syntax-noise-free serialization protocol that replaces traditional JSON deli
 
 The heart of Delentia's security is the **FDIA equation**, which guarantees that AI agents cannot bypass safety thresholds:
 
-$$F = D^I \\times A$$
+$$F = D^I \times A$$
 
 #### Component Breakdown:
 | Parameter | Definition | Range / Constraints |

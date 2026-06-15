@@ -1,0 +1,13 @@
+matplotlib
+numpy
+pillow
+rich
+cryptography
+python-dotenv
+aiohttp
+requests
+torch
+transformers
+peft
+accelerate
+bitsandbytes

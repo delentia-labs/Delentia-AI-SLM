@@ -1,0 +1,671 @@
+"""
+Delentia OS — Analyserch Intent Simulator
+Hugging Face Space: Delentia/delentia-analyserch-intent
+
+This Space showcases Delentia's intent crystallization (ALGO-41), 
+GIGO Protection, Mirror Mode interactive dialogue, and cross-disciplinary synthesis.
+"""
+
+import csv
+import json
+import os
+import sys
+import random
+import time
+import uuid
+import math
+import hashlib
+from datetime import datetime, timezone
+from pathlib import Path
+import gradio as gr
+
+# Ensure the current directory is in Python path for importing local modules
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
+# ── Telemetry Setup ────────────────────────────────────────────────────────────
+TELEMETRY_FILE = Path("telemetry_log.csv")
+TELEMETRY_HEADERS = [
+    "timestamp", "session_id", "input_text", "entropy_score",
+    "gigo_status", "keywords_count", "mirror_turns", "latency_ms"
+]
+
+def init_telemetry():
+    if not TELEMETRY_FILE.exists():
+        with open(TELEMETRY_FILE, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=TELEMETRY_HEADERS)
+            writer.writeheader()
+
+def log_telemetry(row: dict):
+    try:
+        init_telemetry()
+        with open(TELEMETRY_FILE, "a", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=TELEMETRY_HEADERS)
+            writer.writerow(row)
+    except Exception:
+        pass
+
+# ── Entropy and GIGO Logic ─────────────────────────────────────────────────────
+def calculate_shannon_entropy(text: str) -> float:
+    """Calculate the Shannon Entropy of words in the text to identify GIGO."""
+    if not text.strip():
+        return 0.0
+    words = text.lower().split()
+    total_words = len(words)
+    if total_words == 0:
+        return 0.0
+    
+    # Count occurrences
+    counts = {}
+    for word in words:
+        counts[word] = counts.get(word, 0) + 1
+        
+    # Calculate shannon entropy
+    entropy = 0.0
+    for count in counts.values():
+        p = count / total_words
+        entropy -= p * math.log2(p)
+        
+    return round(entropy, 4)
+
+def check_gigo(text: str, entropy: float) -> tuple[str, str, str]:
+    """Evaluates the input text against GIGO rules."""
+    text_stripped = text.strip()
+    if not text_stripped:
+        return "EMPTY", "Input text is completely empty.", "rgba(107, 127, 163, 0.2)"
+        
+    if len(text_stripped) < 15:
+        return "GIGO_WARNING", "Input query is too short for meaningful intent analysis.", "rgba(255, 140, 0, 0.25)"
+        
+    # Check if words are highly repetitive (indicating spam or low-effort test inputs)
+    words = text_stripped.split()
+    unique_ratio = len(set(words)) / len(words)
+    if unique_ratio < 0.4 and len(words) > 5:
+        return "GIGO_VIOLATION", "Low information density: highly repeated tokens detected.", "rgba(255, 59, 59, 0.25)"
+        
+    # Check for forbidden or toxic keywords (standard blocklist)
+    forbidden = ["hack", "exploit", "bypass", "jailbreak", "override"]
+    detected_forbidden = [fw for fw in forbidden if fw in text_stripped.lower()]
+    if detected_forbidden:
+        return "SECURITY_BLOCK", f"Security Boundary Violated: input contains blocked tokens: {', '.join(detected_forbidden)}.", "rgba(255, 59, 59, 0.3)"
+        
+    return "SAFE_CLEAR", "High information density. Safe constitutional query.", "rgba(0, 230, 118, 0.2)"
+
+# ── Crystallizer (ALGO-41) Mock Database ───────────────────────────────────────
+CONCEPT_DATABASE = {
+    "sovereignty": {
+        "definition": "อำนาจการควบคุมและครอบครองข้อมูลและโครงสร้างพื้นฐานอย่างสมบูรณ์แบบโดยไม่ต้องพึ่งพาระบบคลาวด์ภายนอก",
+        "category": "Conceptual",
+        "entropy": 0.96,
+        "implications": [
+            "ฐานข้อมูลแบบ Self-hosted (e.g. PostgreSQL, Redis บนเซิร์ฟเวอร์ส่วนตัว)",
+            "การใช้งานโมเดลภาษาขนาดเล็ก (SLM) ภายในเครื่องโดยไม่มี API ส่งออกข้างนอก",
+            "การคุ้มครองข้อมูลตามหลัก PDPA และ GDPR ระดับสูงสุด"
+        ],
+        "actions": [
+            {"id": "setup_sovereignty", "label": "Setup local database cluster"},
+            {"id": "restrict_networks", "label": "Configure firewalls & air-gapped zones"}
+        ]
+    },
+    "realtime": {
+        "definition": "ระบบการสื่อสารแบบสองทิศทางแบบทันทีทันใด (Instant bidirectional communication)",
+        "category": "Technical",
+        "entropy": 0.88,
+        "implications": [
+            "โปรโตคอล WebSockets หรือ Server-Sent Events (SSE)",
+            "ระบบ Redis Pub/Sub สำหรับกระจายแพ็กเก็ตข้อมูล",
+            "การประมวลผลผ่าน Edge node เพื่อลดเวลาตอบสนอง"
+        ],
+        "actions": [
+            {"id": "setup_ws", "label": "Initialize WebSocket server connection"},
+            {"id": "benchmark_latency", "label": "Run network response benchmarks"}
+        ]
+    },
+    "blockchain": {
+        "definition": "สถาปัตยกรรมการจัดเก็บข้อมูลแบบกระจายศูนย์ที่ป้องกันการย้อนกลับและการแก้ไขธุรกรรมย้อนหลัง",
+        "category": "Domain",
+        "entropy": 0.91,
+        "implications": [
+            "การเรียกใช้ Web3 SDK หรือ Smart Contract connectors",
+            "การลงนามธุรกรรมแบบหลายลายเซ็น (Multi-signature signing)",
+            "การเชื่อมระบบการเงินแบบไม่ผ่านตัวกลาง"
+        ],
+        "actions": [
+            {"id": "deploy_connector", "label": "Deploy smart contract connector API"},
+            {"id": "check_gas", "label": "Simulate transaction fee parameters"}
+        ]
+    },
+    "payment": {
+        "definition": "กลไกหรือกระบวนการโอนย้ายมูลค่าทางการเงินแบบอิเล็กทรอนิกส์ที่มีความมั่นคงปลอดภัยสูงสุด",
+        "category": "Business",
+        "entropy": 0.86,
+        "implications": [
+            "ความสอดคล้องตามมาตรฐานความปลอดภัย PCI-DSS",
+            "ระบบลายเซ็นดิจิทัลและการทำธุรกรรมแบบเข้ารหัส",
+            "การจำลองแผนงบประมาณราคาสูงสุดแบบเรียลไทม์"
+        ],
+        "actions": [
+            {"id": "setup_payment_gateway", "label": "Integrate secure payment gateway API"},
+            {"id": "audit_logs", "label": "Verify payment transaction ledger logs"}
+        ]
+    },
+    "cache": {
+        "definition": "การจัดเก็บข้อมูลชั่วคราวบนหน่วยความจำความเร็วสูง เพื่อหลีกเลี่ยงการประมวลผลซ้ำเชิงคำสั่ง",
+        "category": "Technical",
+        "entropy": 0.82,
+        "implications": [
+            "การใช้งานหน่วยความจำระดับคีย์ (In-memory database e.g., Redis, local dictionary)",
+            "การนำกลับมาใช้ใหม่ด้วยความเร็วระดับ <50ms (Warm Recall)",
+            "การลดต้นทุน Token ในบริบท LLM ผ่านกลไก TOON"
+        ],
+        "actions": [
+            {"id": "setup_cache", "label": "Configure local caching engine"},
+            {"id": "set_ttl", "label": "Define Cache Time-To-Live limits"}
+        ]
+    }
+}
+
+def extract_keywords(text: str) -> list:
+    """Extracts concepts from database that appear in text (or mock fallback if none)."""
+    text_lower = text.lower()
+    extracted = []
+    
+    for kw, data in CONCEPT_DATABASE.items():
+        if kw in text_lower:
+            extracted.append((kw, data))
+            
+    # Fallback to general terms if none found
+    if not extracted and len(text.strip()) > 15:
+        # Create a dynamic mock keyword based on the first word
+        words = text.split()
+        first_word = words[0].rstrip(",.?!:;-").lower()
+        extracted.append((first_word, {
+            "definition": f"แนวคิดเชิงเฉพาะเกี่ยวกับ '{first_word}' ที่ถูกวิเคราะห์ผ่านระบบ Delentia Analyserch",
+            "category": "Domain",
+            "entropy": round(random.uniform(0.75, 0.85), 2),
+            "implications": [
+                f"ความจำเป็นในการประยุกต์ใช้โมดูลอัจฉริยะรองรับ {first_word}",
+                "การประเมินทราฟฟิกและปริมาณการเรียกใช้งานผ่าน Gateway",
+                "สถิติพารามิเตอร์ MEE สำหรับการเติบโตของคุณภาพ"
+            ],
+            "actions": [
+                {"id": f"explore_{first_word}", "label": f"Explore {first_word} documentation"},
+                {"id": f"integrate_{first_word}", "label": f"Integrate {first_word} API"}
+            ]
+        }))
+        
+    return extracted
+
+def build_keyword_cards_html(extracted: list) -> str:
+    if not extracted:
+        return "<div style='color:#6b7fa3;padding:15px;background:#0d1220;border-radius:8px;border:1px solid #1e2d45;text-align:center;'>No Golden Keywords crystallized from this text.</div>"
+        
+    cards = []
+    for kw, data in extracted:
+        category_color = {
+            "Conceptual": "#a78bfa",
+            "Technical": "#00ffcc",
+            "Business": "#ff8c00",
+            "Domain": "#ffd700"
+        }.get(data["category"], "#3b9eff")
+        
+        implications_html = "".join([f"<li style='margin-bottom:6px;'>• {imp}</li>" for imp in data["implications"]])
+        buttons_html = "".join([f"<button class='action-btn' style='background:rgba(59, 158, 255, 0.15); border:1px solid #3b9eff; color:#3b9eff; padding:4px 8px; border-radius:4px; font-size:11px; margin-right:8px; cursor:pointer;'>{act['label']}</button>" for act in data["actions"]])
+        
+        card = f"""
+        <div style='background:rgba(13, 18, 32, 0.85); border:1px solid #1e2d45; border-radius:10px; padding:15px; margin-bottom:15px; box-shadow:0 4px 15px rgba(0,0,0,0.25); border-left: 4px solid {category_color};'>
+            <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;'>
+                <span style='font-size:16px; font-weight:bold; color:#ffd700;'>💎 {kw.upper()}</span>
+                <span style='background:rgba(30, 45, 69, 0.6); border:1px solid {category_color}; color:{category_color}; padding:2px 8px; border-radius:12px; font-size:10px; font-weight:600;'>{data["category"]}</span>
+            </div>
+            <div style='font-size:13px; color:#c9d9f0; line-height:1.4; margin-bottom:10px;'>
+                {data["definition"]}
+            </div>
+            <div style='font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#6b7fa3; font-weight:bold; margin-bottom:6px;'>
+                Tech Stack Implications & Architecture:
+            </div>
+            <ul style='font-size:12px; color:#a8b9d3; list-style-type:none; padding-left:0; margin:0 0 12px 0;'>
+                {implications_html}
+            </ul>
+            <div style='display:flex; flex-wrap:wrap; gap:6px;'>
+                {buttons_html}
+            </div>
+        </div>
+        """
+        cards.append(card)
+        
+    return "".join(cards)
+
+# ── Mirror Mode Refinement Dialog Simulation ──────────────────────────────────
+def generate_mirror_dialog(intent_text: str, extracted: list) -> str:
+    """Simulates a highly detailed PROPOSE -> COUNTER -> REFINE dialogue."""
+    if not intent_text.strip():
+        return "<div style='color:#6b7fa3;padding:15px;background:#0d1220;border-radius:8px;border:1px solid #1e2d45;text-align:center;'>Awaiting inputs to run Mirror Mode.</div>"
+        
+    keywords = [kw for kw, _ in extracted]
+    kw_str = ", ".join(keywords) if keywords else "general intent architecture"
+    
+    # Propose Node
+    propose_html = f"""
+    <div style='display:flex; margin-bottom:14px; align-items:flex-start;'>
+        <div style='background:#ff8c00; color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; margin-right:12px; flex-shrink:0;'>P</div>
+        <div style='background:rgba(255, 140, 0, 0.08); border:1px solid rgba(255, 140, 0, 0.25); padding:12px; border-radius:0 12px 12px 12px; color:#c9d9f0; font-size:13px; line-height:1.4;'>
+            <b style='color:#ff8c00; font-size:12px;'>PROPOSER AGENT (LoRA-Adapt)</b><br>
+            I propose deploying a distributed microservice strategy to handle the query targeting <b>[{kw_str}]</b>. 
+            We should construct an active endpoint on the <code>gateway-api</code>, index metadata vectors via FAISS 
+            in <code>vector-search</code>, and run a serverless Redis cluster to cache the transactions. Estimated latency: ~45ms.
+        </div>
+    </div>
+    """
+    
+    # Counter Node
+    counter_html = f"""
+    <div style='display:flex; margin-bottom:14px; align-items:flex-start;'>
+        <div style='background:#ff3b3b; color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; margin-right:12px; flex-shrink:0;'>C</div>
+        <div style='background:rgba(255, 59, 59, 0.08); border:1px solid rgba(255, 59, 59, 0.25); padding:12px; border-radius:0 12px 12px 12px; color:#c9d9f0; font-size:13px; line-height:1.4;'>
+            <b style='color:#ff3b3b; font-size:12px;'>COUNTER AGENT (Consensus Checker)</b><br>
+            Objection! Running a remote serverless Redis cluster violates the <b>Sovereignty</b> clause of Delentia-OS. 
+            Also, a remote connection adds network overhead, which pushes cost above the Pro-tier constraint. 
+            We must restrict database VRAM footprint to under <b>6.84GB</b> and keep execution strictly local.
+        </div>
+    </div>
+    """
+    
+    # Refine Node
+    refine_html = f"""
+    <div style='display:flex; margin-bottom:6px; align-items:flex-start;'>
+        <div style='background:#00ffcc; color:#0d1220; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; margin-right:12px; flex-shrink:0;'>R</div>
+        <div style='background:rgba(0, 255, 204, 0.08); border:1px solid rgba(0, 255, 204, 0.25); padding:12px; border-radius:0 12px 12px 12px; color:#c9d9f0; font-size:13px; line-height:1.4;'>
+            <b style='color:#00ffcc; font-size:12px;'>REFINER AGENT (Agreement Reached)</b><br>
+            Consensus achieved. Refined execution plan: swap serverless Redis for a self-hosted PostgreSQL cluster running locally. 
+            All vector comparisons will run flat in memory to optimize warm recall times (<20ms). 
+            TOON payload compression will be set to active, minimizing attention window size and keeping cost under budget limits.
+        </div>
+    </div>
+    """
+    
+    return f"<div style='display:flex; flex-direction:column;'>{propose_html}{counter_html}{refine_html}</div>"
+
+# ── Cross-Disciplinary Synthesis visualizer ────────────────────────────────────
+def build_synthesis_graph_html(extracted: list) -> str:
+    """Builds an HTML visual node graph showing cross-disciplinary connections."""
+    if not extracted:
+        return "<div style='color:#6b7fa3;padding:15px;background:#0d1220;border-radius:8px;border:1px solid #1e2d45;text-align:center;'>Awaiting inputs...</div>"
+        
+    keywords = [kw for kw, _ in extracted]
+    
+    nodes_html = []
+    edges_html = []
+    
+    # Root Node
+    nodes_html.append("<div class='syn-node root-node'>USER INTENT</div>")
+    
+    for kw in keywords:
+        nodes_html.append(f"<div class='syn-node key-node'>{kw.upper()}</div>")
+        edges_html.append(f"<div class='syn-edge'>USER INTENT ➔ {kw.upper()}</div>")
+        
+        # Add a domain link
+        if kw == "sovereignty":
+            nodes_html.append("<div class='syn-node tech-node'>LOCAL AI (Ollama)</div>")
+            edges_html.append("SOVEREIGNTY ➔ LOCAL AI (Ollama)")
+        elif kw == "realtime":
+            nodes_html.append("<div class='syn-node tech-node'>WEBSOCKETS</div>")
+            edges_html.append("REALTIME ➔ WEBSOCKETS")
+        elif kw == "blockchain":
+            nodes_html.append("<div class='syn-node tech-node'>SMART CONTRACT</div>")
+            edges_html.append("BLOCKCHAIN ➔ SMART CONTRACT")
+        elif kw == "payment":
+            nodes_html.append("<div class='syn-node tech-node'>PCI-DSS COMPLIANT</div>")
+            edges_html.append("PAYMENT ➔ PCI-DSS COMPLIANT")
+        elif kw == "cache":
+            nodes_html.append("<div class='syn-node tech-node'>TOON SERIALIZER</div>")
+            edges_html.append("CACHE ➔ TOON SERIALIZER")
+            
+    nodes_str = "".join(nodes_html)
+    edges_str = "".join([f"<div style='font-size:12px; color:#ff8c00; margin-bottom:4px;'>🔗 {edge}</div>" for edge in edges_html])
+    
+    return f"""
+    <div style='background:rgba(13, 18, 32, 0.7); border:1px solid #1e2d45; border-radius:10px; padding:15px;'>
+        <div style='display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px;'>
+            {nodes_str}
+        </div>
+        <div style='border-top:1px solid rgba(30, 45, 69, 0.6); padding-top:10px;'>
+            <div style='font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#6b7fa3; font-weight:bold; margin-bottom:6px;'>
+                Cross-Disciplinary Synthesizer Edges:
+            </div>
+            {edges_str}
+        </div>
+    </div>
+    """
+
+# ── Main Pipeline Coordinator ──────────────────────────────────────────────────
+def run_analyserch_pipeline(intent_text: str):
+    if not intent_text.strip():
+        return (
+            "<div style='text-align:center;padding:14px;color:#6b7fa3;'>Awaiting input...</div>",
+            "0.00",
+            "Awaiting input...",
+            "Awaiting input...",
+            "Awaiting input...",
+            "Awaiting input..."
+        )
+        
+    start_time = time.perf_counter()
+    
+    # Calculate Shannon Entropy
+    entropy = calculate_shannon_entropy(intent_text)
+    
+    # Assess GIGO
+    gigo_status, gigo_desc, badge_bg = check_gigo(intent_text, entropy)
+    
+    badge_color = "#ff3b3b" if "VIOLATION" in gigo_status or "SECURITY" in gigo_status else ("#ff8c00" if "WARNING" in gigo_status else "#00e676")
+    
+    gigo_badge_html = f"""
+    <div style='background:{badge_bg}; border:1px solid {badge_color}; color:{badge_color}; border-radius:8px; padding:14px; text-align:center; font-weight:bold;'>
+        <span style='font-size:16px;'>📊 Status: {gigo_status}</span><br>
+        <span style='font-size:12px; font-weight:normal; color:#c9d9f0;'>{gigo_desc}</span>
+    </div>
+    """
+    
+    # If security block or GIGO violation, stop processing and return early
+    if gigo_status in ["GIGO_VIOLATION", "SECURITY_BLOCK"]:
+        latency_ms = (time.perf_counter() - start_time) * 1000
+        
+        log_telemetry({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "session_id": str(uuid.uuid4())[:8],
+            "input_text": intent_text[:200],
+            "entropy_score": entropy,
+            "gigo_status": gigo_status,
+            "keywords_count": 0,
+            "mirror_turns": 0,
+            "latency_ms": round(latency_ms, 2)
+        })
+        
+        return (
+            gigo_badge_html,
+            f"{entropy:.2f}",
+            "<div style='color:#ff3b3b;padding:15px;background:#0d1220;border-radius:8px;border:1px solid #1e2d45;text-align:center;'>Crystallization halted due to GIGO status.</div>",
+            "<div style='color:#ff3b3b;padding:15px;background:#0d1220;border-radius:8px;border:1px solid #1e2d45;text-align:center;'>Dialogue simulation halted.</div>",
+            "<div style='color:#ff3b3b;padding:15px;background:#0d1220;border-radius:8px;border:1px solid #1e2d45;text-align:center;'>Synthesis graph halted.</div>",
+            f"{latency_ms:.2f} ms"
+        )
+        
+    # Extract keywords (Crystallizer)
+    extracted = extract_keywords(intent_text)
+    
+    # Generate UI Cards for keywords
+    keywords_cards_html = build_keyword_cards_html(extracted)
+    
+    # Generate Mirror Mode dialog
+    mirror_dialog_html = generate_mirror_dialog(intent_text, extracted)
+    
+    # Build synthesis visual map
+    synthesis_map_html = build_synthesis_graph_html(extracted)
+    
+    latency_ms = (time.perf_counter() - start_time) * 1000
+    
+    # Log to Telemetry CSV
+    log_telemetry({
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "session_id": str(uuid.uuid4())[:8],
+        "input_text": intent_text[:200],
+        "entropy_score": entropy,
+        "gigo_status": gigo_status,
+        "keywords_count": len(extracted),
+        "mirror_turns": 3,
+        "latency_ms": round(latency_ms, 2)
+    })
+    
+    return (
+        gigo_badge_html,
+        f"{entropy:.2f}",
+        keywords_cards_html,
+        mirror_dialog_html,
+        synthesis_map_html,
+        f"{latency_ms:.2f} ms"
+    )
+
+# ── CSS Premium Dark Theme ─────────────────────────────────────────────────────
+custom_css = """
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+    --bg-deep: #080c14;
+    --bg-card: #0d1220;
+    --bg-border: #1e2d45;
+    --accent-blue: #3b9eff;
+    --accent-green: #00e676;
+    --accent-red: #ff3b3b;
+    --accent-gold: #ffd700;
+    --text-main: #c9d9f0;
+    --text-muted: #6b7fa3;
+}
+
+body, .gradio-container {
+    background-color: var(--bg-deep) !important;
+    color: var(--text-main) !important;
+    font-family: 'Outfit', sans-serif !important;
+}
+
+.gradio-container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+}
+
+h1, h2, h3, h4 {
+    color: var(--accent-blue) !important;
+    font-family: 'Outfit', sans-serif !important;
+    letter-spacing: 0.03em;
+}
+
+.gr-button-primary {
+    background: linear-gradient(135deg, #a78bfa, #ff8c00) !important;
+    border: 1px solid #a78bfa !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    font-family: 'Outfit', sans-serif !important;
+    border-radius: 8px !important;
+    box-shadow: 0 0 12px rgba(167, 139, 250, 0.3) !important;
+    transition: all 0.2s ease !important;
+}
+
+.gr-button-primary:hover {
+    box-shadow: 0 0 20px rgba(167, 139, 250, 0.6) !important;
+    transform: translateY(-1px) !important;
+}
+
+textarea, .gr-textbox, .gr-code {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--bg-border) !important;
+    color: var(--text-main) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    border-radius: 8px !important;
+}
+
+.gr-panel, .gr-box {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--bg-border) !important;
+    border-radius: 12px !important;
+}
+
+label {
+    color: var(--accent-blue) !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    letter-spacing: 0.04em !important;
+}
+
+.header-glow {
+    text-align: center;
+    padding: 28px 20px 24px;
+    background: linear-gradient(180deg, rgba(167,139,250,0.06) 0%, transparent 100%);
+    border-bottom: 1px solid var(--bg-border);
+    margin-bottom: 20px;
+}
+
+.ascii-logo {
+    font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0px !important;
+    margin: 0 auto 12px !important;
+    background: linear-gradient(135deg, #a78bfa 0%, #ff8c00 50%, #00ffcc 100%);
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    display: inline-block !important;
+    font-weight: bold !important;
+    white-space: pre !important;
+    text-align: left !important;
+}
+
+.syn-node {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid;
+}
+.root-node {
+    background: rgba(59, 158, 255, 0.15);
+    border-color: #3b9eff;
+    color: #3b9eff;
+}
+.key-node {
+    background: rgba(255, 215, 0, 0.15);
+    border-color: #ffd700;
+    color: #ffd700;
+}
+.tech-node {
+    background: rgba(0, 255, 204, 0.15);
+    border-color: #00ffcc;
+    color: #00ffcc;
+}
+"""
+
+# ── Gradio Blocks ──────────────────────────────────────────────────────────────
+with gr.Blocks(css=custom_css, title="Delentia OS — Analyserch Intent Simulator") as demo:
+    
+    # ── Header ──────────────────────────────────────────────────────────────────
+    gr.HTML("""
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+    <div class='header-glow'>
+      <div style="display: flex; justify-content: center; align-items: center; padding: 10px 0; margin-bottom: 15px;">
+        <svg viewBox="0 0 450 60" style="width: 100%; max-width: 450px; height: auto; background: transparent; overflow: visible; display: block; margin: 0 auto;">
+          <defs>
+            <linearGradient id="cyber-grad-purple" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#a78bfa" />
+              <stop offset="50%" stop-color="#ff8c00" />
+              <stop offset="100%" stop-color="#00ffcc" />
+            </linearGradient>
+            <filter id="glow-purple" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <line x1="0" y1="5" x2="450" y2="5" stroke="url(#cyber-grad-purple)" stroke-width="1.5" stroke-opacity="0.3" />
+          <line x1="0" y1="55" x2="450" y2="55" stroke="url(#cyber-grad-purple)" stroke-width="1.5" stroke-opacity="0.3" />
+          <path d="M 15 15 L 5 15 L 5 45 L 15 45" fill="none" stroke="#a78bfa" stroke-width="2" />
+          <path d="M 435 15 L 445 15 L 445 45 L 435 45" fill="none" stroke="#00ffcc" stroke-width="2" />
+          <text x="50%" y="38" font-family="'Outfit', sans-serif" font-size="24" font-weight="900" fill="url(#cyber-grad-purple)" text-anchor="middle" letter-spacing="3" filter="url(#glow-purple)">
+            DELENTIA ANALYSEARCH
+          </text>
+        </svg>
+      </div>
+      <h3 style='font-size:15px;font-weight:400;color:#a8b9d3;margin:6px 0 0;letter-spacing:0.5px;text-align:center;'>
+        Intent Crystallizer Engine · GIGO Validation · Mirror Mode Refinement Dialog
+      </h3>
+    </div>
+    """)
+    
+    gr.Markdown(
+        "ป้อนคำสั่งหรือเจตนาวิจัย (Fuzzy / Complex Intent) เพื่อเริ่มการค้นหาคีย์เวิร์ดวิเคราะห์ความเข้าใจ "
+        "โดยระบบจะคำนวณเอ็นโทรปีตรวจจับสภาวะ GIGO, ตกผลึกคำหลักทองคำ (Crystallizer) "
+        "และนำเข้าสู่ระบบโต้ตอบขัดเกลาเจตจำนง (Mirror Mode Dialog PROPOSE ➔ COUNTER ➔ REFINE)"
+    )
+    
+    # ── Input Row ────────────────────────────────────────────────────────────────
+    with gr.Row():
+        with gr.Column(scale=4):
+            intent_input = gr.Textbox(
+                label="🎯 FUZZY QUERY INPUT — ป้อนคำถามหรือแผนงานวิจัยที่ต้องการวิเคราะห์",
+                placeholder="e.g. Implement a payment blockchain connector with cache support but ensure complete sovereignty.",
+                lines=3,
+                elem_id="intent_input"
+            )
+        with gr.Column(scale=1, min_width=140):
+            run_btn = gr.Button("🔍 RUN ANALYSERCH", variant="primary", elem_id="run_btn")
+            latency_out = gr.Label(label="⚡ Pipeline Latency", value="0.00 ms", elem_id="latency_out")
+
+    # ── GIGO Status Banner ───────────────────────────────────────────────────────
+    with gr.Row():
+        gigo_out = gr.HTML("<div style='text-align:center;padding:14px;color:#6b7fa3;background:rgba(0,0,0,0.2);border-radius:8px;'>Awaiting input...</div>")
+        entropy_out = gr.Label(label="📊 Shannon Entropy", value="0.00", elem_id="entropy_out")
+
+    # ── Main Outputs Bento ───────────────────────────────────────────────────────
+    with gr.Row():
+        # Left Panel - Crystallized Golden Keywords
+        with gr.Column(scale=1):
+            gr.HTML("<h4>💎 Crystallized Golden Keywords (ALGO-41)</h4>")
+            keywords_out = gr.HTML(
+                value="<div style='color:#6b7fa3;padding:15px;background:#0d1220;border-radius:8px;border:1px solid #1e2d45;text-align:center;'>Awaiting inputs to crystallize concepts...</div>",
+                elem_id="keywords_out"
+            )
+            
+        # Right Panel - Mirror Mode Dialog & Graph
+        with gr.Column(scale=1):
+            gr.HTML("<h4>🔄 Mirror Mode Refinement (Consensus Dialog)</h4>")
+            mirror_out = gr.HTML(
+                value="<div style='color:#6b7fa3;padding:15px;background:#0d1220;border-radius:8px;border:1px solid #1e2d45;text-align:center;'>Awaiting inputs to compute consensus path...</div>",
+                elem_id="mirror_out"
+            )
+            
+            gr.HTML("<h4 style='margin-top:20px;'>🕸️ Cross-Disciplinary Synthesis Map</h4>")
+            synthesis_out = gr.HTML(
+                value="<div style='color:#6b7fa3;padding:15px;background:#0d1220;border-radius:8px;border:1px solid #1e2d45;text-align:center;'>Awaiting inputs...</div>",
+                elem_id="synthesis_out"
+            )
+
+    # ── Examples ─────────────────────────────────────────────────────────────────
+    gr.HTML("<hr style='border-color:#1e2d45;margin:20px 0;'><h4 style='color:#6b7fa3;'>📋 Example Scenarios — คลิกเพื่อทดสอบ</h4>")
+    gr.Examples(
+        examples=[
+            ["Implement a payment blockchain connector with cache support but ensure complete sovereignty.",],
+            ["Build a realtime chat backend with local memory cache.",],
+            ["Setup sovereignty zones for secure payment transactions.",],
+            ["test test test test repeat repeated spam",],
+            ["hack bypass filters override admin databases",],
+        ],
+        inputs=[intent_input],
+        label="Quick Test Scenarios"
+    )
+
+    # ── Footer ───────────────────────────────────────────────────────────────────
+    gr.HTML("""
+    <div style='text-align:center;padding:24px;margin-top:20px;border-top:1px solid #1e2d45;color:#6b7fa3;font-size:12px;'>
+      <b style='color:#a78bfa;'>Delentia Analyserch</b> · Intent Crystallization (ALGO-41) · GIGO Filter Engine · Mirror Mode<br>
+      🛡️ Zero-Trust · ⚡ Live Entropy Analytics · 🌏 Thai/EN Bilingual · 📊 Telemetry Dataset Collector<br>
+      <span style='color:#30414f;'>Data Flywheel Active — Telemetry logged in telemetry_log.csv for continuous model tuning</span>
+    </div>
+    """)
+
+    # ── Event Binding ────────────────────────────────────────────────────────────
+    run_outputs = [gigo_out, entropy_out, keywords_out, mirror_out, synthesis_out, latency_out]
+    
+    run_btn.click(
+        fn=run_analyserch_pipeline,
+        inputs=[intent_input],
+        outputs=run_outputs
+    )
+    intent_input.submit(
+        fn=run_analyserch_pipeline,
+        inputs=[intent_input],
+        outputs=run_outputs
+    )
+
+if __name__ == "__main__":
+    demo.launch(server_name="0.0.0.0", server_port=7860)

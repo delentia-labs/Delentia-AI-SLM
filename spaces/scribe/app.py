@@ -76,14 +76,145 @@ def compress_context(long_text, api_price_per_million):
     )
 
 custom_css = """
-body { background-color: #0d1117; color: #c9d1d9; }
-.gradio-container { max-width: 1100px !important; margin: 0 auto !important; }
-h1, h2, h3 { color: #58a6ff !important; font-family: 'Outfit', 'Inter', sans-serif; }
-.output-markdown { background-color: #161b22 !important; border: 1px solid #30363d !important; padding: 10px; border-radius: 6px; }
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+    --bg-deep: #080c14;
+    --bg-card: #0d1220;
+    --bg-border: #1e2d45;
+    --accent-blue: #3b9eff;
+    --accent-green: #00e676;
+    --accent-red: #ff3b3b;
+    --accent-gold: #ffd700;
+    --text-main: #c9d9f0;
+    --text-muted: #6b7fa3;
+}
+
+body, .gradio-container {
+    background-color: var(--bg-deep) !important;
+    color: var(--text-main) !important;
+    font-family: 'Outfit', sans-serif !important;
+}
+
+.gradio-container {
+    max-width: 1100px !important;
+    margin: 0 auto !important;
+}
+
+h1, h2, h3, h4 {
+    color: var(--accent-blue) !important;
+    font-family: 'Outfit', sans-serif !important;
+    letter-spacing: 0.03em;
+}
+
+.gr-button-primary {
+    background: linear-gradient(135deg, #ffd700, #ff8c00) !important;
+    border: 1px solid #ffd700 !important;
+    color: #111 !important;
+    font-weight: 700 !important;
+    font-family: 'Outfit', sans-serif !important;
+    border-radius: 8px !important;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.3) !important;
+    transition: all 0.2s ease !important;
+}
+
+.gr-button-primary:hover {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6) !important;
+    transform: translateY(-1px) !important;
+}
+
+textarea, .gr-textbox, .gr-code {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--bg-border) !important;
+    color: var(--text-main) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    border-radius: 8px !important;
+}
+
+.gr-panel, .gr-box {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--bg-border) !important;
+    border-radius: 12px !important;
+}
+
+label {
+    color: var(--accent-blue) !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    letter-spacing: 0.04em !important;
+}
+
+.output-markdown {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--bg-border) !important;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.header-glow {
+    text-align: center;
+    padding: 28px 20px 24px;
+    background: linear-gradient(180deg, rgba(255,215,0,0.06) 0%, transparent 100%);
+    border-bottom: 1px solid var(--bg-border);
+    margin-bottom: 20px;
+}
+
+.ascii-logo {
+    font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0px !important;
+    margin: 0 auto 12px !important;
+    background: linear-gradient(135deg, #a78bfa 0%, #ffd700 50%, #00ffcc 100%);
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    display: inline-block !important;
+    font-weight: bold !important;
+    white-space: pre !important;
+    text-align: left !important;
+}
 """
 
 with gr.Blocks(css=custom_css, title="Delentia Scribe Compressor") as demo:
-    gr.HTML("<div style='text-align:center;'><h1>🗜️ Delentia Scribe</h1><h3>Recursive Context Compression Engine (Save API Tokens & VRAM)</h3></div>")
+    gr.HTML("""
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+    <div class='header-glow'>
+      <div style="display: flex; justify-content: center; align-items: center; padding: 10px 0; margin-bottom: 15px;">
+        <svg viewBox="0 0 450 60" style="width: 100%; max-width: 450px; height: auto; background: transparent; overflow: visible; display: block; margin: 0 auto;">
+          <defs>
+            <linearGradient id="scribe-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#a78bfa" />
+              <stop offset="50%" stop-color="#ffd700" />
+              <stop offset="100%" stop-color="#00ffcc" />
+            </linearGradient>
+            <filter id="scribe-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <line x1="0" y1="5" x2="450" y2="5" stroke="url(#scribe-grad)" stroke-width="1.5" stroke-opacity="0.3" />
+          <line x1="0" y1="55" x2="450" y2="55" stroke="url(#scribe-grad)" stroke-width="1.5" stroke-opacity="0.3" />
+          <path d="M 15 15 L 5 15 L 5 45 L 15 45" fill="none" stroke="#a78bfa" stroke-width="2" />
+          <path d="M 435 15 L 445 15 L 445 45 L 435 45" fill="none" stroke="#00ffcc" stroke-width="2" />
+          <text x="50%" y="38" font-family="'Outfit', sans-serif" font-size="24" font-weight="900" fill="url(#scribe-grad)" text-anchor="middle" letter-spacing="3" filter="url(#scribe-glow)">
+            🗜️ DELENTIA SCRIBE
+          </text>
+        </svg>
+      </div>
+      <h3 style='font-size:15px;font-weight:400;color:#a8b9d3;margin:6px 0 0;letter-spacing:0.5px;text-align:center;'>
+        Recursive Context Compression Engine · Memory Efficiency Engine (MEE)
+      </h3>
+      
+      <div style='margin-top:12px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;font-size:12px;'>
+        <span style='background:#1a2a40;padding:4px 12px;border-radius:20px;border:1px solid #ffd700;color:#ffd700;'>🗜️ Scribe Pillar</span>
+        <span style='background:#1a2a40;padding:4px 12px;border-radius:20px;border:1px solid #a78bfa;color:#a78bfa;'>💾 VRAM Optimization</span>
+        <span style='background:#1a2a40;padding:4px 12px;border-radius:20px;border:1px solid #00ffcc;color:#00ffcc;'>📉 Context Compression</span>
+      </div>
+    </div>
+    """)
     
     gr.Markdown(
         "จำลองประสิทธิภาพการทำงานของเสาหลักที่ 3 **The Scribe** ที่ใช้ในการย่อส่วนแชทการประทับความจำระยะยาว (Context History) "
@@ -146,3 +277,4 @@ with gr.Blocks(css=custom_css, title="Delentia Scribe Compressor") as demo:
 
 if __name__ == "__main__":
     demo.launch(server_name="0.0.0.0", server_port=7860)
+
