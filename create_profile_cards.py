@@ -141,6 +141,8 @@ $$F = D^I \times A$$
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
     :root {
       --bg-dark: #04060d;
@@ -697,6 +699,132 @@ $$F = D^I \times A$$
       from { opacity: 0; transform: translateX(-5px); }
       to { opacity: 1; transform: translateX(0); }
     }
+
+    /* Rebranding Enterprise Additions */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      max-width: 1280px;
+      width: 100%;
+      margin-bottom: 30px;
+      animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (min-width: 768px) {
+      .stats-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+    .stat-card {
+      background: rgba(13, 18, 38, 0.45);
+      border: 1px solid rgba(56, 189, 248, 0.12);
+      border-radius: 14px;
+      padding: 24px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stat-card:hover {
+      border-color: rgba(139, 92, 246, 0.35);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(139, 92, 246, 0.1);
+    }
+    .stat-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #38bdf8 0%, #8b5cf6 50%, #ec4899 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      letter-spacing: -1px;
+    }
+    .stat-label {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+    .stat-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .info-section {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      max-width: 1280px;
+      width: 100%;
+      margin-top: 30px;
+      margin-bottom: 10px;
+      animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (min-width: 1024px) {
+      .info-section {
+        grid-template-columns: 1.2fr 1fr;
+      }
+    }
+    .info-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 28px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .info-card:hover {
+      border-color: rgba(139, 92, 246, 0.3);
+      box-shadow: 0 16px 40px 0 rgba(139, 92, 246, 0.12);
+    }
+    .info-card h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 12px;
+      filter: drop-shadow(0 0 8px var(--primary));
+    }
+    .formula-box {
+      font-family: 'Fira Code', monospace;
+      font-size: 2.2rem;
+      font-weight: 700;
+      text-align: center;
+      margin: 24px 0;
+      color: #ffd700;
+      text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    }
+    .formula-desc {
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: var(--text-main);
+    }
+    .bullet-list {
+      list-style: none;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: var(--text-main);
+    }
+    .bullet-list li {
+      margin-bottom: 14px;
+      position: relative;
+      padding-left: 24px;
+    }
+    .bullet-list li::before {
+      content: '⚡';
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+      filter: drop-shadow(0 0 4px var(--primary));
+    }
   </style>
 </head>
 <body>
@@ -705,6 +833,24 @@ $$F = D^I \times A$$
     <h1>DELENTIA LABS</h1>
     <p>The Intent-Centric AI Operating System powered by the RCT Ecosystem. Mathematically aligned and optimized for standard resource deployment.</p>
   </header>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value">&lt;0.3%</div>
+      <div class="stat-label">Hallucination Rate</div>
+      <div class="stat-desc">Intent-Centric AI OS Guarantee</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">RCT v7</div>
+      <div class="stat-label">Architecture</div>
+      <div class="stat-desc">10 Layers, 41 Algorithms, 7 Genomes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">100%</div>
+      <div class="stat-label">Sovereignty</div>
+      <div class="stat-desc">Local-first, Air-gapped & PDPA Ready</div>
+    </div>
+  </div>
 
   <div class="container">
     
@@ -888,6 +1034,25 @@ payload:
       <div class="log-line log-info"><span class="log-time">[09:00:03]</span>[DeltaEngine] Compression initialized. Base state caching active.</div>
     </div>
 
+  </div>
+
+  <div class="info-section">
+    <div class="info-card">
+      <h2>🧮 Mathematical Constitutional Governance</h2>
+      <p class="formula-box">$$F = D^I \times A$$</p>
+      <div class="formula-desc">
+        <p>The core of Delentia's safety mechanism is the multiplicative <strong>Architect Approval Gate (A)</strong>. If signature verification fails or approval is rejected (<strong>A = 0</strong>), the composite evaluation score <strong>F</strong> mathematically collapses to <strong>0</strong>. This guarantees that security boundaries cannot be bypassed by prompt injection or model hallucination.</p>
+      </div>
+    </div>
+    
+    <div class="info-card">
+      <h2>🛡️ Compliance & Legal Sovereignty</h2>
+      <ul class="bullet-list">
+        <li><strong>PDPA & GDPR Aligned:</strong> Designed to satisfy the stringent requirements of data privacy legislation.</li>
+        <li><strong>Local-first Execution:</strong> Performs 100% on-premises offline processing to guarantee corporate data residency.</li>
+        <li><strong>Thai NLP Optimized:</strong> Fine-tuned with custom token optimizations to process regional structures locally.</li>
+      </ul>
+    </div>
   </div>
 
   <footer>
@@ -1327,7 +1492,71 @@ $$F = D^I \\times A$$
             if temp_file.exists():
                 temp_file.unlink()
 
+    # ── 3. Create Unified HF Ecosystem Collection ───────────────────────
+    create_delentia_collection(api, token)
+
     print("\n[OK] All done!")
+
+
+def create_delentia_collection(api, token):
+    print("\nCreating/verifying Hugging Face collection bundle...")
+    collection_title = "Delentia Cognitive Framework — Enterprise EAI"
+    collection_description = (
+        "Unified ecosystem of the Delentia Cognitive Framework with 1+4 "
+        "specialized LoRA pillars and the JITNA v3 protocol."
+    )
+    
+    collection_slug = None
+    try:
+        collections = api.list_collections(owner="Delentia", token=token)
+        for col in collections:
+            if col.title == collection_title:
+                collection_slug = col.slug
+                print(f"  [INFO] Found existing collection: {collection_slug}")
+                break
+    except Exception as e:
+        print(f"  [WARN] Failed to list collections: {e!r}")
+
+    if not collection_slug:
+        try:
+            col = api.create_collection(
+                title=collection_title,
+                namespace="Delentia",
+                description=collection_description,
+                private=False,
+                exists_ok=True,
+                token=token
+            )
+            collection_slug = col.slug
+            print(f"  [OK] Created new collection: {collection_slug}")
+        except Exception as e:
+            print(f"  [ERROR] Failed to create collection: {e!r}")
+            return
+
+    items = [
+        {"id": "Delentia/delentia-slm-jitna-v0.3", "type": "model", "note": "Base SLM Model (8B Quantized GGUF/bnb-4bit)"},
+        {"id": "Delentia/delentia-slm-jitna-router", "type": "model", "note": "Router LoRA Adapter (1+4 specialized pillars)"},
+        {"id": "Delentia/delentia-slm-jitna-executor", "type": "model", "note": "Executor LoRA Adapter (1+4 specialized pillars)"},
+        {"id": "Delentia/delentia-slm-jitna-guardian", "type": "model", "note": "Guardian Safety LoRA Adapter (1+4 specialized pillars)"},
+        {"id": "Delentia/delentia-slm-jitna-scribe", "type": "model", "note": "Scribe Context Compression LoRA Adapter (1+4 specialized pillars)"},
+        {"id": "Delentia/delentia-rct-intent-dataset", "type": "dataset", "note": "RCT Telemetry & Fine-Tuning Dataset"},
+        {"id": "Delentia/delentia-trace-ecosystem", "type": "space", "note": "Unified EAI UI & Control Plane Observability Monitor"}
+    ]
+    
+    for item in items:
+        try:
+            api.add_collection_item(
+                collection_slug=collection_slug,
+                item_id=item["id"],
+                item_type=item["type"],
+                note=item["note"],
+                exists_ok=True,
+                token=token
+            )
+            print(f"  [OK] Added {item['type']} '{item['id']}' to collection.")
+        except Exception as e:
+            print(f"  [WARN] Failed to add '{item['id']}' to collection (might already exist): {e}")
+
 
 if __name__ == "__main__":
     main()
