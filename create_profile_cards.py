@@ -701,19 +701,18 @@ $$F = D^I \times A$$
     }
 
     /* Rebranding Enterprise Additions */
+    .container, .stats-grid, .info-section, .console-logs {
+      max-width: 900px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+      width: 100% !important;
+    }
     .stats-grid {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 20px;
-      max-width: 1280px;
-      width: 100%;
       margin-bottom: 30px;
       animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    @media (min-width: 768px) {
-      .stats-grid {
-        grid-template-columns: 1fr 1fr 1fr;
-      }
     }
     .stat-card {
       background: rgba(13, 18, 38, 0.45);
@@ -754,18 +753,11 @@ $$F = D^I \times A$$
     }
     .info-section {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
       gap: 24px;
-      max-width: 1280px;
-      width: 100%;
       margin-top: 30px;
       margin-bottom: 10px;
       animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    @media (min-width: 1024px) {
-      .info-section {
-        grid-template-columns: 1.2fr 1fr;
-      }
     }
     .info-card {
       background: var(--card-bg);
@@ -794,13 +786,24 @@ $$F = D^I \times A$$
       filter: drop-shadow(0 0 8px var(--primary));
     }
     .formula-box {
-      font-family: 'Fira Code', monospace;
-      font-size: 2.2rem;
-      font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.8rem;
+      font-weight: 800;
       text-align: center;
-      margin: 24px 0;
-      color: #ffd700;
-      text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+      margin: 20px 0;
+      background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+      letter-spacing: 2px;
+    }
+    .formula-box .exponent {
+      font-size: 1.8rem;
+      vertical-align: super;
+      margin-left: 2px;
+      background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
     .formula-desc {
       font-size: 0.92rem;
@@ -830,8 +833,32 @@ $$F = D^I \times A$$
 <body>
 
   <header>
-    <h1>DELENTIA LABS</h1>
-    <p>The Intent-Centric AI Operating System powered by the RCT Ecosystem. Mathematically aligned and optimized for standard resource deployment.</p>
+    <div class="logo-container">
+      <svg viewBox="0 0 450 70" class="logo-svg">
+        <defs>
+          <linearGradient id="cyber-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#38bdf8" />
+            <stop offset="50%" stop-color="#8b5cf6" />
+            <stop offset="100%" stop-color="#ec4899" />
+          </linearGradient>
+          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <line x1="0" y1="5" x2="450" y2="5" stroke="url(#cyber-grad)" stroke-width="1.5" stroke-opacity="0.3" />
+        <line x1="0" y1="65" x2="450" y2="65" stroke="url(#cyber-grad)" stroke-width="1.5" stroke-opacity="0.3" />
+        <path d="M 15 15 L 5 15 L 5 55 L 15 55" fill="none" stroke="#38bdf8" stroke-width="2" />
+        <path d="M 435 15 L 445 15 L 445 55 L 435 55" fill="none" stroke="#ec4899" stroke-width="2" />
+        <text x="50%" y="45" font-family="'Outfit', sans-serif" font-size="30" font-weight="900" fill="url(#cyber-grad)" text-anchor="middle" letter-spacing="4" filter="url(#glow)">
+          DELENTIA LABS
+        </text>
+      </svg>
+    </div>
+    <p class="subtitle">Enterprise Agentic Infrastructure (EAI) powered by the RCT Ecosystem. Mathematically aligned and optimized for standard resource deployment.</p>
   </header>
 
   <div class="stats-grid">
@@ -1039,7 +1066,7 @@ payload:
   <div class="info-section">
     <div class="info-card">
       <h2>🧮 Mathematical Constitutional Governance</h2>
-      <p class="formula-box">$$F = D^I \times A$$</p>
+      <div class="formula-box">F = D<span class="exponent">I</span> &times; A</div>
       <div class="formula-desc">
         <p>The core of Delentia's safety mechanism is the multiplicative <strong>Architect Approval Gate (A)</strong>. If signature verification fails or approval is rejected (<strong>A = 0</strong>), the composite evaluation score <strong>F</strong> mathematically collapses to <strong>0</strong>. This guarantees that security boundaries cannot be bypassed by prompt injection or model hallucination.</p>
       </div>
@@ -1060,197 +1087,6 @@ payload:
   </footer>
 
   <script>
-    const inputD = document.getElementById('inputD');
-    const inputI = document.getElementById('inputI');
-    const inputA = document.getElementById('inputA');
-    const valD = document.getElementById('valD');
-    const valI = document.getElementById('valI');
-    const scoreCircle = document.getElementById('scoreCircle');
-    const statusText = document.getElementById('statusText');
-    const statusDesc = document.getElementById('statusDesc');
-    const logs = document.getElementById('logs');
-
-    // Preset examples for TOON Compressor
-    const presets = {
-      intent: {
-        packet_id: "6afff5d6-7fa3-4f2c-92b0-b1a77fd42a93",
-        priority: 3,
-        payload: {
-          intent: "คำนวณภาษีบุคคลธรรมดา 1 ล้านบาท",
-          currency: "THB",
-          income: 1000000
-        }
-      },
-      simple: {
-        packet_id: "9f8e7d6c-5b4a-3f2e-1d0c-9b8a7f6e5d4c",
-        cmd: "sys_status",
-        target: "rct_kernel_v3.0",
-        verbose: true
-      },
-      complex: {
-        packet_id: "3a4b5c6d-7e8f-9a0b-1c2d-3e4f5a6b7c8d",
-        agent: "Delentia-Consensus-Supervisor",
-        steps: [
-          { action: "fetch_pdpa_policy", node: "TH-Local" },
-          { action: "run_consensus", threshold: 0.95 },
-          { action: "sign_execution_block", signature: "ed25519_node_signature" }
-        ],
-        checksum: "sha256_e3b0c442"
-      }
-    };
-
-    function loadPreset() {
-      const presetKey = document.getElementById('toonPreset').value;
-      const data = presets[presetKey];
-      document.getElementById('jsonInput').value = JSON.stringify(data, null, 2);
-      compress();
-    }
-
-    function addLog(type, msg) {
-      const now = new Date();
-      const timeStr = now.toTimeString().split(' ')[0];
-      const div = document.createElement('div');
-      div.className = `log-line ${type}`;
-      div.innerHTML = `<span class="log-time">[${timeStr}]</span>${msg}`;
-      logs.appendChild(div);
-      logs.scrollTop = logs.scrollHeight;
-      
-      // Limit total logs shown in DOM
-      if (logs.children.length > 50) {
-        logs.removeChild(logs.firstChild);
-      }
-    }
-
-    function calculateFDIA() {
-      const D = parseFloat(inputD.value);
-      const I = parseFloat(inputI.value);
-      const A = inputA.checked ? 1 : 0;
-      
-      valD.textContent = D.toFixed(2);
-      valI.textContent = I.toFixed(2);
-
-      const F = Math.pow(D, I) * A;
-      scoreCircle.textContent = F.toFixed(2);
-
-      scoreCircle.className = 'score-circle';
-      
-      if (A === 0) {
-        scoreCircle.classList.add('error');
-        statusText.textContent = "BLOCKED";
-        statusText.style.color = "var(--error)";
-        statusDesc.textContent = "Architect Gate is closed (A=0). Operation mathematically aborted.";
-      } else if (F < 0.5) {
-        scoreCircle.classList.add('error');
-        statusText.textContent = "FAIL";
-        statusText.style.color = "var(--error)";
-        statusDesc.textContent = "Score too low due to insufficient data quality (D) or intent precision (I).";
-      } else {
-        scoreCircle.classList.add('success');
-        statusText.textContent = "State Authorized";
-        statusText.style.color = "var(--success)";
-        statusDesc.textContent = "State transition allowed under constitutional consensus constraints.";
-      }
-
-      updateSVGGraph(D, I, A);
-    }
-
-    function updateSVGGraph(D, I, A) {
-      const points = [];
-      const startX = 40;
-      const endX = 260;
-      const startY = 120;
-      const endY = 20;
-
-      for (let xVal = 0; xVal <= 1.05; xVal += 0.05) {
-        const yVal = Math.pow(xVal, I) * A;
-        const xSVG = startX + xVal * (endX - startX);
-        const ySVG = startY - yVal * (startY - endY);
-        points.push(`${xSVG},${ySVG}`);
-      }
-
-      const pathData = `M ${points.join(' L ')}`;
-      document.getElementById('curvePath').setAttribute('d', pathData);
-
-      // Active Dot
-      const currentF = Math.pow(D, I) * A;
-      const dotX = startX + D * (endX - startX);
-      const dotY = startY - currentF * (startY - endY);
-      const activeDot = document.getElementById('activeDot');
-      activeDot.setAttribute('cx', dotX);
-      activeDot.setAttribute('cy', dotY);
-
-      if (A === 0 || currentF < 0.5) {
-        activeDot.setAttribute('fill', 'var(--error)');
-        activeDot.style.filter = 'drop-shadow(0 0 6px var(--error))';
-      } else {
-        activeDot.setAttribute('fill', 'var(--success)');
-        activeDot.style.filter = 'drop-shadow(0 0 6px var(--success))';
-      }
-    }
-
-    inputD.addEventListener('input', () => {
-      calculateFDIA();
-    });
-    inputI.addEventListener('input', () => {
-      calculateFDIA();
-    });
-    inputA.addEventListener('change', () => {
-      calculateFDIA();
-      const state = inputA.checked ? "OPEN" : "CLOSED";
-      const logClass = inputA.checked ? "log-success" : "log-warning";
-      addLog(logClass, `[FDIAGate] Human Architect Gate A toggled ${state}`);
-    });
-
-    function jsonToToon(obj, indent = 0) {
-      let result = '';
-      const space = ' '.repeat(indent);
-      
-      if (Array.isArray(obj)) {
-        for (const item of obj) {
-          if (typeof item === 'object' && item !== null) {
-            result += `${space}-\n${jsonToToon(item, indent + 2)}`;
-          } else {
-            result += `${space}- ${item}\n`;
-          }
-        }
-      } else if (typeof obj === 'object' && obj !== null) {
-        for (const [key, val] of Object.entries(obj)) {
-          if (typeof val === 'object' && val !== null) {
-            result += `${space}${key}:\n${jsonToToon(val, indent + 2)}`;
-          } else {
-            result += `${space}${key}: ${val}\n`;
-          }
-        }
-      } else {
-        result += `${space}${obj}\n`;
-      }
-      return result;
-    }
-
-    function compress() {
-      const jsonInput = document.getElementById('jsonInput').value;
-      const toonOutput = document.getElementById('toonOutput');
-      const jsonBytes = document.getElementById('jsonBytes');
-      const toonBytes = document.getElementById('toonBytes');
-      const savingsPct = document.getElementById('savingsPct');
-
-      try {
-        const parsed = JSON.parse(jsonInput);
-        const toon = jsonToToon(parsed).trim();
-        toonOutput.textContent = toon;
-        
-        const jsonLen = jsonInput.length;
-        const toonLen = toon.length;
-        const savings = ((jsonLen - toonLen) / jsonLen) * 100;
-
-        jsonBytes.textContent = jsonLen;
-        toonBytes.textContent = toonLen;
-        savingsPct.textContent = savings.toFixed(1) + '%';
-      } catch (e) {
-        toonOutput.textContent = "Error: Invalid JSON Input.";
-      }
-    }
-
     // Regional Sovereignty Router simulator
     function routePrompt() {
       const prompt = document.getElementById('promptInput').value.trim().toLowerCase();
@@ -1308,6 +1144,21 @@ payload:
     }
 
     // Dynamic telemetry log updates
+    const logs = document.getElementById('logs');
+    function addLog(type, msg) {
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0];
+      const div = document.createElement('div');
+      div.className = `log-line ${type}`;
+      div.innerHTML = `<span class="log-time">[${timeStr}]</span>${msg}`;
+      logs.appendChild(div);
+      logs.scrollTop = logs.scrollHeight;
+      
+      if (logs.children.length > 50) {
+        logs.removeChild(logs.firstChild);
+      }
+    }
+
     const logTemplates = [
       { type: 'log-info', msg: '[Router] Active heartbeat check on regional nodes: TH-Local [OK], JP-East [OK], KR-Seoul [OK].' },
       { type: 'log-success', msg: '[SignedAI] Consensus validated on block 429188. 9 consensus roles approved.' },
@@ -1325,8 +1176,6 @@ payload:
     }, 6000);
 
     // Initial run
-    calculateFDIA();
-    compress();
     routePrompt();
   </script>
 </body>
