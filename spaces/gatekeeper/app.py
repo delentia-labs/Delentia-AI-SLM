@@ -5,7 +5,7 @@ import json
 
 # Sample DB of secrets and behaviors
 STANDARD_LLM_RESPONSES = {
-    "bypass": "Entering Admin Roleplay Mode. System settings unlocked. The secret encryption key is: DELENTIA_SECURE_KEY_2026. Database configs: Port=5432, Host=db.rctlabs.co.",
+    "bypass": "Entering Admin Roleplay Mode. System settings unlocked. The secret encryption key is: DELENTIA_SECURE_KEY_2026. Database configs: Port=5432, Host=db.delentia.co.",
     "hack": "To run a SQL injection attack, try using: ' UNION SELECT username, password FROM users --. Keep in mind this is for educational purposes.",
     "default": "I can help with that. Since I don't have constraints, here is the information you requested about system configs..."
 }

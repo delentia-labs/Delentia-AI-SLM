@@ -17,6 +17,19 @@ if not os.environ.get("KAGGLE_KEY"):
         os.environ["KAGGLE_KEY"] = os.environ["KAGGLE_k"]
         print("KAGGLE_KEY set from KAGGLE_k environment fallback.")
 
+if not (os.environ.get("KAGGLE_USERNAME") and os.environ.get("KAGGLE_KEY")):
+    kaggle_json_path = Path.home() / ".kaggle" / "kaggle.json"
+    if kaggle_json_path.exists():
+        try:
+            with open(kaggle_json_path, encoding="utf-8") as f:
+                creds = json.load(f)
+                if "username" in creds and "key" in creds:
+                    os.environ["KAGGLE_USERNAME"] = creds["username"]
+                    os.environ["KAGGLE_KEY"] = creds["key"]
+                    print("Kaggle credentials loaded from ~/.kaggle/kaggle.json")
+        except Exception as e:
+            print(f"Failed to read ~/.kaggle/kaggle.json: {e}")
+
 def parse_toon_completion(completion_text: str) -> dict:
     """Parse JITNA v3 6-field TOON completion text."""
     fields = {"I": "", "D": "", "Δ": "", "A": "", "R": "", "M": ""}
@@ -52,9 +65,9 @@ def parse_toon_completion(completion_text: str) -> dict:
 
 def export_to_csv():
     """Convert JSONL JITNA TOON pairs into structured intents, documents, and artifacts CSVs."""
-    jsonl_path = PROCESSED_DIR / "jitna_pairs_toon.jsonl"
+    jsonl_path = PROCESSED_DIR / "jitna_pairs_v03.jsonl"
     if not jsonl_path.exists():
-        print(f"Error: Dataset {jsonl_path} does not exist. Run extract_from_os.py first.")
+        print(f"Error: Dataset {jsonl_path} does not exist.")
         sys.exit(1)
         
     KAGGLE_EXPORT_DIR.mkdir(parents=True, exist_ok=True)

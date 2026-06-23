@@ -217,6 +217,64 @@ def upload_dataset():
             )
             print("  [OK] Dataset card live.")
             
+    # 4. Deploy RAG corpus to separate repositories
+    rag_repos = [
+        "Ittirit-delentia/delentia-os-whitepaper-rag-corpus",
+        "Delentia/delentia-os-whitepaper-rag-corpus"
+    ]
+    
+    for rag_repo in rag_repos:
+        print(f"\nCreating/verifying HuggingFace RAG Repository: {rag_repo}")
+        try:
+            api.create_repo(repo_id=rag_repo, repo_type="dataset", exist_ok=True, private=False)
+            print(f"  [OK] RAG Repository verified: https://huggingface.co/datasets/{rag_repo}")
+            
+            rag_export_dir = HF_EXPORT_DIR / "rag_corpus"
+            if rag_export_dir.exists():
+                for fpath in rag_export_dir.glob("*"):
+                    print(f"  Uploading RAG file {fpath.name}...")
+                    api.upload_file(
+                        path_or_fileobj=str(fpath),
+                        path_in_repo=fpath.name,
+                        repo_id=rag_repo,
+                        repo_type="dataset",
+                        commit_message=f"Upload RAG corpus file {fpath.name}"
+                    )
+            
+            # Upload a specific RAG Dataset Card (README.md) if we have one or create a simple one
+            rag_readme_path = DATASETS_DIR / "README_RAG.md"
+            if not rag_readme_path.exists():
+                readme_content = (
+                    "---\n"
+                    "title: \"Delentia OS: Constitutional AI Whitepaper & RAG Corpus\"\n"
+                    "tags:\n"
+                    "- rag\n"
+                    "- knowledge-base\n"
+                    "- constitutional-ai\n"
+                    "- enterprise-ai\n"
+                    "- thai\n"
+                    "- english\n"
+                    "license: apache-2.0\n"
+                    "---\n\n"
+                    "# Delentia OS: Constitutional AI Whitepaper & RAG Corpus\n\n"
+                    "This repository contains the official **Delentia OS Public Whitepaper v2.2.0** raw text and chunked CSV dataset for Vector Search, RAG, and general Enterprise AI development.\n\n"
+                    "## Files\n"
+                    "- `whitepaper_full.md`: The complete whitepaper document.\n"
+                    "- `whitepaper_chunks.csv`: Tabular dataset chunked by headers containing `chunk_id`, `topic`, and `text_content`.\n"
+                )
+                rag_readme_path.write_text(readme_content, encoding="utf-8")
+            
+            api.upload_file(
+                path_or_fileobj=str(rag_readme_path),
+                path_in_repo="README.md",
+                repo_id=rag_repo,
+                repo_type="dataset",
+                commit_message="feat: upload RAG dataset card README.md"
+            )
+            print("  [OK] RAG Dataset card live.")
+        except Exception as e:
+            print(f"  [WARN] Failed RAG upload for {rag_repo}: {e}")
+            
     print("\n[OK] Dataset publishing pipeline complete!")
 
 
@@ -232,7 +290,29 @@ def main():
         print("Error: No datasets found to convert. Run generate_v03_dataset.py first.")
         sys.exit(1)
         
-    # 2. Publish to Hugging Face
+    # 2. Prepare RAG Corpus
+    print("\nPreparing RAG Corpus files...")
+    try:
+        import prepare_rag_corpus
+        prepare_rag_corpus.main()
+    except ImportError:
+        try:
+            from datasets.scripts import prepare_rag_corpus
+            prepare_rag_corpus.main()
+        except ImportError:
+            print("Warning: prepare_rag_corpus could not be imported.")
+            
+    # Copy RAG corpus files to HF export dir for RAG upload
+    rag_src_dir = PROCESSED_DIR / "rag_corpus"
+    if rag_src_dir.exists():
+        import shutil
+        rag_export_dir = HF_EXPORT_DIR / "rag_corpus"
+        rag_export_dir.mkdir(parents=True, exist_ok=True)
+        for fpath in rag_src_dir.glob("*"):
+            shutil.copy(fpath, rag_export_dir / fpath.name)
+        print(f"✅ Copied RAG Corpus files to {rag_export_dir}")
+        
+    # 3. Publish to Hugging Face
     upload_dataset()
 
 

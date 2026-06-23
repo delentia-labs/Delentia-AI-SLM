@@ -34,6 +34,19 @@ if not os.environ.get("KAGGLE_KEY") and os.environ.get("KAGGLE_k"):
     os.environ["KAGGLE_KEY"] = os.environ["KAGGLE_k"]
     print("[INFO] KAGGLE_KEY configured from fallback KAGGLE_k environment variable.")
 
+if not (os.environ.get("KAGGLE_USERNAME") and os.environ.get("KAGGLE_KEY")):
+    kaggle_json_path = Path.home() / ".kaggle" / "kaggle.json"
+    if kaggle_json_path.exists():
+        try:
+            with open(kaggle_json_path, encoding="utf-8") as f:
+                creds = json.load(f)
+                if "username" in creds and "key" in creds:
+                    os.environ["KAGGLE_USERNAME"] = creds["username"]
+                    os.environ["KAGGLE_KEY"] = creds["key"]
+                    print("[INFO] Kaggle credentials loaded from ~/.kaggle/kaggle.json")
+        except Exception as e:
+            print(f"[WARN] Failed to read ~/.kaggle/kaggle.json: {e}")
+
 
 def parse_toon_completion(completion_text: str) -> dict:
     """Parse JITNA 6-field TOON completion text."""
@@ -165,7 +178,7 @@ def upload_to_huggingface():
             api.create_repo(repo_id=repo_id, repo_type="dataset", exist_ok=True, private=False)
             
             # Upload JSONL files
-            for version, fname in [("v0.2", "jitna_pairs_toon.jsonl"), ("v0.3", "jitna_pairs_v03.jsonl")]:
+            for version, fname in [("v0.2", "jitna_pairs_toon.jsonl"), ("v0.3", "jitna_pairs_v03.jsonl"), ("v0.4", "jitna_pairs_v04.jsonl")]:
                 src_file = PROCESSED_DIR / fname
                 if src_file.exists():
                     print(f"  Uploading {version} raw JSONL...")
@@ -175,9 +188,21 @@ def upload_to_huggingface():
                         repo_id=repo_id,
                         repo_type="dataset"
                     )
+
+            # Upload Parquet files for v0.4
+            for version, fname in [("v0.4", "jitna_pairs_v04.parquet"), ("v0.4", "jitna_executor_pairs.parquet"), ("v0.4", "jitna_router_pairs.parquet"), ("v0.4", "jitna_guardian_pairs.parquet"), ("v0.4", "jitna_scribe_pairs.parquet")]:
+                src_file = PROCESSED_DIR / fname
+                if src_file.exists():
+                    print(f"  Uploading {version} Parquet file: {fname}...")
+                    api.upload_file(
+                        path_or_fileobj=str(src_file),
+                        path_in_repo=f"data/parquet/{fname}",
+                        repo_id=repo_id,
+                        repo_type="dataset"
+                    )
                     
             # Upload CSV files
-            for version in ["v0.2", "v0.3"]:
+            for version in ["v0.2", "v0.3", "v0.4"]:
                 v_dir = HF_EXPORT_DIR / version
                 if v_dir.exists():
                     for csv_file in v_dir.glob("*.csv"):
@@ -198,6 +223,61 @@ def upload_to_huggingface():
                     repo_type="dataset"
                 )
                 print("  [OK] Dataset card uploaded.")
+                
+        # Deploy RAG corpus to separate repositories
+        rag_repos = [
+            "Ittirit-delentia/delentia-os-whitepaper-rag-corpus",
+            "Delentia/delentia-os-whitepaper-rag-corpus"
+        ]
+        
+        for rag_repo in rag_repos:
+            print(f"\n🚀 Verifying HuggingFace RAG Repository: {rag_repo}")
+            try:
+                api.create_repo(repo_id=rag_repo, repo_type="dataset", exist_ok=True, private=False)
+                
+                rag_export_dir = HF_EXPORT_DIR / "rag_corpus"
+                if rag_export_dir.exists():
+                    for fpath in rag_export_dir.glob("*"):
+                        print(f"  Uploading RAG file {fpath.name}...")
+                        api.upload_file(
+                            path_or_fileobj=str(fpath),
+                            path_in_repo=fpath.name,
+                            repo_id=rag_repo,
+                            repo_type="dataset"
+                        )
+                
+                # Upload a specific RAG Dataset Card (README.md) if we have one or create a simple one
+                rag_readme_path = DATASETS_DIR / "README_RAG.md"
+                if not rag_readme_path.exists():
+                    readme_content = (
+                        "---\n"
+                        "title: \"Delentia OS: Constitutional AI Whitepaper & RAG Corpus\"\n"
+                        "tags:\n"
+                        "- rag\n"
+                        "- knowledge-base\n"
+                        "- constitutional-ai\n"
+                        "- enterprise-ai\n"
+                        "- thai\n"
+                        "- english\n"
+                        "license: apache-2.0\n"
+                        "---\n\n"
+                        "# Delentia OS: Constitutional AI Whitepaper & RAG Corpus\n\n"
+                        "This repository contains the official **Delentia OS Public Whitepaper v2.2.0** raw text and chunked CSV dataset for Vector Search, RAG, and general Enterprise AI development.\n\n"
+                        "## Files\n"
+                        "- `whitepaper_full.md`: The complete whitepaper document.\n"
+                        "- `whitepaper_chunks.csv`: Tabular dataset chunked by headers containing `chunk_id`, `topic`, and `text_content`.\n"
+                    )
+                    rag_readme_path.write_text(readme_content, encoding="utf-8")
+                
+                api.upload_file(
+                    path_or_fileobj=str(rag_readme_path),
+                    path_in_repo="README.md",
+                    repo_id=rag_repo,
+                    repo_type="dataset"
+                )
+                print("  [OK] RAG Dataset card uploaded.")
+            except Exception as e:
+                print(f"  [WARN] Failed RAG upload for {rag_repo}: {e}")
                 
         print("🎉 [SUCCESS] Uploaded datasets successfully to HuggingFace Hub!")
     except Exception as e:
@@ -244,20 +324,46 @@ def main():
     print("Delentia Unified Dataset Exporter & Publishing Hub")
     print("=" * 60)
     
-    # 1. Export v0.2 to CSV (for Kaggle Export and HF tabular v0.2)
+    # 1. Export v0.2 to CSV (for HF tabular v0.2)
     v02_ok = convert_dataset_to_csv("v0.2", "jitna_pairs_toon.jsonl", HF_EXPORT_DIR / "v0.2")
-    # Copy to Kaggle folder for unified packaging
-    if v02_ok:
-        convert_dataset_to_csv("v0.2", "jitna_pairs_toon.jsonl", KAGGLE_EXPORT_DIR)
         
-    # 2. Export v0.3 to CSV
+    # 2. Export v0.3 to CSV (and copy to Kaggle folder for unified packaging)
     v03_ok = convert_dataset_to_csv("v0.3", "jitna_pairs_v03.jsonl", HF_EXPORT_DIR / "v0.3")
+    if v03_ok:
+        convert_dataset_to_csv("v0.3", "jitna_pairs_v03.jsonl", KAGGLE_EXPORT_DIR)
+        
+    # 3. Export v0.4 to CSV (and copy to Kaggle folder for unified packaging)
+    v04_ok = convert_dataset_to_csv("v0.4", "jitna_pairs_v04.jsonl", HF_EXPORT_DIR / "v0.4")
+    if v04_ok:
+        convert_dataset_to_csv("v0.4", "jitna_pairs_v04.jsonl", KAGGLE_EXPORT_DIR)
     
-    if not (v02_ok or v03_ok):
+    if not (v02_ok or v03_ok or v04_ok):
         print("❌ Error: No datasets found in 'datasets/processed'. Exiting.")
         sys.exit(1)
         
-    # 3. Publish to endpoints
+    # 3. Prepare and export RAG Corpus
+    print("\nPreparing RAG Corpus files...")
+    try:
+        import prepare_rag_corpus
+        prepare_rag_corpus.main()
+    except ImportError:
+        try:
+            from datasets.scripts import prepare_rag_corpus
+            prepare_rag_corpus.main()
+        except ImportError:
+            print("Warning: prepare_rag_corpus could not be imported.")
+            
+    # Copy RAG corpus files to HF export dir for RAG upload
+    rag_src_dir = PROCESSED_DIR / "rag_corpus"
+    if rag_src_dir.exists():
+        import shutil
+        rag_export_dir = HF_EXPORT_DIR / "rag_corpus"
+        rag_export_dir.mkdir(parents=True, exist_ok=True)
+        for fpath in rag_src_dir.glob("*"):
+            shutil.copy(fpath, rag_export_dir / fpath.name)
+        print(f"✅ Copied RAG Corpus files to {rag_export_dir}")
+        
+    # 4. Publish to endpoints
     upload_to_huggingface()
     upload_to_kaggle()
     

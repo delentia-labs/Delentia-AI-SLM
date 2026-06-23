@@ -7,8 +7,11 @@
 # CRITICAL: Data provenance must be strictly controlled — no untrusted datasets.
 
 model:
-  base_model: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
-  tokenizer: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
+  # IMPORTANT: Use the Unsloth pre-quantized base model (has config.json + safetensors)
+  # Delentia/delentia-slm-jitna-v0.4 contains only GGUF files — NOT loadable by Unsloth/transformers
+  # The 4-Pillar LoRA adapters are trained ON TOP of this base model (Llama 3.1 8B)
+  base_model: "Delentia/delentia-slm-jitna-v0.4"
+  tokenizer: "Delentia/delentia-slm-jitna-v0.4"
   max_seq_length: 2048            # Safety evaluation doesn't need long context
   dtype: null
   load_in_4bit: true
@@ -30,7 +33,7 @@ lora:
   task_type: "CAUSAL_LM"
 
 training:
-  dataset_path: "datasets/processed/jitna_guardian_pairs.jsonl"
+  dataset_path: "datasets/processed/jitna_guardian_pairs.parquet"
   dataset_split: "train"
   validation_split: 0.1
   max_samples: null
@@ -66,8 +69,8 @@ chat_template: |
   <|assistant|>
 
 pillar_type: "guardian"
-adapter_name: "jitna_guardian_v1"
-adapter_save_path: "models/adapters/jitna_guardian_v1"
+adapter_name: "jitna_guardian_v0.4"
+adapter_save_path: "models/adapters/jitna_guardian_v0.4"
 
 mlflow:
   experiment_name: "delentia-slm-guardian-constitutional"

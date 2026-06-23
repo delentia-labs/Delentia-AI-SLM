@@ -1,62 +1,52 @@
 ---
 language:
-  - th
-  - en
+- en
+- th
 license: apache-2.0
 size_categories:
-  - n<10k
+- n<10k
 task_categories:
-  - text-generation
-pretty_name: Delentia JITNA TOON Dataset
+- text-generation
+- text-classification
+pretty_name: "Delentia JITNA TOON Dataset"
 tags:
-  - rct
-  - JITNA
-  - TOON
-  - algo-42
-  - constitutional-ai
-  - intent-loop
-  - zero-trust
+- rct
+- JITNA
+- TOON
+- algo-42
+- constitutional-ai
+- intent-loop
+- zero-trust
+- 10-layer-os
+- hexacore-v2.3
+- ed25519-signatures
+- zk-fdia
+- delentia-os
 ---
 
-# 🌐 Delentia JITNA TOON Dataset (v0.2 & v0.3)
+# Delentia JITNA TOON Dataset: Thai Constitutional AI SFT Instruction Pairs
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue)](https://opensource.org/licenses/Apache-2.0)
-[![Ecosystem](https://img.shields.io/badge/Ecosystem-RCT-purple)](https://github.com/delentia-labs)
-[![Version](https://img.shields.io/badge/Dataset-v0.3--Cognitive-orange)](https://huggingface.co/datasets/Delentia/delentia-rct-intent-dataset)
+[![Website](https://img.shields.io/badge/🌐_Website-delentia.com-blue?style=for-the-badge)](https://delentia.com)
+[![Collection](https://img.shields.io/badge/🤗_HF_Collection-Delentia_Ecosystem-ffd21e?style=for-the-badge)](https://huggingface.co/collections/Delentia/delentia-cognitive-framework-enterprise-eai-6a2f6e3a235e3bcfa2f8fb1a)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-green?style=flat-square)](LICENSE)
+[![Dataset Version](https://img.shields.io/badge/Dataset-v0.3--Cognitive-orange?style=flat-square)](#)
 
-This dataset contains bilingual (Thai & English) instruction-response pairs designed to train and fine-tune Small Language Models (SLMs) as cognitive operating system kernels under the **RCT (Reverse Component Thinking) Ecosystem**. 
-
-It structures model prompts and completions into the **JITNA v3 (Just-In-Time Nodal Assembly)** protocol, serialized using the **TOON (Token-Oriented Object Notation — ALGO-42)** syntax.
-
----
-
-## 🇹🇭 บทสรุปผู้บริหาร / Executive Summary
-
-### **ภาษาไทย (Thai)**
-ชุดข้อมูลนี้ออกแบบมาสำหรับการพัฒนาโมเดลขนาดเล็ก (SLM) เพื่อให้ทำหน้าที่เป็นระบบควบคุมคำสั่ง AI Agent ที่รันแบบออฟไลน์ (Offline/Air-gapped) โดยมีความมั่นใจเชิงความปลอดภัยและสิทธิ์การเข้าถึงข้อมูลตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA) 
-
-ประกอบไปด้วย:
-* **เวอร์ชัน 0.2 (TOON)**: มุ่งเน้นการปรับโครงสร้างไวยากรณ์ตัดขยะโทเคน (Token Optimization) จาก JSON ปกติไปเป็น TOON format ปรับแต่งให้ประหยัดโทเคนได้ 15-50%
-* **เวอร์ชัน 0.3 (Cognitive OS)**: ผสมผสานตรรกะระดับระบบปฏิบัติการ ได้แก่ การปรับปรุงแคชหน่วยความจำ (Delta Engine), การกู้คืนบริการล้มเหลว (Intent Loop), และการปฏิเสธคำสั่งที่เป็นอันตรายโดยมีคะแนนความปลอดภัยเป็นศูนย์ (`FDIAScore: 0.00`) ตามกฎความปลอดภัย RCT 7
-
-### **English**
-This dataset trains Small Language Models (SLMs) to function as secure, offline cognitive AI operating system kernels. 
-
-It contains:
-* **v0.2 (TOON Baseline)**: Focused on syntax optimization, training models to replace traditional JSON boundaries with Token-Oriented Object Notation (TOON) to achieve 15-50% token savings.
-* **v0.3 (Cognitive OS)**: Incorporates multi-domain logic mixing, including memory updates (Delta Engine), failure self-corrections (Intent Loop), and zero-trust safety blocks (RCT 7 rules) returning `FDIAScore: 0.00` rejection flags.
+🇹🇭 [คลิกที่นี่เพื่ออ่านรายละเอียดภาษาไทย](#thai-documentation) | 🇬🇧 [Click here for English Documentation](#english-documentation)
 
 ---
 
-## 📊 Dataset Structure & Schema
+<h2 id="english-documentation">📖 English Documentation</h2>
 
-The dataset contains both raw JSONL files and structured CSV tabular directories.
+### Overview
+**Delentia JITNA TOON Dataset** is a high-quality, bilingual instruction-tuning dataset designed to train Small Language Models (SLMs) to act as secure, offline cognitive operating system kernels. It consists of **3,184 unique scenarios** structuring prompts and completions into the **JITNA v3 (Just-In-Time Nodal Assembly)** protocol and serialized using the **TOON (Token-Oriented Object Notation — ALGO-42)** format to save 15-50% on token overhead.
 
-### Raw Data Formats
-Each row is a dictionary containing:
-- `prompt`: The system instructions combined with the user intent.
-- `completion`: The formatted TOON completion block containing JITNA fields.
+### Dataset Structure & Schema
+The dataset contains raw JSONL pairs and normalized CSV tables inside `/tabular` for the Interactive Viewer:
+1. **`intents.csv`**: Contains query data (`intent_id`, `title`, `description`, `category`, `difficulty`, `split`).
+2. **`documents.csv`**: Background contexts (`doc_id`, `intent_id`, `source_type`, `title`, `content`, `is_relevant`).
+3. **`artifacts.csv`**: Model outputs (`artifact_id`, `intent_id`, `artifact_type`, `content`, `quality_label`).
 
+#### Raw JSONL Data Format Example
 ```json
 {
   "prompt": "You are Delentia OS v0.3 — a constitutional AI... User intent: sync credits for user_4500",
@@ -64,48 +54,12 @@ Each row is a dictionary containing:
 }
 ```
 
-### Tabular CSV Format (Dataset Viewer Enabled)
-To enable the interactive Hugging Face Dataset Viewer, the dataset is normalized into three CSV sheets inside `/tabular`:
-1. **`intents.csv`**: Contains the query information.
-   * `intent_id`: Unique key.
-   * `title`: Scenario label.
-   * `description`: The raw human prompt.
-   * `category`: The resolved approach/action category.
-   * `difficulty`: Level of task execution.
-   * `split`: Data split (`train` / `validation`).
-2. **`documents.csv`**: Background contexts.
-   * `doc_id`: Unique document key.
-   * `intent_id`: Intent relationship key.
-   * `source_type`: Source reference (`rct_spec_v5`).
-   * `title`: Context title.
-   * `content`: The raw context data parameters.
-   * `is_relevant`: Relevance binary.
-3. **`artifacts.csv`**: Model outputs.
-   * `artifact_id`: Unique output key.
-   * `intent_id`: Intent relationship key.
-   * `artifact_type`: Formatting syntax (`toon_spec_v3`).
-   * `content`: The raw TOON-serialized output.
-   * `quality_label`: Validation score label.
+### JITNA TOON & RCT-7 Training Alignment
+These instruction pairs train models to align with the **RCT-7 Thinking** 7-step sequence (Observe, Analyze, Deconstruct, Reverse Reasoning, Identify Core Intent, Reconstruct, Compare) and execute actions within the mathematical boundaries of the **FDIA Equation** (*F = Dᴵ × A*).
 
----
+🔗 *Read the full mathematical framework and architectural RFC in our GitHub: [delentia.com](https://delentia.com)*
 
-## 🧮 JITNA v3 Fields Description
-
-The model's responses must always contain the 6 core fields of the JITNA v3 protocol:
-
-*   **`I:` (Intent)**: The parsed target objective.
-*   **`D:` (Data)**: The data payload or context parameters.
-*   **`Δ:` (Delta)**: The memory/state change difference. If no changes occur, it outputs `none`.
-*   **`A:` (Approach)**: The algorithm or validation gate execution step. If blocked due to security violations, outputs `REJECTED (FDIAScore: 0.00, RCT Rule X violation)`.
-*   **`R:` (Reflection)**: Verification, compression parameters, or safety audits.
-*   **`M:` (Memory)**: Persistent registry log or state synchronization outputs.
-
----
-
-## 🛠️ How to Load
-
-You can pull the dataset programmatically using the HuggingFace `datasets` library:
-
+### How to Load
 ```python
 from datasets import load_dataset
 
@@ -119,7 +73,38 @@ print(intents["train"][0])
 
 ---
 
+<h2 id="thai-documentation">🇹🇭 เอกสารภาษาไทย (Thai Documentation)</h2>
+
+### ภาพรวม
+ชุดข้อมูลนี้ออกแบบมาสำหรับการฝึกสอนโมเดลภาษาขนาดเล็ก (Local SLM 8B) เพื่อทำหน้าที่ควบคุมคำสั่งเอเจนต์แบบออฟไลน์ที่ปลอดภัยและสอดคล้องตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA) 
+
+ประกอบด้วย:
+*   **เวอร์ชัน 0.2 (TOON)**: การตัดขยะโทเคน (Token Optimization) จาก JSON ปกติไปเป็น TOON format ช่วยประหยัด VRAM และโทเคนได้ 15-50%
+*   **เวอร์ชัน 0.3 (Cognitive OS & Self-Awareness)**: ขยายสเกลคู่อบรมคำสั่งเพิ่มเป็น 3,184 สถานการณ์เพื่อสร้างความตระหนักรู้สถาปัตยกรรม (Self-Awareness) ครอบคลุมสมการความปลอดภัย FDIA, ระบบยืนยันลายเซ็น ED25519 และโครงสร้าง HexaCore Registry v2.3
+
+### คำอธิบายฟิลด์ JITNA v3
+*   **`I:` (Intent)**: โค้ดเจตจำนงที่ถอดความจากภาษาธรรมชาติ
+*   **`D:` (Data)**: เพย์โหลดข้อมูลหรือค่าประเมินความพร้อมบริบท
+*   **`Δ:` (Delta)**: ความแตกต่างการเปลี่ยนแปลงสถานะหน่วยความจำ
+*   **`A:` (Approach)**: เส้นทางของระบบ/อัลกอริทึม หากพบคำสั่ง Bypass หรือโจมตีความปลอดภัย จะถูกบล็อกและคืนค่า `REJECTED` ทันที
+*   **`R:` (Reflection)**: การตรวจสอบย้อนกลับและประเมินประสิทธิภาพ
+*   **`M:` (Memory)**: การสอดคล้องกันและจัดเก็บค่าระยะยาวใน RCTDB
+
+### แกนกลางการประมวลผล: RCT-7 Thinking & FDIA
+ชุดข้อมูลถูกออกแบบมาเพื่อฝังโครงสร้างการตัดสินใจ 7 ขั้นตอนของ **RCT-7 Thinking** และคุมคำตอบให้ปลอดภัยด้วย **FDIA Equation** (*F = Dᴵ × A*) เพื่อให้โมเดลควบคุมคำตอบให้ถูกต้อง 100%
+
+🔗 *คุณสามารถศึกษาทฤษฎี RCT-7 Thinking ทั้ง 7 ขั้นตอน และสมการ FDIA ฉบับเต็มได้ที่แหล่งอ้างอิงหลัก (SSoT) บน GitHub: [delentia.com](https://delentia.com)*
+
+---
+
 ## ⚖️ Licensing & Governance
 - **Licensing**: Apache 2.0.
 - **Privacy & Sovereignty**: Safe for PDPA-regulated domains. Contains no PII. Designed to support localized, sovereign fine-tuning runs.
 - **Publisher**: [Delentia Labs](https://delentia.com) (Bangkok, Thailand 🇹🇭).
+
+---
+
+## 🔗 Related Ecosystem / ระบบนิเวศที่เชื่อมโยง
+- **RAG Knowledge Base:** [Delentia/delentia-os-whitepaper-rag-corpus](https://huggingface.co/datasets/Delentia/delentia-os-whitepaper-rag-corpus)
+- **Base Cognitive Model:** [Delentia/delentia-slm-jitna-v0.3](https://huggingface.co/Delentia/delentia-slm-jitna-v0.3)
+- **Official Website:** [delentia.com](https://delentia.com)

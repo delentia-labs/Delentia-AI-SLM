@@ -11,3 +11,5 @@ transformers
 peft
 accelerate
 bitsandbytes
+fastapi<0.115.0
+starlette<0.39.0

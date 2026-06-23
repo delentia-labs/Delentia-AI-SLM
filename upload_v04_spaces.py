@@ -2,6 +2,13 @@ import os
 import sys
 from pathlib import Path
 
+if sys.platform.startswith("win"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except AttributeError:
+        pass
+
 def main():
     try:
         from huggingface_hub import HfApi, get_token, login

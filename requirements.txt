@@ -23,4 +23,5 @@ rich>=13
 
 # Dev tools
 pytest>=8
+hypothesis>=6
 ruff>=0.4

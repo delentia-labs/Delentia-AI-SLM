@@ -240,7 +240,10 @@ def main(
         console.print(f"[red]Dataset not found:[/] {dataset_path}")
         raise typer.Exit(1)
 
-    raw = load_dataset("json", data_files=str(dataset_path), split="train")
+    if dataset_path.suffix == ".parquet":
+        raw = load_dataset("parquet", data_files=str(dataset_path), split="train")
+    else:
+        raw = load_dataset("json", data_files=str(dataset_path), split="train")
     if train_cfg.get("max_samples"):
         raw = raw.select(range(min(len(raw), train_cfg["max_samples"])))
 
@@ -388,7 +391,7 @@ def main(
     # ── Save adapter ──────────────────────────────────────────────────────────
     console.print("\nSaving Sequence Classification adapter…")
     if adapter_path is None:
-        adapter_path = Path(cfg.get("adapter_save_path", "models/adapters/jitna_router_v1"))
+        adapter_path = Path(cfg.get("adapter_save_path", "models/adapters/jitna_router_v0.4"))
     else:
         adapter_path = Path(adapter_path)
         

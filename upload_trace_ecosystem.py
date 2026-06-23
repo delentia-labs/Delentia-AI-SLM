@@ -14,6 +14,13 @@ import os
 import sys
 from pathlib import Path
 
+if sys.platform.startswith("win"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except AttributeError:
+        pass
+
 
 def main():
     parser = argparse.ArgumentParser(description="Upload Delentia Trace Ecosystem Space to HF")

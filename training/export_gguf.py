@@ -109,9 +109,10 @@ def main(
     model_name: str = typer.Option(None, help="Ollama model register name"),  # noqa: B008
     merged_path: Path = typer.Option(None, help="HuggingFace merged model output directory"),  # noqa: B008
     pillar: str = typer.Option(None, help="Pillar type: executor, guardian, scribe (Router classification adapter doesn't use GGUF)"),  # noqa: B008
+    quant: str = typer.Option("q4_k_m", "--quant", help="GGUF quantization method (e.g., q4_k_m, q8_0)"),  # noqa: B008
 ) -> None:
     version_label = f"Pillar: {pillar.upper()}" if pillar else ("v0.2 TOON" if toon else "v0.1")
-    console.print(Panel(f"[bold blue]Delentia AI - GGUF Export ({version_label})[/]", expand=False))
+    console.print(Panel(f"[bold blue]Delentia AI - GGUF Export ({version_label}) (Quant: {quant})[/]", expand=False))
 
     # Resolve paths and model name dynamically
     if pillar:
@@ -121,20 +122,20 @@ def main(
             raise typer.Exit(1)
         elif pillar == "executor":
             def_model_name = "delentia-jitna-executor"
-            def_adapter_path = Path("models/adapters/jitna_executor_v1")
-            def_merged_path  = Path("models/merged/jitna_executor_v1")
+            def_adapter_path = Path("models/adapters/jitna_executor_v0.4")
+            def_merged_path  = Path("models/merged/jitna_executor_v0.4")
             def_gguf_path    = Path("models/gguf/delentia-jitna-executor-Q4_K_M.gguf")
             modelfile_template = OLLAMA_MODELFILE_TEMPLATE_EXECUTOR
         elif pillar == "guardian":
             def_model_name = "delentia-jitna-guardian"
-            def_adapter_path = Path("models/adapters/jitna_guardian_v1")
-            def_merged_path  = Path("models/merged/jitna_guardian_v1")
+            def_adapter_path = Path("models/adapters/jitna_guardian_v0.4")
+            def_merged_path  = Path("models/merged/jitna_guardian_v0.4")
             def_gguf_path    = Path("models/gguf/delentia-jitna-guardian-Q4_K_M.gguf")
             modelfile_template = OLLAMA_MODELFILE_TEMPLATE_GUARDIAN
         elif pillar == "scribe":
             def_model_name = "delentia-jitna-scribe"
-            def_adapter_path = Path("models/adapters/jitna_scribe_v1")
-            def_merged_path  = Path("models/merged/jitna_scribe_v1")
+            def_adapter_path = Path("models/adapters/jitna_scribe_v0.4")
+            def_merged_path  = Path("models/merged/jitna_scribe_v0.4")
             def_gguf_path    = Path("models/gguf/delentia-jitna-scribe-Q4_K_M.gguf")
             modelfile_template = OLLAMA_MODELFILE_TEMPLATE_SCRIBE
         else:
@@ -205,13 +206,13 @@ def main(
 
     # ── 3. Convert to GGUF ────────────────────────────────────────────────────
     if not skip_convert:
-        console.print("[3/4] Converting to GGUF Q4_K_M...")
+        console.print(f"[3/4] Converting to GGUF {quant}...")
         if not dry_run and unsloth_available:
             gguf_path.parent.mkdir(parents=True, exist_ok=True)
             model.save_pretrained_gguf(
                 str(gguf_path.parent),
                 tokenizer,
-                quantization_method="q4_k_m",
+                quantization_method=quant,
             )
             # Locate and move the opinionated file path Unsloth creates
             unsloth_gguf_dir = Path(str(gguf_path.parent) + "_gguf")

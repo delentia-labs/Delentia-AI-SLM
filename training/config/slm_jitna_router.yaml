@@ -7,8 +7,11 @@
 # Uses LoRA α = 2r to control intruder dimensions and reduce forgetting.
 
 model:
-  base_model: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
-  tokenizer: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
+  # IMPORTANT: Use the Unsloth pre-quantized base model (has config.json + safetensors)
+  # Delentia/delentia-slm-jitna-v0.4 contains only GGUF files — NOT loadable by Unsloth/transformers
+  # The 4-Pillar LoRA adapters are trained ON TOP of this base model (Llama 3.1 8B)
+  base_model: "Delentia/delentia-slm-jitna-v0.4"
+  tokenizer: "Delentia/delentia-slm-jitna-v0.4"
   max_seq_length: 512             # Shorter — classification needs less context
   dtype: null
   load_in_4bit: true
@@ -35,7 +38,7 @@ classification:
     ROUTER_BASE: 3
 
 training:
-  dataset_path: "datasets/processed/jitna_router_pairs.jsonl"
+  dataset_path: "datasets/processed/jitna_router_pairs.parquet"
   dataset_split: "train"
   validation_split: 0.1            # More validation for classification
   max_samples: null
@@ -64,8 +67,8 @@ training:
   metric_for_best_model: "eval_accuracy"
 
 pillar_type: "router"
-adapter_name: "jitna_router_v1"
-adapter_save_path: "models/adapters/jitna_router_v1"
+adapter_name: "jitna_router_v0.4"
+adapter_save_path: "models/adapters/jitna_router_v0.4"
 
 mlflow:
   experiment_name: "delentia-slm-router-classifier"

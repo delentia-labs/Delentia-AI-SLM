@@ -6,8 +6,11 @@
 # It converts user intents into machine-executable tool-call payloads.
 
 model:
-  base_model: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
-  tokenizer: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
+  # IMPORTANT: Use the Unsloth pre-quantized base model (has config.json + safetensors)
+  # Delentia/delentia-slm-jitna-v0.4 contains only GGUF files — NOT loadable by Unsloth/transformers
+  # The 4-Pillar LoRA adapters are trained ON TOP of this base model (Llama 3.1 8B)
+  base_model: "Delentia/delentia-slm-jitna-v0.4"
+  tokenizer: "Delentia/delentia-slm-jitna-v0.4"
   max_seq_length: 4096
   dtype: null
   load_in_4bit: true
@@ -29,7 +32,7 @@ lora:
   task_type: "CAUSAL_LM"
 
 training:
-  dataset_path: "datasets/processed/jitna_executor_pairs.jsonl"
+  dataset_path: "datasets/processed/jitna_executor_pairs.parquet"
   dataset_split: "train"
   validation_split: 0.05
   max_samples: null
@@ -65,8 +68,8 @@ chat_template: |
   <|assistant|>
 
 pillar_type: "executor"
-adapter_name: "jitna_executor_v1"
-adapter_save_path: "models/adapters/jitna_executor_v1"
+adapter_name: "jitna_executor_v0.4"
+adapter_save_path: "models/adapters/jitna_executor_v0.4"
 
 mlflow:
   experiment_name: "delentia-slm-executor-agentic"

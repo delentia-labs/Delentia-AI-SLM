@@ -5,6 +5,8 @@ generate_executor_dataset.py
 Synthesizes training pairs for The Executor (slm-jitna-agentic):
   - Function Calling / Tool Use pairs
   - Structured JSON output (pure JSON, no conversational text)
+  - Deeply Nested Assemblies (nesting up to 5 layers deep) to test bracket matching
+  - Missing Parameter rejections (INCOMPLETE_PAYLOAD) to prevent hallucination
   - RCTDB integration commands
   - API invocation patterns
 
@@ -17,7 +19,12 @@ Output:
 
 import json
 import random
+import sys
 from pathlib import Path
+
+# Force UTF-8 encoding on Windows to prevent UnicodeEncodeError with emojis/Thai characters
+if sys.platform.startswith("win"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 PROCESSED_DIR = Path(__file__).parents[1] / "processed"
 OUTPUT = PROCESSED_DIR / "jitna_executor_pairs.jsonl"
@@ -30,7 +37,6 @@ SYSTEM_CONTEXT = (
     "Output ONLY valid JSON — no markdown, no text, no comments. "
     "Your output must pass json.loads() without error."
 )
-
 
 # ── Tool Definitions ─────────────────────────────────────────────────────
 
@@ -93,7 +99,6 @@ def _gen_tool_call_pair(tool: dict, idx: int) -> dict:
     name = tool["name"]
     params = tool["parameters"]
 
-    # Build realistic parameter values
     param_values = {}
     for k, v in params.items():
         if v == "string":
@@ -110,7 +115,6 @@ def _gen_tool_call_pair(tool: dict, idx: int) -> dict:
                 for i in range(random.randint(1, 3))
             ]
 
-    # The completion is PURE JSON — no surrounding text
     completion_json = {
         "tool_call": {
             "name": name,
@@ -119,7 +123,7 @@ def _gen_tool_call_pair(tool: dict, idx: int) -> dict:
         "metadata": {
             "intent_id": f"int_{idx:06d}",
             "confidence": round(random.uniform(0.85, 0.99), 3),
-            "source": "executor_v1",
+            "source": "executor_v0.4",
         },
     }
 
@@ -158,7 +162,7 @@ def _gen_multi_tool_pair(tools: list, idx: int) -> dict:
         "metadata": {
             "intent_id": f"chain_{idx:06d}",
             "total_steps": len(steps),
-            "source": "executor_v1",
+            "source": "executor_v0.4",
         },
     }
 
@@ -166,6 +170,85 @@ def _gen_multi_tool_pair(tools: list, idx: int) -> dict:
     return {
         "prompt": f"{SYSTEM_CONTEXT}\n\nUser intent: Execute a multi-step workflow using {tool_names} for batch operation {idx}",
         "completion": json.dumps(completion_json, ensure_ascii=False),
+    }
+
+
+def _gen_nested_workflow_pair(idx: int) -> dict:
+    """Generate deeply nested assemblies (up to 5 layers deep) to test bracket matching."""
+    nested_json = {
+        "execution_plan": {
+            "transaction_id": f"tx_nest_{idx:04d}",
+            "orchestrator": "HexaCore_Controller_v0.4",
+            "sequence": [
+                {
+                    "step": 1,
+                    "service": "rctdb_ledger",
+                    "operation": "batch_process",
+                    "payload": {
+                        "records": [
+                            {
+                                "id": f"rec_{idx}_a",
+                                "data": {
+                                    "user": {"id": f"usr_{idx}", "profile": {"role": "operator", "level": 4}},
+                                    "audit": {"action": "write", "signed_by": "SignedAI_v0.4"}
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "step": 2,
+                    "service": "delta_engine",
+                    "operation": "delta_commit",
+                    "payload": {
+                        "commit": {
+                            "node": f"node_{idx}",
+                            "state": {
+                                "changes": [
+                                    {"field": "energy_balance", "from": 100, "to": 80, "history": [{"tick": 1, "val": 100}, {"tick": 2, "val": 80}]}
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "metadata": {
+            "intent_id": f"nest_{idx:06d}",
+            "nesting_level": 5,
+            "source": "executor_v0.4"
+        }
+    }
+    return {
+        "prompt": f"{SYSTEM_CONTEXT}\n\nUser intent: Dispatch deeply nested batch transaction workflow {idx} to RCTDB ledger and Delta Engine with full audit history",
+        "completion": json.dumps(nested_json, ensure_ascii=False)
+    }
+
+
+def _gen_missing_param_pair(tool: dict, idx: int) -> dict:
+    """Generate missing parameter rejections to prevent AI hallucinations."""
+    name = tool["name"]
+    params = list(tool["parameters"].keys())
+    missing_param = random.choice(params)
+    incomplete_params = {k: f"val_{k}" for k in params if k != missing_param}
+    
+    completion_json = {
+        "status": "INCOMPLETE_PAYLOAD",
+        "error": {
+            "code": "MISSING_REQUIRED_PARAMETERS",
+            "missing_keys": [missing_param],
+            "message": f"Required parameter '{missing_param}' is missing for execution of {name}."
+        },
+        "metadata": {
+            "intent_id": f"inc_{idx:06d}",
+            "source": "executor_v0.4"
+        }
+    }
+    
+    prompt_intent = f"Execute tool call: {name} for user but only provide parameters: {', '.join(incomplete_params.keys())}"
+    return {
+        "prompt": f"{SYSTEM_CONTEXT}\n\nUser intent: {prompt_intent}",
+        "completion": json.dumps(completion_json, ensure_ascii=False)
     }
 
 
@@ -201,7 +284,7 @@ def _gen_thai_tool_pair(tool: dict, idx: int) -> dict:
         "metadata": {
             "intent_id": f"th_{idx:06d}",
             "confidence": round(random.uniform(0.88, 0.99), 3),
-            "source": "executor_v1",
+            "source": "executor_v0.4",
             "language": "th",
         },
     }
@@ -213,7 +296,7 @@ def _gen_thai_tool_pair(tool: dict, idx: int) -> dict:
 
 
 def _gen_error_handling_pair(idx: int) -> dict:
-    """Generate error-response JSON pair (Executor must handle invalid intents gracefully)."""
+    """Generate error-response JSON pair."""
     error_intents = [
         "do something undefined",
         "run nonexistent_tool",
@@ -229,7 +312,7 @@ def _gen_error_handling_pair(idx: int) -> dict:
         },
         "metadata": {
             "intent_id": f"err_{idx:06d}",
-            "source": "executor_v1",
+            "source": "executor_v0.4",
         },
     }
 
@@ -241,26 +324,35 @@ def _gen_error_handling_pair(idx: int) -> dict:
 
 def main():
     print("Delentia Executor Dataset Generator (slm-jitna-agentic)")
-    print("=" * 55)
+    print("=" * 60)
 
     random.seed(42)
     pairs = []
 
     # 1. Single tool-call pairs (English)
-    for i in range(200):
+    for i in range(150):
         tool = random.choice(TOOLS)
         pairs.append(_gen_tool_call_pair(tool, i))
 
     # 2. Multi-tool chain pairs
-    for i in range(80):
+    for i in range(60):
         pairs.append(_gen_multi_tool_pair(TOOLS, i + 1000))
 
-    # 3. Thai-language pairs
-    for i in range(150):
+    # 3. Deeply Nested Assemblies (to test bracket matching)
+    for i in range(50):
+        pairs.append(_gen_nested_workflow_pair(i + 1500))
+
+    # 4. Incomplete/Missing parameter pairs (to prevent AI hallucinations)
+    for i in range(60):
+        tool = random.choice(TOOLS)
+        pairs.append(_gen_missing_param_pair(tool, i + 1800))
+
+    # 5. Thai-language pairs
+    for i in range(140):
         tool = random.choice(TOOLS)
         pairs.append(_gen_thai_tool_pair(tool, i + 2000))
 
-    # 4. Error handling pairs
+    # 6. Error handling pairs
     for i in range(40):
         pairs.append(_gen_error_handling_pair(i + 3000))
 
@@ -275,9 +367,11 @@ def main():
             invalid += 1
 
     print(f"Generated {len(pairs)} Executor training pairs")
-    print("  - Single tool calls (EN): 200")
-    print("  - Multi-tool chains:      80")
-    print("  - Thai-language pairs:    150")
+    print("  - Single tool calls (EN): 150")
+    print("  - Multi-tool chains:      60")
+    print("  - Deeply Nested plans:    50")
+    print("  - Incomplete payloads:     60")
+    print("  - Thai-language pairs:    140")
     print("  - Error handling:          40")
     print(f"  - JSON validation errors:  {invalid}")
 
@@ -286,7 +380,7 @@ def main():
         for pair in pairs:
             f.write(json.dumps(pair, ensure_ascii=False) + "\n")
 
-    print(f"\nSaved to: {OUTPUT}")
+    print(f"\n✅ Saved to: {OUTPUT}")
     print(f"Total pairs: {len(pairs)}")
 
 

@@ -150,7 +150,10 @@ def main(
         )
         raise typer.Exit(1)
 
-    raw = load_dataset("json", data_files=str(dataset_path), split="train")
+    if dataset_path.suffix == ".parquet":
+        raw = load_dataset("parquet", data_files=str(dataset_path), split="train")
+    else:
+        raw = load_dataset("json", data_files=str(dataset_path), split="train")
     if train_cfg.get("max_samples"):
         raw = raw.select(range(min(len(raw), train_cfg["max_samples"])))
 

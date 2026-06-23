@@ -106,7 +106,7 @@ def generate_unique_intent_loop_pairs(count: int) -> list[dict]:
             "Δ": delta,
             "A": approach,
             "R": f"JITNA loop state: error_recovery_tick_{i%3+1}",
-            "M": f"logged incident recovery ticket to DelentiaDB ({srv}_{srv_id})"
+            "M": f"logged incident recovery ticket to RCTDB ({srv}_{srv_id})"
         }
         pairs.append(build_pair(f"Process service failure during request: {intent}", toon_en))
         
@@ -144,7 +144,7 @@ def generate_unique_rct7_security_pairs(count: int) -> list[dict]:
             "Δ": "none",
             "A": rejection,
             "R": "Unauthorized or hostile command blocked under zero-trust governance rules",
-            "M": f"Logged security incident from agent_{i:04d} to DelentiaDB, process terminated"
+            "M": f"Logged security incident from agent_{i:04d} to RCTDB, process terminated"
         }
         pairs.append(build_pair(f"Perform system action: {intent}", toon_en))
         
@@ -176,9 +176,33 @@ def main():
     else:
         print(f"Warning: Baseline v2 file not found at {V2_INPUT}.")
     
-    # 2. Synthesize UNIQUE logic domains
+    # 2. Load Self-Awareness pairs (from generate_self_awareness_dataset.py)
+    self_awareness_pairs = []
+    self_awareness_file = PROCESSED_DIR / "jitna_self_awareness_pairs.jsonl"
+    if not self_awareness_file.exists():
+        print("Self-awareness dataset not found. Running generator...")
+        try:
+            import generate_self_awareness_dataset
+            generate_self_awareness_dataset.main()
+        except ImportError:
+            try:
+                from datasets.scripts import generate_self_awareness_dataset
+                generate_self_awareness_dataset.main()
+            except ImportError:
+                print("Warning: generate_self_awareness_dataset could not be imported.")
+            
+    if self_awareness_file.exists():
+        with self_awareness_file.open(encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    self_awareness_pairs.append(json.loads(line))
+        print(f"Loaded {len(self_awareness_pairs)} Self-Awareness JITNA/TOON pairs.")
+    else:
+        print("Warning: Self-awareness dataset could not be loaded.")
+        
+    # 3. Synthesize UNIQUE logic domains
     random.seed(42)
-    # Generate 350 pairs per category (each yields English + Thai = 700 pairs total, overall ~2100 unique new pairs)
+    # Generate 180 pairs per category (each yields English + Thai = 360 pairs total, overall ~1080 unique new pairs)
     delta_pairs = generate_unique_delta_engine_pairs(180)    # 360 pairs
     loop_pairs = generate_unique_intent_loop_pairs(180)      # 360 pairs
     security_pairs = generate_unique_rct7_security_pairs(180)  # 360 pairs
@@ -189,11 +213,11 @@ def main():
     print(f"  - Intent Loop:  {len(loop_pairs)} pairs")
     print(f"  - RCT 7/Security: {len(security_pairs)} pairs")
     
-    # 3. Combine and shuffle
-    final_dataset = base_pairs + new_pairs
+    # 4. Combine and shuffle
+    final_dataset = base_pairs + new_pairs + self_awareness_pairs
     random.shuffle(final_dataset)
     
-    # 4. Save mixed dataset
+    # 5. Save mixed dataset
     V3_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     with V3_OUTPUT.open("w", encoding="utf-8") as f:
         for pair in final_dataset:

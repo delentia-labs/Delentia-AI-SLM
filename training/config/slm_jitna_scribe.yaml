@@ -6,8 +6,11 @@
 # It removes noise, keeps actionable info, and reports compression statistics.
 
 model:
-  base_model: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
-  tokenizer: "unsloth/Meta-Llama-3.1-8B-bnb-4bit"
+  # IMPORTANT: Use the Unsloth pre-quantized base model (has config.json + safetensors)
+  # Delentia/delentia-slm-jitna-v0.4 contains only GGUF files — NOT loadable by Unsloth/transformers
+  # The 4-Pillar LoRA adapters are trained ON TOP of this base model (Llama 3.1 8B)
+  base_model: "Delentia/delentia-slm-jitna-v0.4"
+  tokenizer: "Delentia/delentia-slm-jitna-v0.4"
   max_seq_length: 4096            # Longer context for compression tasks
   dtype: null
   load_in_4bit: true
@@ -29,7 +32,7 @@ lora:
   task_type: "CAUSAL_LM"
 
 training:
-  dataset_path: "datasets/processed/jitna_scribe_pairs.jsonl"
+  dataset_path: "datasets/processed/jitna_scribe_pairs.parquet"
   dataset_split: "train"
   validation_split: 0.1
   max_samples: null
@@ -65,8 +68,8 @@ chat_template: |
   <|assistant|>
 
 pillar_type: "scribe"
-adapter_name: "jitna_scribe_v1"
-adapter_save_path: "models/adapters/jitna_scribe_v1"
+adapter_name: "jitna_scribe_v0.4"
+adapter_save_path: "models/adapters/jitna_scribe_v0.4"
 
 mlflow:
   experiment_name: "delentia-slm-scribe-compressor"
@@ -76,5 +79,5 @@ mlflow:
 target_metrics:
   compression_ratio: 3.5          # >= 3.5x average compression
   information_retention: 0.92     # >= 92% key info retained
-  token_savings_pct: 65.0         # >= 65% token savings
+  token_savings_pct: 74.0         # >= 74% token savings (Delta Engine spec)
   rag_precision: 0.90             # >= 90% noise filtering accuracy

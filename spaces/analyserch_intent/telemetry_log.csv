@@ -1,0 +1,2 @@
+timestamp,session_id,input_text,entropy_score,gigo_status,keywords_count,mirror_turns,latency_ms,confidence,escalation_level,cache_hit,engine_version
+2026-06-16T01:04:21.796373+00:00,ba8579cd,Implement a payment blockchain connector with cache support but ensure complete sovereignty.,3.585,SAFE_CLEAR,10,0,4.36,0.7882,none,False,delentia-native-v1
