@@ -159,7 +159,7 @@ $$F = D^I \times A$$
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <!-- Polyfill removed to prevent polyfill.io supply chain security vulnerability -->
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
     :root {
@@ -263,7 +263,10 @@ $$F = D^I \times A$$
       transform: translateY(-1px);
     }
 
-    .tab-btn.active {
+    /* CSS-only Tab Switching */
+    #tab-system:checked ~ .nav-tabs #btn-system,
+    #tab-pillars:checked ~ .nav-tabs #btn-pillars,
+    #tab-testing:checked ~ .nav-tabs #btn-testing {
       background: linear-gradient(135deg, var(--primary-glow) 0%, var(--accent-glow) 100%);
       border-color: var(--primary);
       color: #ffffff;
@@ -271,15 +274,17 @@ $$F = D^I \times A$$
       text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
     }
 
+    #tab-system:checked ~ #system-tab,
+    #tab-pillars:checked ~ #pillars-tab,
+    #tab-testing:checked ~ #testing-tab {
+      display: block;
+    }
+
     .tab-content {
       display: none;
       width: 100%;
       max-width: 900px;
       animation: fadeIn 0.4s ease-out;
-    }
-
-    .tab-content.active {
-      display: block;
     }
 
     .container {
@@ -905,9 +910,93 @@ $$F = D^I \times A$$
       color: var(--primary);
       filter: drop-shadow(0 0 4px var(--primary));
     }
+
+    /* RCT-7 Pipeline Styling */
+    .rct-pipeline {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-top: 15px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .rct-step {
+      flex: 1;
+      min-width: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 6px;
+      transition: all 0.3s ease;
+    }
+    .rct-step:hover {
+      background: rgba(56, 189, 248, 0.04);
+      border-color: rgba(56, 189, 248, 0.15);
+      transform: translateY(-1px);
+    }
+    .step-num {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #ffffff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+      box-shadow: 0 0 6px rgba(14, 165, 233, 0.4);
+    }
+    .step-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 2px;
+    }
+    .step-desc {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+    }
+    .rct-arrow {
+      color: rgba(255, 255, 255, 0.15);
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    @media (max-width: 600px) {
+      .rct-pipeline {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .rct-arrow {
+        display: none;
+      }
+      .rct-step {
+        flex-direction: row;
+        gap: 10px;
+        align-items: center;
+        text-align: left;
+        padding: 8px 12px;
+      }
+      .step-num {
+        margin-bottom: 0;
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Radio inputs for CSS-only tab switching -->
+  <input type="radio" id="tab-system" name="tab-group" checked style="display: none;">
+  <input type="radio" id="tab-pillars" name="tab-group" style="display: none;">
+  <input type="radio" id="tab-testing" name="tab-group" style="display: none;">
 
   <header class="header">
     <div class="logo-container" style="display: flex; justify-content: center; width: 100%; margin-bottom: 15px;">
@@ -949,13 +1038,13 @@ $$F = D^I \times A$$
 
   <!-- Nav Tabs -->
   <div class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('system')">🛰️ System Portal</button>
-    <button class="tab-btn" onclick="switchTab('pillars')">📊 Specialist Pillars</button>
-    <button class="tab-btn" onclick="switchTab('testing')">🧪 Verification & v0.5 Roadmap</button>
+    <label for="tab-system" class="tab-btn" id="btn-system">🛰️ System Portal</label>
+    <label for="tab-pillars" class="tab-btn" id="btn-pillars">📊 Specialist Pillars</label>
+    <label for="tab-testing" class="tab-btn" id="btn-testing">🧪 Verification & v0.5 Roadmap</label>
   </div>
 
   <!-- Tab 1: System Portal -->
-  <div id="system-tab" class="tab-content active">
+  <div id="system-tab" class="tab-content">
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-value">&lt;0.3%</div>
@@ -975,56 +1064,169 @@ $$F = D^I \times A$$
     </div>
 
     <div class="container">
-      <!-- Sovereignty Router -->
-      <div class="card">
-        <div class="card-content">
-          <div>
+      <!-- Left Column: Core Architecture & Math Governance -->
+      <div class="left-column" style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Card 1: RCT-7 Cognitive Core -->
+        <div class="card">
+          <div class="card-content">
+            <div class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              RCT-7 Cognitive Architecture & Thinking Pipeline
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.5;">
+              Delentia OS utilizes the <strong>Reverse Component Thinking (RCT-7)</strong> methodology, translating high-level business intents down to verified system execution instructions across a strict dual-layer cognitive loop.
+            </p>
+            
+            <!-- Horizontal Timeline / Stepper -->
+            <div class="rct-pipeline">
+              <div class="rct-step">
+                <div class="step-num">1</div>
+                <div class="step-label">Observe Context</div>
+                <div class="step-desc">สังเกตบริบท</div>
+              </div>
+              <div class="rct-arrow">→</div>
+              <div class="rct-step">
+                <div class="step-num">2</div>
+                <div class="step-label">Analyze Relation</div>
+                <div class="step-desc">วิเคราะห์สัมพันธ์</div>
+              </div>
+              <div class="rct-arrow">→</div>
+              <div class="rct-step">
+                <div class="step-num">3</div>
+                <div class="step-label">Decompose</div>
+                <div class="step-desc">แยกชิ้นส่วน</div>
+              </div>
+              <div class="rct-arrow">→</div>
+              <div class="rct-step">
+                <div class="step-num">4</div>
+                <div class="step-label">Reverse Think</div>
+                <div class="step-desc">คิดย้อนกลับ</div>
+              </div>
+              <div class="rct-arrow">→</div>
+              <div class="rct-step">
+                <div class="step-num">5</div>
+                <div class="step-label">Detect Intent</div>
+                <div class="step-desc">จับเจตนาหลัก</div>
+              </div>
+              <div class="rct-arrow">→</div>
+              <div class="rct-step">
+                <div class="step-num">6</div>
+                <div class="step-label">Construct Solution</div>
+                <div class="step-desc">สร้างโซลูชัน</div>
+              </div>
+              <div class="rct-arrow">→</div>
+              <div class="rct-step">
+                <div class="step-num">7</div>
+                <div class="step-label">Verify Will</div>
+                <div class="step-desc">สอบเจตจำนง</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: ZK-FDIA Math Governance Core -->
+        <div class="card">
+          <div class="card-content">
+            <div class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+              ZK-FDIA Mathematical Governance & Safety
+            </div>
+            
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.5;">
+              To guarantee that autonomous AI agents cannot bypass constitutional guidelines or commit security violations (Prompt Injection, Privilege Escalation), every state transition must satisfy the multiplicative boundary:
+            </p>
+            
+            <div class="equation-box" style="text-align: center; padding: 15px 0; margin-bottom: 15px; background: rgba(0, 0, 0, 0.3); border-radius: 12px; border: 1px dashed rgba(56, 189, 248, 0.2);">
+              <div class="math-formula" style="font-size: 2.2rem; font-weight: 800; font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #ffd700 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.15)); letter-spacing: 2px;">
+                F = D<sup>I</sup> &times; A
+              </div>
+            </div>
+            
+            <div class="variables-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; font-size: 0.8rem;">
+              <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                <strong style="color: #ffd700; font-size: 0.95rem; display: block; margin-bottom: 2px;">F (Future State Score)</strong>
+                System transition approval rating. If \( F \ge 0.5 \), the action is authorized; else, blocked.
+              </div>
+              <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                <strong style="color: #38bdf8; font-size: 0.95rem; display: block; margin-bottom: 2px;">D (Data Quality Context)</strong>
+                Integrity coefficient of ambient context information, ranging from \( 0.0 \) to \( 1.0 \).
+              </div>
+              <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                <strong style="color: #a78bfa; font-size: 0.95rem; display: block; margin-bottom: 2px;">I (Intent Precision)</strong>
+                Exponent representing user request alignment precision, ranging \( \ge 1.0 \).
+              </div>
+              <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                <strong style="color: #34d399; font-size: 0.95rem; display: block; margin-bottom: 2px;">A (Architect Gate)</strong>
+                Binary token signature. \( A = 1 \) if digital signature is valid; \( A = 0 \) if missing/forged.
+              </div>
+            </div>
+            
+            <div class="result-display" style="padding: 12px 18px; margin-top: 15px; background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.15); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.15); text-align: left;">
+              <div style="font-size: 0.78rem; color: var(--error); font-weight: 600; display: flex; align-items: flex-start; gap: 8px; line-height: 1.4;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-top: 1px; flex-shrink: 0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span><strong>Mathematical Collapse Preemption:</strong> Because A is a multiplicative parameter, if authorization fails or context contains adversarial actions (\( A = 0 \)), the overall safety score \( F \) collapses to \( 0.0000 \) instantly, neutralizing prompt injections by mathematical design.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Interactive Simulator & Live Console Logs -->
+      <div class="right-column" style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Card 1: Regional Sovereignty Router -->
+        <div class="card">
+          <div class="card-content">
             <div class="card-title">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
               Regional Sovereignty Router
             </div>
+            
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
+              Simulates data residency mapping and regional model routing for incoming queries.
+            </p>
 
-            <div class="form-group">
-              <label>Sovereign Input Prompt / Test Message</label>
-              <textarea id="promptInput" style="height: 60px;" placeholder="Type localized prompt (e.g. สวัสดี, Japanese, etc.)..." oninput="routePrompt()">คำนวณสิทธิประโยชน์ทางภาษีตามเงื่อนไขของประเทศไทย</textarea>
+            <div class="form-group" style="margin-bottom: 10px;">
+              <textarea id="promptInput" style="height: 48px; font-size: 0.8rem; padding: 8px; width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; color: var(--text-main); font-family: inherit; resize: none;" placeholder="Type localized prompt..." oninput="routePrompt()">คำนวณสิทธิประโยชน์ทางภาษีตามเงื่อนไขของประเทศไทย</textarea>
             </div>
-          </div>
 
-          <div>
-            <div class="router-display">
-              <div class="router-row">
+            <div class="router-display" style="padding: 10px; font-size: 0.78rem; margin-top: 5px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;">
+              <div class="router-row" style="display: flex; justify-content: space-between; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.03);">
                 <span>Detected Language</span>
-                <span id="resLang" style="color: #38bdf8;">th-TH (Thai)</span>
+                <span id="resLang" style="color: #38bdf8; font-family: 'Fira Code', monospace; font-weight: 600;">th-TH (Thai)</span>
               </div>
-              <div class="router-row">
+              <div class="router-row" style="display: flex; justify-content: space-between; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.03);">
                 <span>Target Region</span>
-                <span id="resRegion" style="color: #34d399;">ASEAN (th)</span>
+                <span id="resRegion" style="color: #34d399; font-family: 'Fira Code', monospace; font-weight: 600;">ASEAN (th)</span>
               </div>
-              <div class="router-row">
+              <div class="router-row" style="display: flex; justify-content: space-between; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.03);">
                 <span>Routed Model</span>
-                <span id="resModel" style="color: #a78bfa;">Typhoon-v2-7B-Instruct</span>
+                <span id="resModel" style="color: #a78bfa; font-family: 'Fira Code', monospace; font-weight: 600;">Typhoon-v2-7B-Instruct</span>
               </div>
-              <div class="router-row" style="align-items: center;">
+              <div class="router-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; padding-bottom: 0;">
                 <span>PDPA Status</span>
                 <span id="resResidency"><span class="badge-secure">Sovereign safe</span></span>
               </div>
             </div>
-            <div class="result-display" style="padding: 10px; margin-top: 10px; background: rgba(16,185,129,0.05); border-color: rgba(16,185,129,0.15);">
-              <div style="font-size: 0.72rem; color: var(--success); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+            
+            <div class="result-display" style="padding: 8px; margin-top: 10px; background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.15); border-radius: 6px;">
+              <div style="font-size: 0.7rem; color: var(--success); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                 Regional Adapter Data Residency Restored Local
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Log Console -->
-      <div class="console-logs" id="logs">
-        <div class="log-line log-info"><span class="log-time">[09:00:00]</span>[INIT] Delentia OS v0.4 Nodal Core initialized.</div>
-        <div class="log-line log-success"><span class="log-time">[09:00:01]</span>[SignedAI] HexaCore consensus node connected (Supreme Architect).</div>
-        <div class="log-line log-success"><span class="log-time">[09:00:02]</span>[SignedAI] 9 consensus roles online (TH-Local node active).</div>
-        <div class="log-line log-info"><span class="log-time">[09:00:03]</span>[DeltaEngine] Compression initialized. Base state caching active.</div>
+        <!-- Card 2: Log Console -->
+        <div class="console-logs" id="logs" style="height: 250px;">
+          <div class="log-line log-info"><span class="log-time">[09:00:00]</span>[INIT] Delentia OS v0.4 Nodal Core initialized.</div>
+          <div class="log-line log-success"><span class="log-time">[09:00:01]</span>[SignedAI] HexaCore consensus node connected (Supreme Architect).</div>
+          <div class="log-line log-success"><span class="log-time">[09:00:02]</span>[SignedAI] 9 consensus roles online (TH-Local node active).</div>
+          <div class="log-line log-info"><span class="log-time">[09:00:03]</span>[DeltaEngine] Compression initialized. Base state caching active.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1174,18 +1376,6 @@ $$F = D^I \times A$$
   </footer>
 
   <script>
-    // Tab switching logic
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-      
-      const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.textContent.toLowerCase().includes(tabId));
-      if (activeBtn) activeBtn.classList.add('active');
-      
-      const activeContent = document.getElementById(`${tabId}-tab`);
-      if (activeContent) activeContent.classList.add('active');
-    }
-
     // Regional Sovereignty Router simulator
     function routePrompt() {
       const prompt = document.getElementById('promptInput').value.trim().toLowerCase();
