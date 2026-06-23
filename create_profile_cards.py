@@ -295,7 +295,7 @@ $$F = D^I \times A$$
       margin-bottom: 24px;
     }
 
-    @media (min-width: 768px) {
+    @media (min-width: 600px) {
       .container {
         grid-template-columns: 1.15fr 0.85fr;
       }
@@ -1138,7 +1138,7 @@ $$F = D^I \times A$$
             </p>
             
             <div class="equation-box" style="text-align: center; padding: 15px 0; margin-bottom: 15px; background: rgba(0, 0, 0, 0.3); border-radius: 12px; border: 1px dashed rgba(56, 189, 248, 0.2);">
-              <div class="math-formula" style="font-size: 2.2rem; font-weight: 800; font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #ffd700 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.15)); letter-spacing: 2px;">
+              <div class="math-formula" style="font-size: 2.2rem; font-weight: 800; font-family: 'Outfit', sans-serif; color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); letter-spacing: 2px;">
                 F = D<sup>I</sup> &times; A
               </div>
             </div>
@@ -1146,26 +1146,26 @@ $$F = D^I \times A$$
             <div class="variables-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; font-size: 0.8rem;">
               <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
                 <strong style="color: #ffd700; font-size: 0.95rem; display: block; margin-bottom: 2px;">F (Future State Score)</strong>
-                System transition approval rating. If \( F \ge 0.5 \), the action is authorized; else, blocked.
+                System transition approval rating. If F &ge; 0.5, the action is authorized; else, blocked.
               </div>
               <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
                 <strong style="color: #38bdf8; font-size: 0.95rem; display: block; margin-bottom: 2px;">D (Data Quality Context)</strong>
-                Integrity coefficient of ambient context information, ranging from \( 0.0 \) to \( 1.0 \).
+                Integrity coefficient of ambient context information, ranging from 0.0 to 1.0.
               </div>
               <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
                 <strong style="color: #a78bfa; font-size: 0.95rem; display: block; margin-bottom: 2px;">I (Intent Precision)</strong>
-                Exponent representing user request alignment precision, ranging \( \ge 1.0 \).
+                Exponent representing user request alignment precision, ranging &ge; 1.0.
               </div>
               <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
                 <strong style="color: #34d399; font-size: 0.95rem; display: block; margin-bottom: 2px;">A (Architect Gate)</strong>
-                Binary token signature. \( A = 1 \) if digital signature is valid; \( A = 0 \) if missing/forged.
+                Binary token signature. A = 1 if digital signature is valid; A = 0 if missing/forged.
               </div>
             </div>
             
             <div class="result-display" style="padding: 12px 18px; margin-top: 15px; background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.15); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.15); text-align: left;">
               <div style="font-size: 0.78rem; color: var(--error); font-weight: 600; display: flex; align-items: flex-start; gap: 8px; line-height: 1.4;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-top: 1px; flex-shrink: 0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <span><strong>Mathematical Collapse Preemption:</strong> Because A is a multiplicative parameter, if authorization fails or context contains adversarial actions (\( A = 0 \)), the overall safety score \( F \) collapses to \( 0.0000 \) instantly, neutralizing prompt injections by mathematical design.</span>
+                <span><strong>Mathematical Collapse Preemption:</strong> Because A is a multiplicative parameter, if authorization fails or context contains adversarial actions (A = 0), the overall safety score F collapses to 0.0000 instantly, neutralizing prompt injections by mathematical design.</span>
               </div>
             </div>
           </div>
