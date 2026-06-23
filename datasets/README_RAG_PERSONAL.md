@@ -15,10 +15,11 @@ license: apache-2.0
 pretty_name: "Delentia OS RAG Corpus (Architect Mirror)"
 ---
 
-# Delentia OS RAG Corpus (Architect Mirror): Storytelling & Data Engineering Diaries
+# Delentia OS RAG Corpus (Architect Mirror): Storytelling & Data Engineering Diaries (v0.4)
 
 [![Website](https://img.shields.io/badge/🌐_Website-delentia.com-blue?style=for-the-badge)](https://delentia.com)
 [![Collection](https://img.shields.io/badge/🤗_HF_Collection-Delentia_Ecosystem-ffd21e?style=for-the-badge)](https://huggingface.co/collections/Delentia/delentia-cognitive-framework-enterprise-eai-6a2f6e3a235e3bcfa2f8fb1a)
+[![Interactive Space](https://img.shields.io/badge/💬_Ecosystem_Portal-Space-purple?style=for-the-badge)](https://huggingface.co/spaces/Delentia/README)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-green?style=flat-square)](LICENSE)
 
 > [!WARNING]
@@ -50,7 +51,7 @@ In deep tech documentation, traditional recursive character chunking fails. This
 <h2 id="thai-documentation">🇹🇭 เอกสารภาษาไทย (Thai Documentation)</h2>
 
 ### ✍️ บันทึกจากผู้สร้าง (The Architect's Note)
-เอกสารและคลังข้อมูลสถาปัตยกรรมชิ้นนี้พัฒนาขึ้นท่ามกลางทรัพยากรที่จำกัด เพื่อพิสูจน์ความสมเหตุสมผลเชิงทฤษฎีของสมการความปลอดภัย **FDIA** และแนวคิดคิดย้อนกลับ **RCT-7 Thinking**:
+เอกสารและคลังข้อมูลสถาปัตยกรรมชิ้นนี้พัฒนาขึ้นท่ามกลางทรัพยากรที่จำกัด เพื่อพิสูจน์ความสมเหตุสมผลเชิงทฤษฎีของสมการความปลอดภัย **FDIA** และแนวแนวคิดคิดย้อนกลับ **RCT-7 Thinking**:
 - **พัฒนาจากข้อจำกัด:** ตัวสเปกและไฟล์สกัด RAG ทั้งหมดถูกร่างขึ้นบนโทรศัพท์มือถือระหว่างวัน ก่อนจะรันสเปกโค้ดทดสอบผ่านเครื่องเล่นเกมพกพา **ROG Ally X** ในชุมชนคลองเตย กรุงเทพมหานคร ประเทศไทย
 - **เป้าหมายเพื่อการพึ่งพาตนเอง:** มุ่งหวังที่จะลดค่าใช้จ่ายการรันโมเดลเข้าใกล้ศูนย์ (*Cost ➔ 0*) และเปิดโอกาสให้นักพัฒนาไทยเข้าถึงสเปกระบบนิเวศ AI ที่ปลอดภัยอย่างแท้จริง
 

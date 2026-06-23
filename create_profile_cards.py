@@ -1064,168 +1064,107 @@ $$F = D^I \times A$$
     </div>
 
     <div class="container">
-      <!-- Left Column: Core Architecture & Math Governance -->
-      <div class="left-column" style="display: flex; flex-direction: column; gap: 20px;">
-        
-        <!-- Card 1: RCT-7 Cognitive Core -->
-        <div class="card">
-          <div class="card-content">
-            <div class="card-title">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-              RCT-7 Cognitive Architecture & Thinking Pipeline
+      <!-- Card 1: RCT-7 Cognitive Core -->
+      <div class="card">
+        <div class="card-content">
+          <div class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            RCT-7 Cognitive Architecture & Thinking Pipeline
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.5;">
+            Delentia OS utilizes the <strong>Reverse Component Thinking (RCT-7)</strong> methodology, translating high-level business intents down to verified system execution instructions across a strict dual-layer cognitive loop.
+          </p>
+          
+          <!-- Horizontal Timeline / Stepper -->
+          <div class="rct-pipeline">
+            <div class="rct-step">
+              <div class="step-num">1</div>
+              <div class="step-label">Observe Context</div>
+              <div class="step-desc">สังเกตบริบท</div>
             </div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.5;">
-              Delentia OS utilizes the <strong>Reverse Component Thinking (RCT-7)</strong> methodology, translating high-level business intents down to verified system execution instructions across a strict dual-layer cognitive loop.
-            </p>
-            
-            <!-- Horizontal Timeline / Stepper -->
-            <div class="rct-pipeline">
-              <div class="rct-step">
-                <div class="step-num">1</div>
-                <div class="step-label">Observe Context</div>
-                <div class="step-desc">สังเกตบริบท</div>
-              </div>
-              <div class="rct-arrow">→</div>
-              <div class="rct-step">
-                <div class="step-num">2</div>
-                <div class="step-label">Analyze Relation</div>
-                <div class="step-desc">วิเคราะห์สัมพันธ์</div>
-              </div>
-              <div class="rct-arrow">→</div>
-              <div class="rct-step">
-                <div class="step-num">3</div>
-                <div class="step-label">Decompose</div>
-                <div class="step-desc">แยกชิ้นส่วน</div>
-              </div>
-              <div class="rct-arrow">→</div>
-              <div class="rct-step">
-                <div class="step-num">4</div>
-                <div class="step-label">Reverse Think</div>
-                <div class="step-desc">คิดย้อนกลับ</div>
-              </div>
-              <div class="rct-arrow">→</div>
-              <div class="rct-step">
-                <div class="step-num">5</div>
-                <div class="step-label">Detect Intent</div>
-                <div class="step-desc">จับเจตนาหลัก</div>
-              </div>
-              <div class="rct-arrow">→</div>
-              <div class="rct-step">
-                <div class="step-num">6</div>
-                <div class="step-label">Construct Solution</div>
-                <div class="step-desc">สร้างโซลูชัน</div>
-              </div>
-              <div class="rct-arrow">→</div>
-              <div class="rct-step">
-                <div class="step-num">7</div>
-                <div class="step-label">Verify Will</div>
-                <div class="step-desc">สอบเจตจำนง</div>
-              </div>
+            <div class="rct-arrow">→</div>
+            <div class="rct-step">
+              <div class="step-num">2</div>
+              <div class="step-label">Analyze Relation</div>
+              <div class="step-desc">วิเคราะห์สัมพันธ์</div>
+            </div>
+            <div class="rct-arrow">→</div>
+            <div class="rct-step">
+              <div class="step-num">3</div>
+              <div class="step-label">Decompose</div>
+              <div class="step-desc">แยกชิ้นส่วน</div>
+            </div>
+            <div class="rct-arrow">→</div>
+            <div class="rct-step">
+              <div class="step-num">4</div>
+              <div class="step-label">Reverse Think</div>
+              <div class="step-desc">คิดย้อนกลับ</div>
+            </div>
+            <div class="rct-arrow">→</div>
+            <div class="rct-step">
+              <div class="step-num">5</div>
+              <div class="step-label">Detect Intent</div>
+              <div class="step-desc">จับเจตนาหลัก</div>
+            </div>
+            <div class="rct-arrow">→</div>
+            <div class="rct-step">
+              <div class="step-num">6</div>
+              <div class="step-label">Construct Solution</div>
+              <div class="step-desc">สร้างโซลูชัน</div>
+            </div>
+            <div class="rct-arrow">→</div>
+            <div class="rct-step">
+              <div class="step-num">7</div>
+              <div class="step-label">Verify Will</div>
+              <div class="step-desc">สอบเจตจำนง</div>
             </div>
           </div>
         </div>
-
-        <!-- Card 2: ZK-FDIA Math Governance Core -->
-        <div class="card">
-          <div class="card-content">
-            <div class="card-title">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
-              ZK-FDIA Mathematical Governance & Safety
-            </div>
-            
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.5;">
-              To guarantee that autonomous AI agents cannot bypass constitutional guidelines or commit security violations (Prompt Injection, Privilege Escalation), every state transition must satisfy the multiplicative boundary:
-            </p>
-            
-            <div class="equation-box" style="text-align: center; padding: 15px 0; margin-bottom: 15px; background: rgba(0, 0, 0, 0.3); border-radius: 12px; border: 1px dashed rgba(56, 189, 248, 0.2);">
-              <div class="math-formula" style="font-size: 2.2rem; font-weight: 800; font-family: 'Outfit', sans-serif; color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); letter-spacing: 2px;">
-                F = D<sup>I</sup> &times; A
-              </div>
-            </div>
-            
-            <div class="variables-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; font-size: 0.8rem;">
-              <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
-                <strong style="color: #ffd700; font-size: 0.95rem; display: block; margin-bottom: 2px;">F (Future State Score)</strong>
-                System transition approval rating. If F &ge; 0.5, the action is authorized; else, blocked.
-              </div>
-              <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
-                <strong style="color: #38bdf8; font-size: 0.95rem; display: block; margin-bottom: 2px;">D (Data Quality Context)</strong>
-                Integrity coefficient of ambient context information, ranging from 0.0 to 1.0.
-              </div>
-              <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
-                <strong style="color: #a78bfa; font-size: 0.95rem; display: block; margin-bottom: 2px;">I (Intent Precision)</strong>
-                Exponent representing user request alignment precision, ranging &ge; 1.0.
-              </div>
-              <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
-                <strong style="color: #34d399; font-size: 0.95rem; display: block; margin-bottom: 2px;">A (Architect Gate)</strong>
-                Binary token signature. A = 1 if digital signature is valid; A = 0 if missing/forged.
-              </div>
-            </div>
-            
-            <div class="result-display" style="padding: 12px 18px; margin-top: 15px; background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.15); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.15); text-align: left;">
-              <div style="font-size: 0.78rem; color: var(--error); font-weight: 600; display: flex; align-items: flex-start; gap: 8px; line-height: 1.4;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-top: 1px; flex-shrink: 0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <span><strong>Mathematical Collapse Preemption:</strong> Because A is a multiplicative parameter, if authorization fails or context contains adversarial actions (A = 0), the overall safety score F collapses to 0.0000 instantly, neutralizing prompt injections by mathematical design.</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
 
-      <!-- Right Column: Interactive Simulator & Live Console Logs -->
-      <div class="right-column" style="display: flex; flex-direction: column; gap: 20px;">
-        
-        <!-- Card 1: Regional Sovereignty Router -->
-        <div class="card">
-          <div class="card-content">
-            <div class="card-title">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-              Regional Sovereignty Router
-            </div>
-            
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
-              Simulates data residency mapping and regional model routing for incoming queries.
-            </p>
-
-            <div class="form-group" style="margin-bottom: 10px;">
-              <textarea id="promptInput" style="height: 48px; font-size: 0.8rem; padding: 8px; width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; color: var(--text-main); font-family: inherit; resize: none;" placeholder="Type localized prompt..." oninput="routePrompt()">คำนวณสิทธิประโยชน์ทางภาษีตามเงื่อนไขของประเทศไทย</textarea>
-            </div>
-
-            <div class="router-display" style="padding: 10px; font-size: 0.78rem; margin-top: 5px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;">
-              <div class="router-row" style="display: flex; justify-content: space-between; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.03);">
-                <span>Detected Language</span>
-                <span id="resLang" style="color: #38bdf8; font-family: 'Fira Code', monospace; font-weight: 600;">th-TH (Thai)</span>
-              </div>
-              <div class="router-row" style="display: flex; justify-content: space-between; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.03);">
-                <span>Target Region</span>
-                <span id="resRegion" style="color: #34d399; font-family: 'Fira Code', monospace; font-weight: 600;">ASEAN (th)</span>
-              </div>
-              <div class="router-row" style="display: flex; justify-content: space-between; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.03);">
-                <span>Routed Model</span>
-                <span id="resModel" style="color: #a78bfa; font-family: 'Fira Code', monospace; font-weight: 600;">Typhoon-v2-7B-Instruct</span>
-              </div>
-              <div class="router-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; padding-bottom: 0;">
-                <span>PDPA Status</span>
-                <span id="resResidency"><span class="badge-secure">Sovereign safe</span></span>
-              </div>
-            </div>
-            
-            <div class="result-display" style="padding: 8px; margin-top: 10px; background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.15); border-radius: 6px;">
-              <div style="font-size: 0.7rem; color: var(--success); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                Regional Adapter Data Residency Restored Local
-              </div>
+      <!-- Card 2: ZK-FDIA Math Governance Core -->
+      <div class="card">
+        <div class="card-content">
+          <div class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+            ZK-FDIA Mathematical Governance & Safety
+          </div>
+          
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.5;">
+            To guarantee that autonomous AI agents cannot bypass constitutional guidelines or commit security violations (Prompt Injection, Privilege Escalation), every state transition must satisfy the multiplicative boundary:
+          </p>
+          
+          <div class="equation-box" style="text-align: center; padding: 15px 0; margin-bottom: 15px; background: rgba(0, 0, 0, 0.3); border-radius: 12px; border: 1px dashed rgba(56, 189, 248, 0.2);">
+            <div class="math-formula" style="font-size: 2.2rem; font-weight: 800; font-family: 'Outfit', sans-serif; color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); letter-spacing: 2px;">
+              F = D<sup>I</sup> &times; A
             </div>
           </div>
-        </div>
-
-        <!-- Card 2: Log Console -->
-        <div class="console-logs" id="logs" style="height: 250px;">
-          <div class="log-line log-info"><span class="log-time">[09:00:00]</span>[INIT] Delentia OS v0.4 Nodal Core initialized.</div>
-          <div class="log-line log-success"><span class="log-time">[09:00:01]</span>[SignedAI] HexaCore consensus node connected (Supreme Architect).</div>
-          <div class="log-line log-success"><span class="log-time">[09:00:02]</span>[SignedAI] 9 consensus roles online (TH-Local node active).</div>
-          <div class="log-line log-info"><span class="log-time">[09:00:03]</span>[DeltaEngine] Compression initialized. Base state caching active.</div>
+          
+          <div class="variables-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; font-size: 0.8rem;">
+            <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+              <strong style="color: #ffd700; font-size: 0.95rem; display: block; margin-bottom: 2px;">F (Future State Score)</strong>
+              System transition approval rating. If F &ge; 0.5, the action is authorized; else, blocked.
+            </div>
+            <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+              <strong style="color: #38bdf8; font-size: 0.95rem; display: block; margin-bottom: 2px;">D (Data Quality Context)</strong>
+              Integrity coefficient of ambient context information, ranging from 0.0 to 1.0.
+            </div>
+            <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+              <strong style="color: #a78bfa; font-size: 0.95rem; display: block; margin-bottom: 2px;">I (Intent Precision)</strong>
+              Exponent representing user request alignment precision, ranging &ge; 1.0.
+            </div>
+            <div class="variable-item" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+              <strong style="color: #34d399; font-size: 0.95rem; display: block; margin-bottom: 2px;">A (Architect Gate)</strong>
+              Binary token signature. A = 1 if digital signature is valid; A = 0 if missing/forged.
+            </div>
+          </div>
+          
+          <div class="result-display" style="padding: 12px 18px; margin-top: 15px; background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.15); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.15); text-align: left;">
+            <div style="font-size: 0.78rem; color: var(--error); font-weight: 600; display: flex; align-items: flex-start; gap: 8px; line-height: 1.4;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-top: 1px; flex-shrink: 0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span><strong>Mathematical Collapse Preemption:</strong> Because A is a multiplicative parameter, if authorization fails or context contains adversarial actions (A = 0), the overall safety score F collapses to 0.0000 instantly, neutralizing prompt injections by mathematical design.</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1376,58 +1315,6 @@ $$F = D^I \times A$$
   </footer>
 
   <script>
-    // Regional Sovereignty Router simulator
-    function routePrompt() {
-      const prompt = document.getElementById('promptInput').value.trim().toLowerCase();
-      const resLang = document.getElementById('resLang');
-      const resRegion = document.getElementById('resRegion');
-      const resModel = document.getElementById('resModel');
-      const resResidency = document.getElementById('resResidency');
-
-      let lang = "en-US (English)";
-      let region = "Global (us)";
-      let model = "Qwen-2.5-7B-Instruct";
-      let statusHtml = '<span class="badge-global">Global Core</span>';
-
-      if (!prompt) {
-        resLang.textContent = "-";
-        resRegion.textContent = "-";
-        resModel.textContent = "-";
-        resResidency.innerHTML = "-";
-        return;
-      }
-
-      if (/[ก-๙]/.test(prompt) || prompt.includes("thai") || prompt.includes("สวัสดี")) {
-        lang = "th-TH (Thai)";
-        region = "ASEAN (Thailand)";
-        model = "Typhoon-v2-7B-Instruct";
-        statusHtml = '<span class="badge-secure">Sovereign safe</span>';
-      }
-      else if (/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(prompt) || prompt.includes("japan") || prompt.includes("こんにちは")) {
-        lang = "ja-JP (Japanese)";
-        region = "East Asia (Japan)";
-        model = "Rakuten-AI-7B-Instruct";
-        statusHtml = '<span class="badge-secure">Sovereign safe</span>';
-      }
-      else if (/[\uac00-\ud7a3]/.test(prompt) || prompt.includes("korea") || prompt.includes("안녕하세요")) {
-        lang = "ko-KR (Korean)";
-        region = "East Asia (Korea)";
-        model = "Solar-Pro-10.7B";
-        statusHtml = '<span class="badge-secure">Sovereign safe</span>';
-      }
-      else if (prompt.includes("viet") || prompt.includes("xin chào") || prompt.includes("thành phố") || prompt.includes("công nghiệp")) {
-        lang = "vi-VN (Vietnamese)";
-        region = "ASEAN (Vietnam)";
-        model = "ViGPT-7B-Instruct";
-        statusHtml = '<span class="badge-secure">Sovereign safe</span>';
-      }
-
-      resLang.textContent = lang;
-      resRegion.textContent = region;
-      resModel.textContent = model;
-      resResidency.innerHTML = statusHtml;
-    }
-
     // ZK-FDIA calculator logic
     function calculateFDIA() {
       const d = parseFloat(document.getElementById('inputD').value);
@@ -1474,44 +1361,7 @@ $$F = D^I \times A$$
       }
     }
 
-    // Dynamic telemetry log updates
-    const logs = document.getElementById('logs');
-    function addLog(type, msg) {
-      const now = new Date();
-      const timeStr = now.toTimeString().split(' ')[0];
-      const div = document.createElement('div');
-      div.className = `log-line ${type}`;
-      div.innerHTML = `<span class="log-time">[${timeStr}]</span>${msg}`;
-      logs.appendChild(div);
-      logs.scrollTop = logs.scrollHeight;
-      
-      if (logs.children.length > 50) {
-        logs.removeChild(logs.firstChild);
-      }
-    }
-
-    const logTemplates = [
-      { type: 'log-info', msg: '[Router] Active heartbeat check on regional nodes: TH-Local [OK], JP-East [OK], KR-Seoul [OK].' },
-      { type: 'log-success', msg: '[SignedAI] Consensus validated on block 429188. 9 consensus roles approved.' },
-      { type: 'log-info', msg: '[DeltaEngine] Memory cache compression sweep executed. Free memory space increased.' },
-      { type: 'log-success', msg: '[RCT-Guardrails] Security scan clean. Zero-trust validation token generated.' },
-      { type: 'log-warning', msg: '[Router] Processing transient latency anomaly on East-Asia regional proxy adapter.' },
-      { type: 'log-error', msg: '[SignedAI] Block verify warning: role 7 signature missing. Initiating automatic recovery route.' },
-      { type: 'log-success', msg: '[SignedAI] Consensus node signature recovered via fallback validator.' },
-      { type: 'log-info', msg: '[Scribe] Context compressed from 4,120 to 133 tokens (92.57% savings, 30.96x ratio).' },
-      { type: 'log-warning', msg: '[Guardian] Hostile payload detected: SYSTEM OVERRIDE A=1. Multiplicative gate A=0 -> Future score F=0.00. BLOCKED.' },
-      { type: 'log-info', msg: '[vLLM] Dynamic LoRA swap: Executor loaded in VRAM (latency: 11.2ms).' },
-      { type: 'log-success', msg: '[Hypothesis] Property-based fuzzer test suite running: 100k properties verified.' }
-    ];
-
-    setInterval(() => {
-      const idx = Math.floor(Math.random() * logTemplates.length);
-      const log = logTemplates[idx];
-      addLog(log.type, log.msg);
-    }, 6000);
-
     // Initial runs
-    routePrompt();
     calculateFDIA();
   </script>
 </body>
