@@ -967,7 +967,7 @@ The heart of Delentia's security is the **FDIA equation**, which guarantees that
 
     <!-- Log Console -->
     <div class="console-logs" id="logs">
-      <div class="log-line log-info"><span class="log-time">[09:00:00]</span>[INIT] Delentia OS v3.0 Nodal Core initialized.</div>
+      <div class="log-line log-info"><span class="log-time">[09:00:00]</span>[INIT] Delentia OS v0.4 Nodal Core initialized.</div>
       <div class="log-line log-success"><span class="log-time">[09:00:01]</span>[SignedAI] HexaCore consensus node connected (Supreme Architect).</div>
       <div class="log-line log-success"><span class="log-time">[09:00:02]</span>[SignedAI] 9 consensus roles online (TH-Local node active).</div>
       <div class="log-line log-info"><span class="log-time">[09:00:03]</span>[DeltaEngine] Compression initialized. Base state caching active.</div>
@@ -1467,10 +1467,10 @@ The core of Delentia's security architecture is governed by the **FDIA Equation*
 
 def create_delentia_collection(api, token):
     print("\nCreating/verifying Hugging Face collection bundle...")
-    collection_title = "Delentia Cognitive Framework — Enterprise EAI"
+    collection_title = "Delentia Cognitive Framework — Delentia OS v0.4"
     collection_description = (
-        "Unified ecosystem of the Delentia Cognitive Framework with 1+4 "
-        "specialized LoRA pillars and the JITNA v3 protocol."
+        "Official unified ecosystem collection for Delentia OS v0.4, "
+        "featuring the 1+4 specialized LoRA pillars and the JITNA v3 protocol."
     )
     
     collection_slug = None
@@ -1502,12 +1502,18 @@ def create_delentia_collection(api, token):
 
     items = [
         {"id": "Delentia/delentia-slm-jitna-v0.4", "type": "model", "note": "Base SLM Model (8B Quantized GGUF/bnb-4bit)"},
-        {"id": "Delentia/delentia-slm-jitna-router", "type": "model", "note": "Router LoRA Adapter (1+4 specialized pillars)"},
-        {"id": "Delentia/delentia-slm-jitna-executor", "type": "model", "note": "Executor LoRA Adapter (1+4 specialized pillars)"},
-        {"id": "Delentia/delentia-slm-jitna-guardian", "type": "model", "note": "Guardian Safety LoRA Adapter (1+4 specialized pillars)"},
-        {"id": "Delentia/delentia-slm-jitna-scribe", "type": "model", "note": "Scribe Context Compression LoRA Adapter (1+4 specialized pillars)"},
+        {"id": "Delentia/delentia-slm-jitna-router-v0.4", "type": "model", "note": "Router LoRA Adapter (v0.4)"},
+        {"id": "Delentia/delentia-slm-jitna-executor-v0.4", "type": "model", "note": "Executor LoRA Adapter (v0.4)"},
+        {"id": "Delentia/delentia-slm-jitna-guardian-v0.4", "type": "model", "note": "Guardian Safety LoRA Adapter (v0.4)"},
+        {"id": "Delentia/delentia-slm-jitna-scribe-v0.4", "type": "model", "note": "Scribe Context Compression LoRA Adapter (v0.4)"},
         {"id": "Delentia/delentia-rct-intent-dataset", "type": "dataset", "note": "RCT Telemetry & Fine-Tuning Dataset"},
-        {"id": "Delentia/delentia-trace-ecosystem", "type": "space", "note": "Unified EAI UI & Control Plane Observability Monitor"}
+        {"id": "Delentia/delentia-os-whitepaper-rag-corpus", "type": "dataset", "note": "Delentia OS Whitepaper RAG Corpus"},
+        {"id": "Delentia/delentia-trace-ecosystem", "type": "space", "note": "Unified EAI UI & Control Plane Observability Monitor"},
+        {"id": "Delentia/delentia-analyserch-intent", "type": "space", "note": "Research Intent Analyzer Space"},
+        {"id": "Delentia/delentia-gatekeeper", "type": "space", "note": "Guardian Gatekeeper Space"},
+        {"id": "Delentia/delentia-scribe", "type": "space", "note": "Scribe Compressor Space"},
+        {"id": "Delentia/delentia-executor", "type": "space", "note": "Executor Tool Compiler Space"},
+        {"id": "Delentia/delentia-agent-monitor", "type": "space", "note": "Centralized MLflow Agent Monitor & Logger"}
     ]
     
     for item in items:
