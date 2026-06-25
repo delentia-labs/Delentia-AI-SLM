@@ -28,7 +28,7 @@ MODEL_CARDS = {
         "title": "The Router (Sequence Classifier)",
         "readme": r"""---
 license: apache-2.0
-base_model: unsloth/Meta-Llama-3.1-8B-bnb-4bit
+base_model: Delentia/delentia-slm-jitna-v0.4
 tags:
 - text-classification
 - peft
@@ -73,7 +73,7 @@ To ensure proper routing operations, developers must configure JITNA to load the
         "title": "The Executor (Agentic Tool Call)",
         "readme": r"""---
 license: apache-2.0
-base_model: unsloth/Meta-Llama-3.1-8B-bnb-4bit
+base_model: Delentia/delentia-slm-jitna-v0.4
 tags:
 - gguf
 - llama-cpp
@@ -115,7 +115,7 @@ To ensure proper execution of tool calls, compile with these associated componen
         "title": "The Guardian (Constitutional Safety Shield)",
         "readme": r"""---
 license: apache-2.0
-base_model: unsloth/Meta-Llama-3.1-8B-bnb-4bit
+base_model: Delentia/delentia-slm-jitna-v0.4
 tags:
 - gguf
 - llama-cpp
@@ -166,7 +166,7 @@ To ensure proper guardrails check, connect with the following components:
         "title": "The Scribe (Context Compressor)",
         "readme": r"""---
 license: apache-2.0
-base_model: unsloth/Meta-Llama-3.1-8B-bnb-4bit
+base_model: Delentia/delentia-slm-jitna-v0.4
 tags:
 - gguf
 - llama-cpp
