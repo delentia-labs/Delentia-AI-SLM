@@ -253,14 +253,44 @@ def main():
                 # Ensure repo exists
                 api.create_repo(repo_id=repo_id, repo_type="model", exist_ok=True, private=False)
                 
+                # Determine file path to upload
+                if namespace == personal_user:
+                    personal_readme = f"""---
+license: apache-2.0
+tags:
+- delentia-os
+- deprecated
+- outdated
+- redirection
+---
+
+# 🛑 OFFICIAL CORE REDIRECT / ย้ายที่อยู่โมเดลหลักอย่างเป็นทางการ
+
+> [!WARNING]
+> **Architect's Personal Mirror:** โมเดล LoRA Adapter ตัวนี้เป็นเวอร์ชันกระจกส่วนตัวของผู้ออกแบบระบบ เพื่อการใช้งานระดับ Enterprise และรับอัปเดตการตรวจรับรองประสิทธิภาพล่าสุดแบบอัตโนมัติ กรุณาดาวน์โหลดและเรียกใช้จากแหล่งข้อมูลอย่างเป็นทางการขององค์กรกลางที่:
+> 👉 **[Delentia/{suffix}](https://huggingface.co/Delentia/{suffix})**
+"""
+                    temp_personal_file = os.path.join(temp_dir, f"README_{pillar_key}_personal.md")
+                    with open(temp_personal_file, "w", encoding="utf-8") as f:
+                        f.write(personal_readme)
+                    upload_path = temp_personal_file
+                else:
+                    upload_path = temp_file_path
+
                 # Upload file
                 api.upload_file(
-                    path_or_fileobj=temp_file_path,
+                    path_or_fileobj=upload_path,
                     path_in_repo="README.md",
                     repo_id=repo_id,
                     repo_type="model",
-                    commit_message=f"docs: update model card for {title} for JITNA v0.4",
+                    commit_message=f"docs: update model card redirection/official for {title}",
                 )
+                
+                if namespace == personal_user:
+                    try:
+                        os.remove(temp_personal_file)
+                    except Exception:
+                        pass
                 print(f"  ✓ Live: https://huggingface.co/{repo_id}")
             except Exception as e:
                 print(f"  ⚠ Failed for {repo_id}: {e}")

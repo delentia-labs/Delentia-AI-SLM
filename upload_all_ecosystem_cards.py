@@ -126,7 +126,7 @@ def main():
     except Exception as e:
         print(f"  ✗ Failed: {e}")
 
-    # ── 5. Upload Model Cards (v0.3 & v0.2) ──────────────────────────────────
+    # ── 5. Upload Model Cards (v0.4, v0.3, v0.2) ──────────────────────────────
     repos_model = [
         "Delentia/delentia-slm-jitna-v0.4",
         "Ittirit-delentia/delentia-slm-jitna-v0.4",
@@ -139,12 +139,40 @@ def main():
         print(f"\n--- Publishing Model Card to: {repo_id} ---")
         try:
             api.create_repo(repo_id=repo_id, repo_type="model", exist_ok=True)
+            
+            if "Ittirit-delentia" in repo_id:
+                repo_name = repo_id.split("/")[-1]
+                redirect_readme = f"""---
+license: apache-2.0
+tags:
+- delentia-os
+- deprecated
+- outdated
+- redirection
+---
+
+# 🛑 OFFICIAL CORE REDIRECT / ย้ายที่อยู่โมเดลหลักอย่างเป็นทางการ
+
+> [!WARNING]
+> **Architect's Personal Mirror:** โมเดลแกนกลางตัวนี้เป็นเวอร์ชันกระจกส่วนตัวของผู้ออกแบบระบบ เพื่อการใช้งานระดับ Enterprise และรับอัปเดตการตรวจรับรองประสิทธิภาพล่าสุดแบบอัตโนมัติ กรุณาดาวน์โหลดและเรียกใช้จากแหล่งข้อมูลอย่างเป็นทางการขององค์กรกลางที่:
+> 👉 **[Delentia/{repo_name}](https://huggingface.co/Delentia/{repo_name})**
+"""
+                temp_personal = base_dir / f"temp_{repo_name}_redirect.md"
+                temp_personal.write_text(redirect_readme, encoding="utf-8")
+                upload_src = str(temp_personal)
+            else:
+                upload_src = str(model_readme_path)
+
             api.upload_file(
-                path_or_fileobj=str(model_readme_path),
+                path_or_fileobj=upload_src,
                 path_in_repo="README.md",
                 repo_id=repo_id,
                 repo_type="model"
             )
+            
+            if "Ittirit-delentia" in repo_id:
+                temp_personal.unlink()
+                
             print(f"  ✓ Model card uploaded to {repo_id}.")
         except Exception as e:
             print(f"  ✗ Failed: {e}")
