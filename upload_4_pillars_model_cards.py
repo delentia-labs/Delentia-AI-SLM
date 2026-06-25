@@ -245,8 +245,8 @@ def main():
         with open(temp_file_path, "w", encoding="utf-8") as f:
             f.write(readme_content)
 
-        # Upload to both personal and org repositories
-        for namespace in [personal_user, org_user]:
+        # Upload only to official org repositories
+        for namespace in [org_user]:
             repo_id = f"{namespace}/{suffix}"
             print(f"Uploading model card to: {repo_id}...")
             try:
