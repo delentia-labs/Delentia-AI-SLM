@@ -9,7 +9,11 @@ Also outputs the full raw document copy.
 
 import csv
 import re
+import sys
 from pathlib import Path
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 # Setup paths
 SCRIPT_DIR = Path(__file__).parent
@@ -18,7 +22,7 @@ PROCESSED_DIR = DATASETS_DIR / "processed"
 RAG_OUTPUT_DIR = PROCESSED_DIR / "rag_corpus"
 
 WHITEPAPER_PATH = (
-    SCRIPT_DIR.parents[2] / "Delentia-Private-OS" / "whitepapers" / "01_foundation" / "DELENTIA_OS_PUBLIC_WHITEPAPER_v2.2.0_DRAFT.md"
+    SCRIPT_DIR.parents[2] / "Delentia-Private-OS" / "whitepapers" / "01_foundation" / "DELENTIA_OS_PUBLIC_WHITEPAPER_v2.2.0_TH.md"
 )
 
 def chunk_markdown(content: str) -> list[dict]:

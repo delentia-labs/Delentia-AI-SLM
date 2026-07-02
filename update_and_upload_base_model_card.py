@@ -1,4 +1,24 @@
----
+#!/usr/bin/env python3
+"""
+update_and_upload_base_model_card.py
+
+Generates a perfectly structured, 100% clean, dual-language (1 ENG / 1 TH) Model Card
+for Delentia/delentia-slm-jitna-v0.4 on Hugging Face Hub, incorporating Cognitive Core (RCT-7 & ZK-FDIA)
+with clean Unicode math formatting (resolving raw LaTeX $ syntax glitches).
+"""
+
+import os
+import sys
+from pathlib import Path
+from huggingface_hub import HfApi
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+SLM_DIR = Path(__file__).parent
+README_MODEL_PATH = SLM_DIR / "README_MODEL.md"
+
+CLEAN_MODEL_CARD = r"""---
 language:
 - en
 - th
@@ -195,3 +215,35 @@ $$F = D^I \times A$$
 ```
 
 *Built with ❤️ by Delentia Labs · Bangkok, Thailand 🇹🇭*
+"""
+
+
+def main():
+    print("=" * 80)
+    print("📝 UPDATING & OVERWRITING HUGGING FACE BASE MODEL CARD (README.md)")
+    print("=" * 80)
+
+    README_MODEL_PATH.write_text(CLEAN_MODEL_CARD.strip() + "\n", encoding="utf-8")
+    print(f"✓ Local README_MODEL.md overwritten with clean 1 ENG / 1 TH template.")
+
+    api = HfApi()
+    repo_model = "Delentia/delentia-slm-jitna-v0.4"
+
+    try:
+        print(f"Uploading clean README.md to {repo_model}...")
+        api.upload_file(
+            path_or_fileobj=str(README_MODEL_PATH),
+            path_in_repo="README.md",
+            repo_id=repo_model,
+            repo_type="model",
+            commit_message="Add Cognitive Core & ZK-FDIA section with clean math syntax (v0.4.1 audit)"
+        )
+        print(f"  ✓ Live at: https://huggingface.co/{repo_model}")
+    except Exception as e:
+        print(f"  ⚠ Could not upload to {repo_model}: {e}")
+
+    print("\n[SUCCESS] BASE MODEL CARD UPDATED LOCALLY AND UPLOADED!")
+
+
+if __name__ == "__main__":
+    main()

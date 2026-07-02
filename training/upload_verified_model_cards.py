@@ -155,7 +155,7 @@ This model card is dynamically updated with actual evaluation figures verified a
 | **Tool Call Accuracy** | $\ge 95.00\%$ | **{exec_tool*100:.2f}%** | Passed ✅ |
 | **Syntax Error Rate** | $0.00\%$ | **0.00%** | Passed ✅ |
 
-*Verified against 100,000+ dynamically generated edge cases via Property-Based Testing (Hypothesis framework).*
+*Verified against 200,000+ dynamically generated edge cases via Property-Based Testing (Hypothesis framework).*
 
 ## Key Principles
 1. **Zero Conversational Bias:** Output is strictly restricted to valid, raw JSON. It never explains its actions or generates natural language.

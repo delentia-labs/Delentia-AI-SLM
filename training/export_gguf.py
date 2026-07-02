@@ -124,19 +124,19 @@ def main(
             def_model_name = "delentia-jitna-executor"
             def_adapter_path = Path("models/adapters/jitna_executor_v0.4")
             def_merged_path  = Path("models/merged/jitna_executor_v0.4")
-            def_gguf_path    = Path("models/gguf/delentia-jitna-executor-Q4_K_M.gguf")
+            def_gguf_path    = Path(f"models/gguf/delentia-jitna-executor-{quant.upper()}.gguf")
             modelfile_template = OLLAMA_MODELFILE_TEMPLATE_EXECUTOR
         elif pillar == "guardian":
             def_model_name = "delentia-jitna-guardian"
             def_adapter_path = Path("models/adapters/jitna_guardian_v0.4")
             def_merged_path  = Path("models/merged/jitna_guardian_v0.4")
-            def_gguf_path    = Path("models/gguf/delentia-jitna-guardian-Q4_K_M.gguf")
+            def_gguf_path    = Path(f"models/gguf/delentia-jitna-guardian-{quant.upper()}.gguf")
             modelfile_template = OLLAMA_MODELFILE_TEMPLATE_GUARDIAN
         elif pillar == "scribe":
             def_model_name = "delentia-jitna-scribe"
             def_adapter_path = Path("models/adapters/jitna_scribe_v0.4")
             def_merged_path  = Path("models/merged/jitna_scribe_v0.4")
-            def_gguf_path    = Path("models/gguf/delentia-jitna-scribe-Q4_K_M.gguf")
+            def_gguf_path    = Path(f"models/gguf/delentia-jitna-scribe-{quant.upper()}.gguf")
             modelfile_template = OLLAMA_MODELFILE_TEMPLATE_SCRIBE
         else:
             console.print(f"[red]Unknown pillar:[/] {pillar}. Valid: executor, guardian, scribe")
@@ -145,7 +145,7 @@ def main(
         def_model_name = "delentia-jitna-v0.2"
         def_adapter_path = Path("models/adapters/jitna_v0.2_toon")
         def_merged_path  = Path("models/merged/jitna_v0.2_toon")
-        def_gguf_path    = Path("models/gguf/delentia-jitna-v0.2-Q4_K_M.gguf")
+        def_gguf_path    = Path(f"models/gguf/delentia-jitna-v0.2-{quant.upper()}.gguf")
         modelfile_template = OLLAMA_MODELFILE_TEMPLATE_V02
     else:
         # Load from config or default to v0.1
@@ -153,7 +153,7 @@ def main(
         def_model_name = "delentia-jitna-v0.1"
         def_adapter_path = Path(cfg.get("adapter_path", "models/adapters/jitna_v0.1"))
         def_merged_path  = Path(cfg.get("merged_path", "models/merged/jitna_v0.1"))
-        def_gguf_path = Path(cfg.get("gguf_path", "models/gguf/delentia-jitna-v0.1-Q4_K_M.gguf"))
+        def_gguf_path = Path(cfg.get("gguf_path", f"models/gguf/delentia-jitna-v0.1-{quant.upper()}.gguf"))
         modelfile_template = OLLAMA_MODELFILE_TEMPLATE_V01
 
     model_name = model_name or def_model_name
