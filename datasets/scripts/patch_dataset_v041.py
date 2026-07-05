@@ -1,5 +1,5 @@
 """
-Dataset Patch v0.4.3:
+Dataset Patch v0.4.1:
 - Remove 1 duplicate (Row 1031 คุณคือใคร)
 - Add 64 self_identity samples (target 80+)
 - Add 32 year_2025 samples (target 50+)
@@ -12,12 +12,12 @@ import json
 import random
 from pathlib import Path
 
-SRC = Path(r"c:\Users\whale\delentia\Delentia-AI-SLM\datasets\processed\knowledge_dataset_v0.4.2.jsonl")
-DST = Path(r"c:\Users\whale\delentia\Delentia-AI-SLM\datasets\processed\knowledge_dataset_v0.4.3.jsonl")
+SRC = Path(r"c:\Users\whale\delentia\Delentia-AI-SLM\datasets\processed\knowledge_dataset_v0.4.1.jsonl")
+DST = Path(r"c:\Users\whale\delentia\Delentia-AI-SLM\datasets\processed\knowledge_dataset_v0.4.1.jsonl")
 
 with open(SRC, encoding="utf-8") as f:
     lines = [json.loads(l) for l in f if l.strip()]
-print(f"Loaded: {len(lines)} samples from v0.4.2")
+print(f"Loaded: {len(lines)} samples from v0.4.1")
 
 # ─── Step 1: Remove duplicate (Row 1031 = คุณคือใคร) ─────────────────────────
 before = len(lines)
@@ -364,7 +364,7 @@ with open(DST, "w", encoding="utf-8") as f:
     for item in all_lines:
         f.write(json.dumps(item, ensure_ascii=False) + "\n")
 
-print(f"\nDataset v0.4.3 saved: {DST}")
+print(f"\nDataset v0.4.1 saved: {DST}")
 
 # ─── Final validation ─────────────────────────────────────────────────────────
 with open(DST, encoding="utf-8") as f:
