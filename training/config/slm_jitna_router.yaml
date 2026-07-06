@@ -67,8 +67,8 @@ training:
   metric_for_best_model: "eval_accuracy"
 
 pillar_type: "router"
-adapter_name: "jitna_router_v0.4"
-adapter_save_path: "models/adapters/jitna_router_v0.4"
+adapter_name: "jitna_router_v0.4.1"
+adapter_save_path: "models/adapters/jitna_router_v0.4.1"
 
 mlflow:
   experiment_name: "delentia-slm-router-classifier"

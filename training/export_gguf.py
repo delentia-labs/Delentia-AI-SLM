@@ -180,20 +180,20 @@ def main(
             raise typer.Exit(1)
         elif pillar == "executor":
             def_model_name = "delentia-jitna-executor"
-            def_adapter_path = Path("models/adapters/jitna_executor_v0.4")
-            def_merged_path  = Path("models/merged/jitna_executor_v0.4")
+            def_adapter_path = Path("models/adapters/jitna_executor_v0.4.1")
+            def_merged_path  = Path("models/merged/jitna_executor_v0.4.1")
             def_gguf_path    = Path(f"models/gguf/delentia-jitna-executor-{quant.upper()}.gguf")
             modelfile_template = OLLAMA_MODELFILE_TEMPLATE_EXECUTOR
         elif pillar == "guardian":
             def_model_name = "delentia-jitna-guardian"
-            def_adapter_path = Path("models/adapters/jitna_guardian_v0.4")
-            def_merged_path  = Path("models/merged/jitna_guardian_v0.4")
+            def_adapter_path = Path("models/adapters/jitna_guardian_v0.4.1")
+            def_merged_path  = Path("models/merged/jitna_guardian_v0.4.1")
             def_gguf_path    = Path(f"models/gguf/delentia-jitna-guardian-{quant.upper()}.gguf")
             modelfile_template = OLLAMA_MODELFILE_TEMPLATE_GUARDIAN
         elif pillar == "scribe":
             def_model_name = "delentia-jitna-scribe"
-            def_adapter_path = Path("models/adapters/jitna_scribe_v0.4")
-            def_merged_path  = Path("models/merged/jitna_scribe_v0.4")
+            def_adapter_path = Path("models/adapters/jitna_scribe_v0.4.1")
+            def_merged_path  = Path("models/merged/jitna_scribe_v0.4.1")
             def_gguf_path    = Path(f"models/gguf/delentia-jitna-scribe-{quant.upper()}.gguf")
             modelfile_template = OLLAMA_MODELFILE_TEMPLATE_SCRIBE
         else:
@@ -242,9 +242,10 @@ def main(
     # ── 1. Load base + adapter ────────────────────────────────────────────────
     console.print("[1/4] Loading base model + LoRA adapter...")
     if not dry_run and unsloth_available:
+        max_seq_len = 8192 if (pillar and pillar.lower() == "scribe") else 4096
         model, tokenizer = FastLanguageModel.from_pretrained(
             model_name=str(adapter_path),
-            max_seq_length=4096,
+            max_seq_length=max_seq_len,
             dtype=None,
             load_in_4bit=True,
         )

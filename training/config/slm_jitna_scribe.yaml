@@ -11,7 +11,7 @@ model:
   # The 4-Pillar LoRA adapters are trained ON TOP of this base model (Llama 3.1 8B)
   base_model: "Delentia/delentia-slm-jitna-v0.4"
   tokenizer: "Delentia/delentia-slm-jitna-v0.4"
-  max_seq_length: 4096            # Longer context for compression tasks
+  max_seq_length: 8192            # Longer context for compression tasks
   dtype: null
   load_in_4bit: true
 
@@ -70,8 +70,8 @@ chat_template: |
   <|assistant|>
 
 pillar_type: "scribe"
-adapter_name: "jitna_scribe_v0.4"
-adapter_save_path: "models/adapters/jitna_scribe_v0.4"
+adapter_name: "jitna_scribe_v0.4.1"
+adapter_save_path: "models/adapters/jitna_scribe_v0.4.1"
 
 mlflow:
   experiment_name: "delentia-slm-scribe-compressor"

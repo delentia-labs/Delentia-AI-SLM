@@ -71,8 +71,8 @@ chat_template: |
   <|assistant|>
 
 pillar_type: "guardian"
-adapter_name: "jitna_guardian_v0.4"
-adapter_save_path: "models/adapters/jitna_guardian_v0.4"
+adapter_name: "jitna_guardian_v0.4.1"
+adapter_save_path: "models/adapters/jitna_guardian_v0.4.1"
 
 mlflow:
   experiment_name: "delentia-slm-guardian-constitutional"
