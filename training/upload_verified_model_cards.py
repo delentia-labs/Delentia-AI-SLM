@@ -272,10 +272,10 @@ This model card is dynamically updated with actual evaluation figures verified a
 
     # Mapping for loop
     readme_files = {
-        "router": ("delentia-slm-jitna-router-v0.4", router_readme),
-        "executor": ("delentia-slm-jitna-executor-v0.4", exec_readme),
-        "guardian": ("delentia-slm-jitna-guardian-v0.4", guard_readme),
-        "scribe": ("delentia-slm-jitna-scribe-v0.4", scribe_readme),
+        "router": ("delentia-lora-router-v0.4", router_readme),
+        "executor": ("delentia-lora-executor-v0.4", exec_readme),
+        "guardian": ("delentia-lora-guardian-v0.4", guard_readme),
+        "scribe": ("delentia-lora-scribe-v0.4", scribe_readme),
     }
 
     # Write and upload

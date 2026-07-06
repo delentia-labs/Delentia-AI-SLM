@@ -24,7 +24,7 @@ if sys.platform.startswith("win"):
 # Define the README templates for each of the 4 pillars (v0.4 aligned)
 MODEL_CARDS = {
     "router": {
-        "repo_suffix": "delentia-slm-jitna-router-v0.4",
+        "repo_suffix": "delentia-lora-router-v0.4",
         "title": "The Router (Sequence Classifier)",
         "readme": r"""---
 license: apache-2.0
@@ -47,9 +47,9 @@ The Router is a specialized Sequence Classification LoRA adapter within the **De
 To ensure proper routing operations, developers must configure JITNA to load the associated components:
 * **Core Foundation Base:** [Delentia/delentia-slm-jitna-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-v0.4)
 * **Sibling Adapters:**
-  * ⚡ [The Executor v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-executor-v0.4)
-  * 🛡️ [The Guardian v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-guardian-v0.4)
-  * 📜 [The Scribe v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-scribe-v0.4)
+  * ⚡ [The Executor v0.4](https://huggingface.co/Delentia/delentia-lora-executor-v0.4)
+  * 🛡️ [The Guardian v0.4](https://huggingface.co/Delentia/delentia-lora-guardian-v0.4)
+  * 📜 [The Scribe v0.4](https://huggingface.co/Delentia/delentia-lora-scribe-v0.4)
 * **Training Dataset:** [Delentia/delentia-rct-intent-dataset](https://huggingface.co/datasets/Delentia/delentia-rct-intent-dataset)
 
 ## Technical Specifications
@@ -69,7 +69,7 @@ To ensure proper routing operations, developers must configure JITNA to load the
 """
     },
     "executor": {
-        "repo_suffix": "delentia-slm-jitna-executor-v0.4",
+        "repo_suffix": "delentia-lora-executor-v0.4",
         "title": "The Executor (Agentic Tool Call)",
         "readme": r"""---
 license: apache-2.0
@@ -97,9 +97,9 @@ The Executor is a specialized generative LoRA adapter in the **Delentia OS 1+4 P
 To ensure proper execution of tool calls, compile with these associated components:
 * **Core Foundation Base:** [Delentia/delentia-slm-jitna-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-v0.4)
 * **Sibling Adapters:**
-  * 🔀 [The Router v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-router-v0.4)
-  * 🛡️ [The Guardian v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-guardian-v0.4)
-  * 📜 [The Scribe v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-scribe-v0.4)
+  * 🔀 [The Router v0.4](https://huggingface.co/Delentia/delentia-lora-router-v0.4)
+  * 🛡️ [The Guardian v0.4](https://huggingface.co/Delentia/delentia-lora-guardian-v0.4)
+  * 📜 [The Scribe v0.4](https://huggingface.co/Delentia/delentia-lora-scribe-v0.4)
 * **Training Dataset:** [Delentia/delentia-rct-intent-dataset](https://huggingface.co/datasets/Delentia/delentia-rct-intent-dataset)
 
 ## Technical Specifications
@@ -111,7 +111,7 @@ To ensure proper execution of tool calls, compile with these associated componen
 """
     },
     "guardian": {
-        "repo_suffix": "delentia-slm-jitna-guardian-v0.4",
+        "repo_suffix": "delentia-lora-guardian-v0.4",
         "title": "The Guardian (Constitutional Safety Shield)",
         "readme": r"""---
 license: apache-2.0
@@ -148,9 +148,9 @@ Where:
 To ensure proper guardrails check, connect with the following components:
 * **Core Foundation Base:** [Delentia/delentia-slm-jitna-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-v0.4)
 * **Sibling Adapters:**
-  * 🔀 [The Router v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-router-v0.4)
-  * ⚡ [The Executor v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-executor-v0.4)
-  * 📜 [The Scribe v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-scribe-v0.4)
+  * 🔀 [The Router v0.4](https://huggingface.co/Delentia/delentia-lora-router-v0.4)
+  * ⚡ [The Executor v0.4](https://huggingface.co/Delentia/delentia-lora-executor-v0.4)
+  * 📜 [The Scribe v0.4](https://huggingface.co/Delentia/delentia-lora-scribe-v0.4)
 * **Training Dataset:** [Delentia/delentia-rct-intent-dataset](https://huggingface.co/datasets/Delentia/delentia-rct-intent-dataset)
 
 ## Technical Specifications
@@ -162,7 +162,7 @@ To ensure proper guardrails check, connect with the following components:
 """
     },
     "scribe": {
-        "repo_suffix": "delentia-slm-jitna-scribe-v0.4",
+        "repo_suffix": "delentia-lora-scribe-v0.4",
         "title": "The Scribe (Context Compressor)",
         "readme": r"""---
 license: apache-2.0
@@ -190,9 +190,9 @@ The Scribe is a specialized context compression LoRA adapter in the **Delentia O
 To ensure proper context compression, connect with these associated components:
 * **Core Foundation Base:** [Delentia/delentia-slm-jitna-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-v0.4)
 * **Sibling Adapters:**
-  * 🔀 [The Router v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-router-v0.4)
-  * ⚡ [The Executor v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-executor-v0.4)
-  * 🛡️ [The Guardian v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-guardian-v0.4)
+  * 🔀 [The Router v0.4](https://huggingface.co/Delentia/delentia-lora-router-v0.4)
+  * ⚡ [The Executor v0.4](https://huggingface.co/Delentia/delentia-lora-executor-v0.4)
+  * 🛡️ [The Guardian v0.4](https://huggingface.co/Delentia/delentia-lora-guardian-v0.4)
 * **Ecosystem Datasets:**
   * 📖 [RAG Corpus Dataset](https://huggingface.co/datasets/Delentia/delentia-os-whitepaper-rag-corpus) — source material for long-document parsing.
   * 📊 [Intent Training Dataset](https://huggingface.co/datasets/Delentia/delentia-rct-intent-dataset)
