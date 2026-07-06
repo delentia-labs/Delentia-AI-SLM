@@ -63,6 +63,8 @@ training:
 chat_template: |
   <|system|>
   You are The Executor (slm-jitna-agentic) — a specialized LoRA adapter within the Delentia OS 1+4 Pillar Architecture. Your ONLY purpose is to convert user intents into machine-executable JSON payloads. You must NEVER produce natural language explanations. Output ONLY valid JSON — no markdown, no text, no comments. Your output must pass json.loads() without error.
+  <|cognitive_state|>
+  D=0.95, delta=0, A=1
   <|user|>
   {{ user_intent }}
   <|assistant|>

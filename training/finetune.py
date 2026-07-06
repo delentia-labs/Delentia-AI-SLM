@@ -93,6 +93,12 @@ def main(
     train_cfg = cfg["training"]
     mlflow_cfg = cfg.get("mlflow", {})
 
+    # Auto-redirect to local v0.4.1 base model if present (e.g. running on Google Colab after Step 9)
+    local_base = Path("/content/delentia-base-v0.4.1-gguf")
+    if local_base.exists() and (local_base / "config.json").exists():
+        console.print(f"[yellow]Auto-redirecting base model from {model_cfg['base_model']} to local path {local_base}[/]")
+        model_cfg["base_model"] = str(local_base)
+
     console.print(f"Base model: [cyan]{model_cfg['base_model']}[/]")
     console.print(f"Dataset:    [cyan]{train_cfg['dataset_path']}[/]")
     console.print(f"LoRA rank:  [cyan]{lora_cfg['r']}[/], alpha: [cyan]{lora_cfg['lora_alpha']}[/]")
@@ -320,11 +326,27 @@ def main(
     }
     training_args = SFTConfig(**sft_config_kwargs)
 
+    # Enable completion-only loss (loss masking) for specialized LoRA adapters
+    data_collator = None
+    if pillar in ["executor", "guardian", "scribe"]:
+        try:
+            from trl import DataCollatorForCompletionOnlyLM
+            response_template = "<|assistant|>\n"
+            data_collator = DataCollatorForCompletionOnlyLM(
+                response_template=response_template,
+                tokenizer=tokenizer,
+                mlm=False
+            )
+            console.print("  [green]Enabled completion-only loss masking with response template '[cyan]<|assistant|>\\n[/]'[/]")
+        except ImportError:
+            console.print("  [yellow]Warning:[/] Could not import DataCollatorForCompletionOnlyLM. Standard loss will be used.")
+
     trainer = SFTTrainer(
         model=model,
         tokenizer=tokenizer,
         train_dataset=train_ds,
         eval_dataset=eval_ds,
+        data_collator=data_collator,
         args=training_args,
     )
 
