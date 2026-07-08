@@ -1,0 +1,94 @@
+name: 🛡️ Secure Automated Attestation CI/CD
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "training/evaluate.py"
+      - "training/test_all_frameworks.py"
+      - "notebooks/DELENTIA_4_PILLAR_AUDITOR.ipynb"
+  pull_request:
+    branches: ["main"]
+    types: [opened, synchronize, reopened, review_requested]
+
+jobs:
+  attestation-gate:
+    name: Attestation and Security Review
+    # Enforce run only when Pull Request is approved or it is a direct merge on main from non-fork
+    if: |
+      github.event_name == 'push' || 
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt --quiet
+          pip install nbformat nbconvert ipykernel matplotlib pandas --quiet
+
+      - name: Verify PR Approval (for PR triggers)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const { data: reviews } = await github.rest.pullRequests.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            const approved = reviews.some(review => review.state === 'APPROVED');
+            if (!approved) {
+              core.setFailed("❌ Pull Request must be APPROVED by The Architect before running attestation CI.");
+            } else {
+              core.info("✅ Pull Request approved by The Architect. Proceeding with attestation.");
+            }
+
+      - name: Run local test suite (DeepEval & Unit tests)
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          # Verify local audit metrics first
+          python -m pytest training/test_all_frameworks.py -v
+
+      - name: Run Scribe Context Compression Benchmark
+        run: |
+          python training/benchmark_scribe_compression.py
+
+      - name: Attestation Stamp Dry Run (Check Notebook Integrity)
+        run: |
+          # Convert notebook to python script and execute as a dry run to verify checksums and schemas
+          jupyter nbconvert --to script notebooks/DELENTIA_4_PILLAR_AUDITOR.ipynb
+          # Run auditor script in dry run mode
+          python notebooks/DELENTIA_4_PILLAR_AUDITOR.py
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          AUDITOR_MODE: "True"
+
+      - name: Official Attestation Stamp Publish (On Push/Merge to main only)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          echo "🏛️ Running in ARCHITECT MODE: Executing official remote writes to Hugging Face..."
+          # Run the auditor notebook in write mode (official run)
+          # We patch notebooks/DELENTIA_4_PILLAR_AUDITOR.py to set IS_OFFICIAL_RUN = True
+          sed -i 's/IS_OFFICIAL_RUN = False/IS_OFFICIAL_RUN = True/g' notebooks/DELENTIA_4_PILLAR_AUDITOR.py
+          python notebooks/DELENTIA_4_PILLAR_AUDITOR.py
+
+      - name: Archive generated saturation graph
+        uses: actions/upload-artifact@v4
+        with:
+          name: scribe-saturation-graph
+          path: scribe_saturation.png
