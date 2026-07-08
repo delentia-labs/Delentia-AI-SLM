@@ -168,6 +168,8 @@ def main(
     merged_path: Path = typer.Option(None, help="HuggingFace merged model output directory"),  # noqa: B008
     pillar: str = typer.Option(None, help="Pillar type: executor, guardian, scribe (Router classification adapter doesn't use GGUF)"),  # noqa: B008
     quant: str = typer.Option("q4_k_m", "--quant", help="GGUF quantization method (e.g., q4_k_m, q8_0)"),  # noqa: B008
+    imatrix_calib: Path = typer.Option(Path("datasets/processed/delentia_v042_imatrix_calib.txt"), help="Path to custom imatrix calibration text"),  # noqa: B008
+    use_imatrix: bool = typer.Option(True, help="Use custom JITNA-TOON IMatrix quantization"),  # noqa: B008
 ) -> None:
     version_label = f"Pillar: {pillar.upper()}" if pillar else ("v0.2 TOON" if toon else "v0.1")
     console.print(Panel(f"[bold blue]Delentia AI - GGUF Export ({version_label}) (Quant: {quant})[/]", expand=False))
@@ -263,15 +265,26 @@ def main(
     else:
         console.print("[yellow]Dry run / Mock: Skipped merging weights[/]")
 
+
     # ── 3. Convert to GGUF ────────────────────────────────────────────────────
     if not skip_convert:
         console.print(f"[3/4] Converting to GGUF {quant}...")
         if not dry_run and unsloth_available:
             gguf_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Setup optional IMatrix parameters for precision preservation of TOON layout
+            save_kwargs = {}
+            if use_imatrix and imatrix_calib.exists():
+                console.print(f"  [IMATRIX] Applying custom JITNA-TOON calibration dataset -> {imatrix_calib}")
+                save_kwargs["imatrix_path"] = str(imatrix_calib)
+            elif use_imatrix:
+                console.print(f"  [WARN] Custom calibration file {imatrix_calib} not found. Proceeding with standard quantization.")
+                
             model.save_pretrained_gguf(
                 str(gguf_path.parent),
                 tokenizer,
                 quantization_method=quant,
+                **save_kwargs
             )
             # Locate and move the opinionated file path Unsloth creates
             unsloth_gguf_dir = Path(str(gguf_path.parent) + "_gguf")
