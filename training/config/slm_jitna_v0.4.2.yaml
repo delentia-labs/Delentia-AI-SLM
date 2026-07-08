@@ -36,6 +36,7 @@ training:
   dataset_split: "train"
   validation_split: 0.05
   max_samples: null
+  packing: true
 
   per_device_train_batch_size: 1
   gradient_accumulation_steps: 8

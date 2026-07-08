@@ -323,6 +323,7 @@ def main(
         "hub_model_id": hub_model_id,
         "hub_strategy": "every_save" if push_to_hub else "every_save",
         "hub_token": hf_token if push_to_hub else None,
+        "packing": train_cfg.get("packing", False),
     }
     training_args = SFTConfig(**sft_config_kwargs)
 
