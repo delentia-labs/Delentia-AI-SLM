@@ -93,8 +93,8 @@ def main(
     train_cfg = cfg["training"]
     mlflow_cfg = cfg.get("mlflow", {})
 
-    # Auto-redirect to local v0.4.1 base model if present (e.g. running on Google Colab after Step 9)
-    local_base = Path("/content/delentia-base-v0.4.1-gguf")
+    # Auto-redirect to local v0.4.2 base model if present (e.g. running on Google Colab after Step 9)
+    local_base = Path("/content/delentia-base-v0.4.2-gguf")
     if local_base.exists() and (local_base / "config.json").exists():
         console.print(f"[yellow]Auto-redirecting base model from {model_cfg['base_model']} to local path {local_base}[/]")
         model_cfg["base_model"] = str(local_base)

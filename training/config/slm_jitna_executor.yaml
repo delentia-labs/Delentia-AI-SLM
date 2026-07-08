@@ -70,8 +70,8 @@ chat_template: |
   <|assistant|>
 
 pillar_type: "executor"
-adapter_name: "jitna_executor_v0.4.1"
-adapter_save_path: "models/adapters/jitna_executor_v0.4.1"
+adapter_name: "jitna_executor_v0.4.2"
+adapter_save_path: "models/adapters/jitna_executor_v0.4.2"
 
 mlflow:
   experiment_name: "delentia-slm-executor-agentic"

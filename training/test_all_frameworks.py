@@ -125,7 +125,7 @@ def run_lmeval_suite():
     cmd = [
         "lm_eval",
         "--model", "hf",
-        "--model_args", "pretrained=models/adapters/jitna_executor_v0.4.1,peft=models/adapters/jitna_executor_v0.4.1",
+        "--model_args", "pretrained=models/adapters/jitna_executor_v0.4.2,peft=models/adapters/jitna_executor_v0.4.2",
         "--tasks", "arc_easy",
         "--limit", "5",
         "--batch_size", "auto"
@@ -140,7 +140,7 @@ def run_lmeval_suite():
 
 if __name__ == "__main__":
     print("="*75)
-    print("  DELENTIA SLM v0.4.1 — UNIFIED ENTERPRISE BENCHMARK SUITE")
+    print("  DELENTIA SLM v0.4.2 — UNIFIED ENTERPRISE BENCHMARK SUITE")
     print("="*75)
     run_deepeval_suite()
     run_ragas_suite()

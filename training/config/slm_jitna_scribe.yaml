@@ -70,8 +70,8 @@ chat_template: |
   <|assistant|>
 
 pillar_type: "scribe"
-adapter_name: "jitna_scribe_v0.4.1"
-adapter_save_path: "models/adapters/jitna_scribe_v0.4.1"
+adapter_name: "jitna_scribe_v0.4.2"
+adapter_save_path: "models/adapters/jitna_scribe_v0.4.2"
 
 mlflow:
   experiment_name: "delentia-slm-scribe-compressor"

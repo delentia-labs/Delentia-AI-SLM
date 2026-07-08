@@ -2,7 +2,7 @@
 """
 save_checkpoint_to_drive.py
 
-Run this at any point during or after training to save all Delentia v0.4.1
+Run this at any point during or after training to save all Delentia v0.4.2
 checkpoints to Google Drive.
 
 Usage in Colab:
@@ -38,7 +38,7 @@ else:
 
 # ── 2. Create timestamped checkpoint folder ────────────────────────────────────
 timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-DRIVE_ROOT = f"/content/drive/MyDrive/Delentia_Checkpoints/v0.4.1_{timestamp}"
+DRIVE_ROOT = f"/content/drive/MyDrive/Delentia_Checkpoints/v0.4.2_{timestamp}"
 os.makedirs(DRIVE_ROOT, exist_ok=True)
 print(f"📁 Checkpoint folder: {DRIVE_ROOT}")
 print("-" * 65)
@@ -122,7 +122,7 @@ manifest = {
     "saved": saved_files,
     "skipped": skipped,
     "resume_instructions": {
-        "step_1": "Open colab_4_pillars_v041.ipynb in a new Colab session",
+        "step_1": "Open colab_4_pillars_v042.ipynb in a new Colab session",
         "step_2": "Run Cell 1 to mount Drive and reload repos from the ZIPs",
         "step_3": "Run Cell 2 to install dependencies",
         "step_4": "Skip cells for already-trained pillars",

@@ -40,7 +40,7 @@ OLLAMA_MODELFILE_TEMPLATE_V01 = (
     "{{ .Prompt }}\n"
     "{{ end }}<|assistant|>\n"
     "\"\"\"\n\n"
-    "SYSTEM \"\"\"คุณคือ Delentia AI v0.4.1 (Cognitive AI OS)\n"
+    "SYSTEM \"\"\"คุณคือ Delentia AI v0.4.2 (Cognitive AI OS)\n"
     "กฎเหล็ก: จงตอบคำถามผู้ใช้อย่างเป็นธรรมชาติและยืดหยุ่น ห้ามคัดลอกข้อความยาวๆ ซ้ำๆ มาตอบเด็ดขาด ห้ามพิมพ์แท็กควบคุมเด็ดขาด\n\n"
     "ข้อมูลอ้างอิงสำหรับการประมวลผล (จงนำไปเรียบเรียงคำตอบเองตามบริบทคำถาม):\n"
     "- ผู้สร้าง: คุณอิทธิฤทธิ์ แซ่โง้ว (Ittirit Saengow) เป็นสถาปนิกและผู้พัฒนาเดี่ยว (Solo Developer & Architect) จากชุมชนคลองเตย กรุงเทพฯ พัฒนาบนเครื่อง ROG Ally X ในกรอบเวลา 30 วัน เริ่มต้น 11 สิงหาคม 2568\n"
@@ -182,20 +182,20 @@ def main(
             raise typer.Exit(1)
         elif pillar == "executor":
             def_model_name = "delentia-jitna-executor"
-            def_adapter_path = Path("models/adapters/jitna_executor_v0.4.1")
-            def_merged_path  = Path("models/merged/jitna_executor_v0.4.1")
+            def_adapter_path = Path("models/adapters/jitna_executor_v0.4.2")
+            def_merged_path  = Path("models/merged/jitna_executor_v0.4.2")
             def_gguf_path    = Path(f"models/gguf/delentia-jitna-executor-{quant.upper()}.gguf")
             modelfile_template = OLLAMA_MODELFILE_TEMPLATE_EXECUTOR
         elif pillar == "guardian":
             def_model_name = "delentia-jitna-guardian"
-            def_adapter_path = Path("models/adapters/jitna_guardian_v0.4.1")
-            def_merged_path  = Path("models/merged/jitna_guardian_v0.4.1")
+            def_adapter_path = Path("models/adapters/jitna_guardian_v0.4.2")
+            def_merged_path  = Path("models/merged/jitna_guardian_v0.4.2")
             def_gguf_path    = Path(f"models/gguf/delentia-jitna-guardian-{quant.upper()}.gguf")
             modelfile_template = OLLAMA_MODELFILE_TEMPLATE_GUARDIAN
         elif pillar == "scribe":
             def_model_name = "delentia-jitna-scribe"
-            def_adapter_path = Path("models/adapters/jitna_scribe_v0.4.1")
-            def_merged_path  = Path("models/merged/jitna_scribe_v0.4.1")
+            def_adapter_path = Path("models/adapters/jitna_scribe_v0.4.2")
+            def_merged_path  = Path("models/merged/jitna_scribe_v0.4.2")
             def_gguf_path    = Path(f"models/gguf/delentia-jitna-scribe-{quant.upper()}.gguf")
             modelfile_template = OLLAMA_MODELFILE_TEMPLATE_SCRIBE
         else:
