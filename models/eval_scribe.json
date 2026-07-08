@@ -1,0 +1,9 @@
+{
+    "pillar": "Scribe",
+    "benchmark_runs": 25,
+    "standard_rag_peak_tokens": 7600,
+    "scribe_peak_tokens": 880,
+    "token_savings_pct": 88.42,
+    "compression_ratio": 8.64,
+    "ttft_improvement_pct": 88.42
+}
