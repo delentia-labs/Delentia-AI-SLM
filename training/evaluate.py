@@ -777,7 +777,7 @@ def main(
         if plt:
             try:
                 import numpy as np
-                import os
+
                 fig, ax = plt.subplots(figsize=(8, 4))
                 x_vals = np.arange(1, n + 1)
                 y_vals = np.ones(n) * (json_validity_rate * 100.0)
@@ -877,7 +877,7 @@ def main(
         if plt:
             try:
                 import numpy as np
-                import os
+
                 fig, ax = plt.subplots(figsize=(6, 5))
                 cm_array = np.zeros((len(labels_list), len(labels_list)))
                 for idx_i, act in enumerate(labels_list):
