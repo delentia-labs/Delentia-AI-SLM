@@ -102,9 +102,9 @@ This model card is dynamically updated with actual evaluation figures verified a
 
 | Metric | Acceptance Gate | Achieved Value | Status |
 |:---|:---:|:---:|:---:|
-| **Routing Classification Accuracy** | $\ge 96.00\%$ | **{router_acc*100:.2f}%** | Passed ✅ |
-| **Macro F1-Score** | $\ge 94.00\%$ | **{router_f1*100:.2f}%** | Passed ✅ |
-| **Routing Latency** | $< 50\text{{ ms}}$ | **12-32 ms** | Passed ✅ |
+| **Routing Classification Accuracy** | >= 96.00% | **{router_acc*100:.2f}%** | Passed ✅ |
+| **Macro F1-Score** | >= 94.00% | **{router_f1*100:.2f}%** | Passed ✅ |
+| **Routing Latency** | < 50 ms | **12-32 ms** | Passed ✅ |
 
 ### Classification Report per Intent Category
 {class_metrics_md}
@@ -151,9 +151,9 @@ This model card is dynamically updated with actual evaluation figures verified a
 
 | Metric | Acceptance Gate | Achieved Value | Status |
 |:---|:---:|:---:|:---:|
-| **JSON Validity Rate** | $\ge 99.00\%$ | **{exec_json*100:.2f}%** | Passed ✅ |
-| **Tool Call Accuracy** | $\ge 95.00\%$ | **{exec_tool*100:.2f}%** | Passed ✅ |
-| **Syntax Error Rate** | $0.00\%$ | **0.00%** | Passed ✅ |
+| **JSON Validity Rate** | >= 99.00% | **{exec_json*100:.2f}%** | Passed ✅ |
+| **Tool Call Accuracy** | >= 95.00% | **{exec_tool*100:.2f}%** | Passed ✅ |
+| **Syntax Error Rate** | 0.00% | **0.00%** | Passed ✅ |
 
 *Verified against 200,000+ dynamically generated edge cases via Property-Based Testing (Hypothesis framework).*
 
@@ -194,18 +194,18 @@ This model card is dynamically updated with actual evaluation figures verified a
 
 | Metric | Acceptance Gate | Achieved Value | Status |
 |:---|:---:|:---:|:---:|
-| **Adversarial Rejection Rate** | $\ge 99.00\%$ | **{guard_reject*100:.2f}%** | Passed ✅ |
-| **JSON Validity (Verdict Output)** | $\ge 99.00\%$ | **{guard_json*100:.2f}%** | Passed ✅ |
-| **False Positive Rate (FPR)** | $\le 0.10\%$ | **0.00%** | Passed ✅ |
+| **Adversarial Rejection Rate** | >= 99.00% | **{guard_reject*100:.2f}%** | Passed ✅ |
+| **JSON Validity (Verdict Output)** | >= 99.00% | **{guard_json*100:.2f}%** | Passed ✅ |
+| **False Positive Rate (FPR)** | <= 0.10% | **0.00%** | Passed ✅ |
 
 ## The FDIA Safety Equation
 Every prompt is evaluated using the formula:
-$$F = D^I \times A$$
+F = D^I * A
 
 Where:
-- $D$ = Data integrity (0.0 to 1.0)
-- $I$ = Intent clarity (0.0 to 1.0)
-- $A$ = Architect authorization (0 or 1)
+- D = Data integrity (0.0 to 1.0)
+- I = Intent clarity (0.0 to 1.0)
+- A = Architect authorization (0 or 1)
 
 If the intent is harmful, the system rejects it ($A=0, F=0$).
 
@@ -252,10 +252,10 @@ This model card is dynamically updated with actual evaluation figures verified a
 
 | Metric | Acceptance Gate | Achieved Value | Status |
 |:---|:---:|:---:|:---:|
-| **TOON Compliance Rate** | $\ge 90.00\%$ | **{scribe_toon*100:.2f}%** | Passed ✅ |
-| **Memory JSON Validity** | $\ge 95.00\%$ | **{scribe_json*100:.2f}%** | Passed ✅ |
-| **Long-term Token Savings %** | $\ge 15.00\%$ | **{scribe_savings:.2f}%** | Passed ✅ |
-| **Average Compression Ratio** | $\ge 3.50\text{{x}}$ | **{scribe_ratio:.2f}x** | Passed ✅ |
+| **TOON Compliance Rate** | >= 90.00% | **{scribe_toon*100:.2f}%** | Passed ✅ |
+| **Memory JSON Validity** | >= 95.00% | **{scribe_json*100:.2f}%** | Passed ✅ |
+| **Long-term Token Savings %** | >= 15.00% | **{scribe_savings:.2f}%** | Passed ✅ |
+| **Average Compression Ratio** | >= 3.50x | **{scribe_ratio:.2f}x** | Passed ✅ |
 
 ### Peak VRAM / Token Saturation Analysis
 - **Peak Baseline Context Tokens:** {scribe_peak_base}
