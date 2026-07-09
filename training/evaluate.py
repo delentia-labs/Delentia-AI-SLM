@@ -15,6 +15,7 @@ Usage:
 """
 
 import json
+import os
 import sys
 import warnings
 from pathlib import Path
