@@ -247,8 +247,9 @@ def main():
             frontmatter = ""
             content = original_readme
 
-        colab_url = "https://colab.research.google.com/drive/1fp3BOZNKPRJ82TTLHVLTWMcWuAdBLkif"
-        header_inject = f"[Live Auditor (Google Colab)]({colab_url}) | [SHA256 - Verified Purity](README#empirical-audit-ledger) | [DOI: 10.5281/zenodo.20920052](https://doi.org/10.5281/zenodo.20920052)\n\n"
+        github_url = "https://github.com/delentia-labs/Delentia-AI-SLM/blob/main/notebooks/v0.4.3/colab_4_pillars_v043.ipynb"
+        colab_url = "https://colab.research.google.com/github/delentia-labs/Delentia-AI-SLM/blob/main/notebooks/v0.4.3/colab_4_pillars_v043.ipynb"
+        header_inject = f"[GitHub Source]({github_url}) | [Live Auditor (Google Colab)]({colab_url}) | [SHA256 - Verified Purity](README#empirical-audit-ledger) | [DOI: 10.5281/zenodo.20920052](https://doi.org/10.5281/zenodo.20920052)\n\n"
         header_inject += "> ### 🛡️ Attest the Performance Live on Free T4 GPU\n"
         header_inject += "> We challenge any technical reviewer, auditor, or developer to verify our systems benchmarks.\n"
         header_inject += f"> Click the badge below to run the clean-room auditor on a free Google Colab T4 GPU instance. No private credentials or Drive mounts are required.\n>\n"
@@ -265,7 +266,7 @@ def main():
             ledger_inject = "\n\n---\n\n"
             ledger_inject += "### 🔒 Empirical Audit Ledger\n\n"
             ledger_inject += "*ผลลัพธ์ถูกสร้างภายใต้พารามิเตอร์การควบคุม:*\n"
-            ledger_inject += f"- **Auditor Notebook:** `4_pillar_auditor_public.ipynb` ([Live Runtime]({colab_url}))\n"
+            ledger_inject += f"- **Auditor Notebook:** `4_pillar_auditor_public.ipynb` ([GitHub Source]({github_url})) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]({colab_url})\n"
             ledger_inject += "- **Environment:** Google Cloud Compute (NVIDIA L4/T4 · CUDA 12.x)\n"
             ledger_inject += "- **Safetensors Hash:** `SHA256:TBD`\n"
             ledger_inject += "- **Deterministic Seed:** `42` (cuDNN Enforced)\n"
