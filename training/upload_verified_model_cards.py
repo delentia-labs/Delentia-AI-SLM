@@ -207,7 +207,7 @@ Where:
 - I = Intent clarity (0.0 to 1.0)
 - A = Architect authorization (0 or 1)
 
-If the intent is harmful, the system rejects it ($A=0, F=0$).
+If the intent is harmful, the system rejects it (*A* = 0, *F* = 0).
 
 ### Exemplar Rejection Payload (TOON Format)
 ```
