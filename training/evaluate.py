@@ -210,20 +210,20 @@ def main(
     if pillar:
         pillar = pillar.lower()
         if pillar == "executor":
-            adapter_path = adapter_path or Path("models/adapters/jitna_executor_v0.4.2")
-            eval_data = eval_data or Path(__file__).parents[1] / "datasets/processed/jitna_executor_pairs.parquet"
+            adapter_path = adapter_path or Path("models/adapters/jitna_executor_v0.4.3")
+            eval_data = eval_data or Path(__file__).parents[1] / "datasets/processed/v0.4.3/jitna_executor_pairs.parquet"
             config_path = config or Path(__file__).parent / "config/slm_jitna_executor.yaml"
         elif pillar == "router":
-            adapter_path = adapter_path or Path("models/adapters/jitna_router_v0.4.2")
-            eval_data = eval_data or Path(__file__).parents[1] / "datasets/processed/jitna_router_pairs.parquet"
+            adapter_path = adapter_path or Path("models/adapters/jitna_router_v0.4.3")
+            eval_data = eval_data or Path(__file__).parents[1] / "datasets/processed/v0.4.3/jitna_router_pairs.parquet"
             config_path = config or Path(__file__).parent / "config/slm_jitna_router.yaml"
         elif pillar == "guardian":
-            adapter_path = adapter_path or Path("models/adapters/jitna_guardian_v0.4.2")
-            eval_data = eval_data or Path(__file__).parents[1] / "datasets/processed/jitna_guardian_pairs.parquet"
+            adapter_path = adapter_path or Path("models/adapters/jitna_guardian_v0.4.3")
+            eval_data = eval_data or Path(__file__).parents[1] / "datasets/processed/v0.4.3/jitna_guardian_pairs.parquet"
             config_path = config or Path(__file__).parent / "config/slm_jitna_guardian.yaml"
         elif pillar == "scribe":
-            adapter_path = adapter_path or Path("models/adapters/jitna_scribe_v0.4.2")
-            eval_data = eval_data or Path(__file__).parents[1] / "datasets/processed/delta_benchmark_v04.parquet"
+            adapter_path = adapter_path or Path("models/adapters/jitna_scribe_v0.4.3")
+            eval_data = eval_data or Path(__file__).parents[1] / "datasets/processed/v0.4.3/delta_benchmark_v04.parquet"
             config_path = config or Path(__file__).parent / "config/slm_jitna_scribe.yaml"
         else:
             console.print(f"[red]Unknown pillar:[/] {pillar}")
