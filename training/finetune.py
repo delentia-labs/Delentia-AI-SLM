@@ -332,13 +332,17 @@ def main(
     if pillar in ["executor", "guardian", "scribe"]:
         try:
             from trl import DataCollatorForCompletionOnlyLM
-            response_template = "<|assistant|>\n"
+            config_template = cfg.get("chat_template", "")
+            if "<|start_header_id|>" in config_template:
+                response_template = "<|start_header_id|>assistant<|end_header_id|>\n\n"
+            else:
+                response_template = "<|assistant|>\n"
             data_collator = DataCollatorForCompletionOnlyLM(
                 response_template=response_template,
                 tokenizer=tokenizer,
                 mlm=False
             )
-            console.print("  [green]Enabled completion-only loss masking with response template '[cyan]<|assistant|>\\n[/]'[/]")
+            console.print(f"  [green]Enabled completion-only loss masking with response template '{repr(response_template)}'[/]")
         except ImportError:
             console.print("  [yellow]Warning:[/] Could not import DataCollatorForCompletionOnlyLM. Standard loss will be used.")
 

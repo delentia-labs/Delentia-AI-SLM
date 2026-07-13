@@ -27,7 +27,7 @@ if sys.platform.startswith("win"):
     except AttributeError:
         pass
 
-DATASET_PATH = Path("datasets/processed/knowledge_dataset_v0.4.3.jsonl")
+DATASET_PATH = Path("datasets/processed/v0.4.3/knowledge_dataset_v0.4.3.jsonl")
 
 with open(DATASET_PATH, "r", encoding="utf-8") as f:
     samples = [json.loads(l) for l in f if l.strip()]

@@ -8,7 +8,7 @@ import sys
 if sys.platform.startswith("win"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-PROCESSED_DIR = Path(__file__).parents[1] / "processed"
+PROCESSED_DIR = Path(__file__).parents[1] / "processed" / "v0.4.3"
 OUTPUT_PARQUET = PROCESSED_DIR / "delta_benchmark_v04.parquet"
 
 # Anchor: Core RCT-7 Governance specification

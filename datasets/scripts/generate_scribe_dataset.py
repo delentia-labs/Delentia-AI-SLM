@@ -18,7 +18,7 @@ import json
 import random
 from pathlib import Path
 
-PROCESSED_DIR = Path(__file__).parents[1] / "processed"
+PROCESSED_DIR = Path(__file__).parents[1] / "processed" / "v0.4.3"
 OUTPUT = PROCESSED_DIR / "jitna_scribe_pairs.jsonl"
 
 SYSTEM_CONTEXT = (

@@ -33,8 +33,8 @@ if sys.platform.startswith("win"):
     except AttributeError:
         pass
 
-DATASET_PATH = Path("datasets/processed/knowledge_dataset_v0.4.3.jsonl")
-OUTPUT_PATH  = Path("datasets/processed/knowledge_dataset_v0.4.3.jsonl")  # overwrite in-place
+DATASET_PATH = Path("datasets/processed/v0.4.3/knowledge_dataset_v0.4.3.jsonl")
+OUTPUT_PATH  = Path("datasets/processed/v0.4.3/knowledge_dataset_v0.4.3.jsonl")  # overwrite in-place
 
 with open(DATASET_PATH, "r", encoding="utf-8") as f:
     samples = [json.loads(l) for l in f if l.strip()]
@@ -54,7 +54,7 @@ def classify(s):
         return "READINESS"
     if "HexaCore Registry" in c or "Kimi K2.5" in c or ("Routing" in c and "Edge Model" in c):
         return "ESCALATION"
-    if "Delentia AI v0.4.2" in c or "อิทธิฤทธิ์" in c or "Ittirit Saengow" in c or "Ittirit" in c:
+    if "Delentia AI v0.4.3" in c or "อิทธิฤทธิ์" in c or "Ittirit Saengow" in c or "Ittirit" in c:
         return "IDENTITY"
     if "I:" in c and "D:" in c and ("A:" in c or "R:" in c):
         return "TOON"
@@ -130,10 +130,10 @@ for s in clean_samples:
     if len(c) < 80 and any(kw in c for kw in KNOWLEDGE_QA_ENRICHMENT_NEEDED_KEYWORDS):
         # Append clarifying context
         s["completion"] = c.rstrip() + (
-            " Delentia AI v0.4.2 เป็น Cognitive AI OS ที่พัฒนาโดยคุณอิทธิฤทธิ์ แซ่โง้ว "
+            " Delentia AI v0.4.3 เป็น Cognitive AI OS ที่พัฒนาโดยคุณอิทธิฤทธิ์ แซ่โง้ว "
             "ทำงานภายใต้สถาปัตยกรรม HexaCore v2.3 / RCT-7 / FDIA ครับ"
         ) if any(ord(ch) > 3584 for ch in c) else (
-            c.rstrip() + " Delentia AI v0.4.2 is a Cognitive AI OS by Ittirit Saengow, "
+            c.rstrip() + " Delentia AI v0.4.3 is a Cognitive AI OS by Ittirit Saengow, "
             "operating under HexaCore v2.3 / RCT-7 / FDIA architecture."
         )
         enriched_count += 1
@@ -181,7 +181,7 @@ print(f"\n✅ Saved: {OUTPUT_PATH} ({len(clean_samples)} samples)")
 
 try:
     import pandas as pd
-    parquet_path = Path("datasets/processed/knowledge_dataset_v0.4.3.parquet")
+    parquet_path = Path("datasets/processed/v0.4.3/knowledge_dataset_v0.4.3.parquet")
     pd.DataFrame(clean_samples).to_parquet(str(parquet_path), index=False)
     print(f"✅ Parquet: {parquet_path} ({parquet_path.stat().st_size//1024} KB)")
 except ImportError:

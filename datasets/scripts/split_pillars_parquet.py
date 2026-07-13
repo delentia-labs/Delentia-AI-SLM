@@ -26,7 +26,7 @@ if sys.platform.startswith("win"):
 # Setup paths
 SCRIPT_DIR = Path(__file__).parent
 REPO_DIR = SCRIPT_DIR.parents[1]
-PROCESSED_DIR = REPO_DIR / "datasets" / "processed"
+PROCESSED_DIR = REPO_DIR / "datasets" / "processed" / "v0.4.3"
 
 GENERATORS = {
     "executor": SCRIPT_DIR / "generate_executor_dataset.py",

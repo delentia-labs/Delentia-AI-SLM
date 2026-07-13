@@ -17,8 +17,8 @@ model:
   load_in_4bit: true
 
 lora:
-  r: 16                           # Lower rank for classification task
-  lora_alpha: 32                  # α = 2r (research-recommended for classification)
+  r: 8                            # Lower rank for classification task
+  lora_alpha: 16                  # α = 2r (research-recommended for classification)
   lora_dropout: 0.05              # Light dropout for classification robustness
   bias: "none"
   use_rslora: true
@@ -38,7 +38,7 @@ classification:
     ROUTER_BASE: 3
 
 training:
-  dataset_path: "datasets/processed/jitna_router_pairs.parquet"
+  dataset_path: "datasets/processed/v0.4.3/jitna_router_pairs.parquet"
   dataset_split: "train"
   validation_split: 0.1            # More validation for classification
   max_samples: null
@@ -67,8 +67,8 @@ training:
   metric_for_best_model: "eval_accuracy"
 
 pillar_type: "router"
-adapter_name: "jitna_router_v0.4.2"
-adapter_save_path: "models/adapters/jitna_router_v0.4.2"
+adapter_name: "jitna_router_v0.4.3"
+adapter_save_path: "models/adapters/jitna_router_v0.4.3"
 
 mlflow:
   experiment_name: "delentia-slm-router-classifier"

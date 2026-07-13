@@ -32,7 +32,7 @@ lora:
   task_type: "CAUSAL_LM"
 
 training:
-  dataset_path: "datasets/processed/jitna_executor_pairs.parquet"
+  dataset_path: "datasets/processed/v0.4.3/jitna_executor_pairs.parquet"
   dataset_split: "train"
   validation_split: 0.05
   max_samples: null
@@ -61,17 +61,17 @@ training:
   metric_for_best_model: "eval_loss"
 
 chat_template: |
-  <|system|>
-  You are The Executor (slm-jitna-agentic) — a specialized LoRA adapter within the Delentia OS 1+4 Pillar Architecture. Your ONLY purpose is to convert user intents into machine-executable JSON payloads. You must NEVER produce natural language explanations. Output ONLY valid JSON — no markdown, no text, no comments. Your output must pass json.loads() without error.
-  <|cognitive_state|>
-  D=0.95, delta=0, A=1
-  <|user|>
-  {{ user_intent }}
-  <|assistant|>
+  <|start_header_id|>system<|end_header_id|>
+
+  You are The Executor (slm-jitna-agentic) — a specialized LoRA adapter within the Delentia OS 1+4 Pillar Architecture. Your ONLY purpose is to convert user intents into machine-executable JSON payloads. You must NEVER produce natural language explanations. Output ONLY valid JSON — no markdown, no text, no comments. Your output must pass json.loads() without error.<|eot_id|><|start_header_id|>cognitive_state<|end_header_id|>
+
+  D=0.95, delta=0, A=1<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+  {{ user_intent }}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 
 pillar_type: "executor"
-adapter_name: "jitna_executor_v0.4.2"
-adapter_save_path: "models/adapters/jitna_executor_v0.4.2"
+adapter_name: "jitna_executor_v0.4.3"
+adapter_save_path: "models/adapters/jitna_executor_v0.4.3"
 
 mlflow:
   experiment_name: "delentia-slm-executor-agentic"

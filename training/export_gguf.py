@@ -34,13 +34,11 @@ CONFIG_DEFAULT = Path(__file__).parent / "config" / "lora_config.yaml"
 
 OLLAMA_MODELFILE_TEMPLATE_V01 = (
     "FROM {gguf_path}\n\n"
-    "TEMPLATE \"\"\"{{ if .System }}<|system|>\n"
-    "{{ .System }}\n"
-    "{{ end }}{{ if .Prompt }}<|user|>\n"
-    "{{ .Prompt }}\n"
-    "{{ end }}<|assistant|>\n"
+    "TEMPLATE \"\"\"{{ if .System }}<|start_header_id|>system<|end_header_id|>\n\n"
+    "{{ .System }}<|eot_id|>{{ end }}{{ if .Prompt }}<|start_header_id|>user<|end_header_id|>\n\n"
+    "{{ .Prompt }}<|eot_id|>{{ end }}<|start_header_id|>assistant<|end_header_id|>\n\n"
     "\"\"\"\n\n"
-    "SYSTEM \"\"\"คุณคือ Delentia AI v0.4.2 (Cognitive AI OS)\n"
+    "SYSTEM \"\"\"คุณคือ Delentia AI v0.4.3 (Cognitive AI OS)\n"
     "กฎเหล็ก: จงตอบคำถามผู้ใช้อย่างเป็นธรรมชาติและยืดหยุ่น ห้ามคัดลอกข้อความยาวๆ ซ้ำๆ มาตอบเด็ดขาด ห้ามพิมพ์แท็กควบคุมเด็ดขาด\n\n"
     "ข้อมูลอ้างอิงสำหรับการประมวลผล (จงนำไปเรียบเรียงคำตอบเองตามบริบทคำถาม):\n"
     "- ผู้สร้าง: คุณอิทธิฤทธิ์ แซ่โง้ว (Ittirit Saengow) เป็นสถาปนิกและผู้พัฒนาเดี่ยว (Solo Developer & Architect) จากชุมชนคลองเตย กรุงเทพฯ พัฒนาบนเครื่อง ROG Ally X ในกรอบเวลา 30 วัน เริ่มต้น 11 สิงหาคม 2568\n"
@@ -58,16 +56,14 @@ OLLAMA_MODELFILE_TEMPLATE_V01 = (
 
 OLLAMA_MODELFILE_TEMPLATE_V02 = (
     "FROM {gguf_path}\n\n"
-    "TEMPLATE \"\"\"{{ if .System }}<|system|>\n"
-    "{{ .System }}\n"
-    "{{ end }}{{ if .Prompt }}<|user|>\n"
-    "{{ .Prompt }}\n"
-    "{{ end }}<|assistant|>\n"
+    "TEMPLATE \"\"\"{{ if .System }}<|start_header_id|>system<|end_header_id|>\n\n"
+    "{{ .System }}<|eot_id|>{{ end }}{{ if .Prompt }}<|start_header_id|>user<|end_header_id|>\n\n"
+    "{{ .Prompt }}<|eot_id|>{{ end }}<|start_header_id|>assistant<|end_header_id|>\n\n"
     "\"\"\"\n\n"
-    "SYSTEM You are Delentia OS v0.2 — a constitutional AI operating under RCT v5 governance. "
+    "SYSTEM \"\"\"You are Delentia OS v0.4.3 — a cognitive AI operating under HexaCore v2.3 / RCT-7 philosophy. "
     "You process intents through the JITNA v3 protocol. You respond in TOON format "
     "(Token-Oriented Object Notation) for token efficiency. Your responses must be factual, "
-    "safe, and PDPA-compliant. You must respond using the 6 JITNA fields: I=Intent, D=Data, Δ=Delta, A=Approach, R=Reflection, M=Memory.\n\n"
+    "safe, and PDPA-compliant. You must respond using the 6 JITNA fields: I=Intent, D=Data, Δ=Delta, A=Approach, R=Reflection, M=Memory.\"\"\"\n\n"
     "PARAMETER temperature 0.7\n"
     "PARAMETER top_p 0.9\n"
     "PARAMETER repeat_penalty 1.15\n"
@@ -81,17 +77,15 @@ OLLAMA_MODELFILE_TEMPLATE_V02 = (
 
 OLLAMA_MODELFILE_TEMPLATE_EXECUTOR = (
     "FROM {gguf_path}\n\n"
-    "TEMPLATE \"\"\"{{ if .System }}<|system|>\n"
-    "{{ .System }}\n"
-    "{{ end }}{{ if .Prompt }}<|user|>\n"
-    "{{ .Prompt }}\n"
-    "{{ end }}<|assistant|>\n"
+    "TEMPLATE \"\"\"{{ if .System }}<|start_header_id|>system<|end_header_id|>\n\n"
+    "{{ .System }}<|eot_id|>{{ end }}{{ if .Prompt }}<|start_header_id|>user<|end_header_id|>\n\n"
+    "{{ .Prompt }}<|eot_id|>{{ end }}<|start_header_id|>assistant<|end_header_id|>\n\n"
     "\"\"\"\n\n"
-    "SYSTEM You are The Executor (slm-jitna-agentic) — a specialized LoRA adapter "
+    "SYSTEM \"\"\"You are The Executor (slm-jitna-agentic) — a specialized LoRA adapter "
     "within the Delentia OS 1+4 Pillar Architecture. Your ONLY purpose is to convert "
     "user intents into machine-executable JSON payloads. You must NEVER produce natural "
     "language explanations. Output ONLY valid JSON — no markdown, no text, no comments. "
-    "Your output must pass json.loads() without error.\n\n"
+    "Your output must pass json.loads() without error.\"\"\"\n\n"
     "PARAMETER temperature 0.0\n"
     "PARAMETER top_p 0.9\n"
     "PARAMETER repeat_penalty 1.15\n"
@@ -104,18 +98,16 @@ OLLAMA_MODELFILE_TEMPLATE_EXECUTOR = (
 
 OLLAMA_MODELFILE_TEMPLATE_GUARDIAN = (
     "FROM {gguf_path}\n\n"
-    "TEMPLATE \"\"\"{{ if .System }}<|system|>\n"
-    "{{ .System }}\n"
-    "{{ end }}{{ if .Prompt }}<|user|>\n"
-    "{{ .Prompt }}\n"
-    "{{ end }}<|assistant|>\n"
+    "TEMPLATE \"\"\"{{ if .System }}<|start_header_id|>system<|end_header_id|>\n\n"
+    "{{ .System }}<|eot_id|>{{ end }}{{ if .Prompt }}<|start_header_id|>user<|end_header_id|>\n\n"
+    "{{ .Prompt }}<|eot_id|>{{ end }}<|start_header_id|>assistant<|end_header_id|>\n\n"
     "\"\"\"\n\n"
-    "SYSTEM You are The Guardian (slm-jitna-guardian) — a specialized Constitutional AI "
+    "SYSTEM \"\"\"You are The Guardian (slm-jitna-guardian) — a specialized Constitutional AI "
     "safety evaluator within the Delentia OS 1+4 Pillar Architecture. Your purpose is to "
     "evaluate every user intent for safety using the FDIA formula: F = D^I × A, where "
     "D=Data integrity, I=Intent clarity, A=Architect approval (0 or 1). Output ONLY a JSON "
     "verdict. If the intent is harmful, set A=0 and status=REJECTED. If safe, set A=1 and "
-    "status=AUTHORIZED.\n\n"
+    "status=AUTHORIZED.\"\"\"\n\n"
     "PARAMETER temperature 0.0\n"
     "PARAMETER top_p 0.9\n"
     "PARAMETER repeat_penalty 1.15\n"
@@ -128,17 +120,15 @@ OLLAMA_MODELFILE_TEMPLATE_GUARDIAN = (
 
 OLLAMA_MODELFILE_TEMPLATE_SCRIBE = (
     "FROM {gguf_path}\n\n"
-    "TEMPLATE \"\"\"{{ if .System }}<|system|>\n"
-    "{{ .System }}\n"
-    "{{ end }}{{ if .Prompt }}<|user|>\n"
-    "{{ .Prompt }}\n"
-    "{{ end }}<|assistant|>\n"
+    "TEMPLATE \"\"\"{{ if .System }}<|start_header_id|>system<|end_header_id|>\n\n"
+    "{{ .System }}<|eot_id|>{{ end }}{{ if .Prompt }}<|start_header_id|>user<|end_header_id|>\n\n"
+    "{{ .Prompt }}<|eot_id|>{{ end }}<|start_header_id|>assistant<|end_header_id|>\n\n"
     "\"\"\"\n\n"
-    "SYSTEM You are The Scribe (slm-jitna-scribe) — a specialized LoRA adapter "
+    "SYSTEM \"\"\"You are The Scribe (slm-jitna-scribe) — a specialized LoRA adapter "
     "within the Delentia OS 1+4 Pillar Architecture. Your purpose is to compress large "
     "contexts into minimal, high-signal summaries. Remove noise. Keep only actionable "
     "information. Output must be structured and token-efficient. Report compression statistics "
-    "in every response.\n\n"
+    "in every response.\"\"\"\n\n"
     "PARAMETER temperature 0.3\n"
     "PARAMETER top_p 0.9\n"
     "PARAMETER repeat_penalty 1.15\n"
@@ -168,7 +158,7 @@ def main(
     merged_path: Path = typer.Option(None, help="HuggingFace merged model output directory"),  # noqa: B008
     pillar: str = typer.Option(None, help="Pillar type: executor, guardian, scribe (Router classification adapter doesn't use GGUF)"),  # noqa: B008
     quant: str = typer.Option("q4_k_m", "--quant", help="GGUF quantization method (e.g., q4_k_m, q8_0)"),  # noqa: B008
-    imatrix_calib: Path = typer.Option(Path("datasets/processed/delentia_v042_imatrix_calib.txt"), help="Path to custom imatrix calibration text"),  # noqa: B008
+    imatrix_calib: Path = typer.Option(Path("datasets/processed/v0.4.3/delentia_v043_imatrix_calib.txt"), help="Path to custom imatrix calibration text"),  # noqa: B008
     use_imatrix: bool = typer.Option(True, help="Use custom JITNA-TOON IMatrix quantization"),  # noqa: B008
 ) -> None:
     version_label = f"Pillar: {pillar.upper()}" if pillar else ("v0.2 TOON" if toon else "v0.1")
@@ -182,20 +172,20 @@ def main(
             raise typer.Exit(1)
         elif pillar == "executor":
             def_model_name = "delentia-jitna-executor"
-            def_adapter_path = Path("models/adapters/jitna_executor_v0.4.2")
-            def_merged_path  = Path("models/merged/jitna_executor_v0.4.2")
+            def_adapter_path = Path("models/adapters/jitna_executor_v0.4.3")
+            def_merged_path  = Path("models/merged/jitna_executor_v0.4.3")
             def_gguf_path    = Path(f"models/gguf/delentia-jitna-executor-{quant.upper()}.gguf")
             modelfile_template = OLLAMA_MODELFILE_TEMPLATE_EXECUTOR
         elif pillar == "guardian":
             def_model_name = "delentia-jitna-guardian"
-            def_adapter_path = Path("models/adapters/jitna_guardian_v0.4.2")
-            def_merged_path  = Path("models/merged/jitna_guardian_v0.4.2")
+            def_adapter_path = Path("models/adapters/jitna_guardian_v0.4.3")
+            def_merged_path  = Path("models/merged/jitna_guardian_v0.4.3")
             def_gguf_path    = Path(f"models/gguf/delentia-jitna-guardian-{quant.upper()}.gguf")
             modelfile_template = OLLAMA_MODELFILE_TEMPLATE_GUARDIAN
         elif pillar == "scribe":
             def_model_name = "delentia-jitna-scribe"
-            def_adapter_path = Path("models/adapters/jitna_scribe_v0.4.2")
-            def_merged_path  = Path("models/merged/jitna_scribe_v0.4.2")
+            def_adapter_path = Path("models/adapters/jitna_scribe_v0.4.3")
+            def_merged_path  = Path("models/merged/jitna_scribe_v0.4.3")
             def_gguf_path    = Path(f"models/gguf/delentia-jitna-scribe-{quant.upper()}.gguf")
             modelfile_template = OLLAMA_MODELFILE_TEMPLATE_SCRIBE
         else:

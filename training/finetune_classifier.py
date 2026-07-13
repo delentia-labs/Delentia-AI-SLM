@@ -398,7 +398,7 @@ def main(
     # ── Save adapter ──────────────────────────────────────────────────────────
     console.print("\nSaving Sequence Classification adapter…")
     if adapter_path is None:
-        adapter_path = Path(cfg.get("adapter_save_path", "models/adapters/jitna_router_v0.4.2"))
+        adapter_path = Path(cfg.get("adapter_save_path", "models/adapters/jitna_router_v0.4.3"))
     else:
         adapter_path = Path(adapter_path)
         

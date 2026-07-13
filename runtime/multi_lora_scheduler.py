@@ -13,6 +13,13 @@ import json
 import requests
 from typing import Dict, Any, Optional
 
+if sys.platform.startswith("win"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except AttributeError:
+        pass
+
 class MultiLoraScheduler:
     def __init__(self, api_url: str = "http://localhost:8000/v1/chat/completions"):
         self.api_url = api_url
@@ -57,6 +64,39 @@ class MultiLoraScheduler:
                 return "ROUTER_SCRIBE"
             return "ROUTER_BASE"
 
+    def get_primary_lora(self, request_type: str) -> str:
+        """Determines the primary LoRA based on request type."""
+        lower_type = request_type.lower()
+        if "execution" in lower_type or "executor" in lower_type or "transaction" in lower_type:
+            return "executor"
+        elif "security" in lower_type or "guardian" in lower_type or "block" in lower_type or "threat" in lower_type:
+            return "guardian"
+        elif "scribe" in lower_type or "compress" in lower_type or "summary" in lower_type:
+            return "scribe"
+        return "executor"
+
+    def resolve_consensus(self, votes: Dict[str, float], request_type: str) -> Dict[str, float]:
+        """
+        Resolves voting deadlock using Chairman Override Dominance (TIER_8).
+        If the average consensus score is under 75% (0.75), override and prioritize the primary LoRA.
+        """
+        consensus_score = sum(votes.values()) / len(votes)
+        if consensus_score < 0.75:
+            print(f"⚠️  [Consensus Deadlock Detected] Score: {consensus_score:.3f} < 0.75. Triggering TIER_8 Chairman Override...")
+            chairman = self.get_primary_lora(request_type)
+            overridden_scales = {
+                "router": 0.0,
+                "executor": 0.15,
+                "guardian": 0.15,
+                "scribe": 0.15
+            }
+            overridden_scales[chairman] = 1.0
+            print(f"   [TIER_8 Scales Override] {overridden_scales}")
+            return overridden_scales
+        
+        # Scale the original votes to be used as weights directly
+        return votes
+
     def dispatch_execution(self, user_intent: str, target_pillar: str) -> Dict[str, Any]:
         """
         Pillar 2/3/4: Dispatches intent to target adapter with Dynamic Adapter Scaling.
@@ -65,32 +105,44 @@ class MultiLoraScheduler:
         """
         print(f"⚡ [Scheduler] Dispatching intent to {target_pillar} w/ Dynamic Adapter Scaling...")
         
-        # Configure scale matrix dynamically to prevent neural interference
-        scales = {
-            "router": 0.0,
+        # Setup mock votes from the 3 safety agents to simulate split-decision scenarios
+        request_type = "execution" if target_pillar == "ROUTER_EXECUTOR" else ("security" if target_pillar == "ROUTER_GUARDIAN" else "summarization")
+        
+        votes = {
             "executor": 0.0,
             "guardian": 0.0,
             "scribe": 0.0
         }
         
         if target_pillar == "ROUTER_EXECUTOR":
-            scales["executor"] = 1.0
-            scales["guardian"] = 0.2  # Keep safety guardrail lightly active
-            scales["scribe"] = 0.2    # Keep memory parsing lightly active
+            # Simulate a scenario where a complex transaction query triggers a split decision
+            votes["executor"] = 0.8
+            votes["guardian"] = 0.6  # Split safety vote
+            votes["scribe"] = 0.5    # Split summarization vote
             active_adapter = "executor"
         elif target_pillar == "ROUTER_GUARDIAN":
-            scales["guardian"] = 1.0
-            scales["executor"] = 0.0
-            scales["scribe"] = 0.1
+            votes["guardian"] = 1.0
+            votes["executor"] = 0.0
+            votes["scribe"] = 0.1
             active_adapter = "guardian"
         elif target_pillar == "ROUTER_SCRIBE":
-            scales["scribe"] = 1.0
-            scales["guardian"] = 0.2
-            scales["executor"] = 0.1
+            # Simulate a scenario where RAG summarization triggers a split decision
+            votes["scribe"] = 0.7
+            votes["guardian"] = 0.6  # Split safety vote
+            votes["executor"] = 0.4  # Split execution vote
             active_adapter = "scribe"
         else:
-            # Base model runs directly (no adapters active)
             active_adapter = "base"
+
+        # Resolve consensus using Chairman Override
+        resolved_scales = self.resolve_consensus(votes, request_type)
+        
+        scales = {
+            "router": 0.0,
+            "executor": resolved_scales.get("executor", 0.0),
+            "guardian": resolved_scales.get("guardian", 0.0),
+            "scribe": resolved_scales.get("scribe", 0.0)
+        }
 
         print(f"   [Scaling Matrix] executor={scales['executor']}, guardian={scales['guardian']}, scribe={scales['scribe']}")
         

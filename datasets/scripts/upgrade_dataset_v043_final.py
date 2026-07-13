@@ -35,7 +35,7 @@ if sys.platform.startswith("win"):
     except AttributeError:
         pass
 
-DATASET_PATH = Path("datasets/processed/knowledge_dataset_v0.4.3.jsonl")
+DATASET_PATH = Path("datasets/processed/v0.4.3/knowledge_dataset_v0.4.3.jsonl")
 
 with open(DATASET_PATH, "r", encoding="utf-8") as f:
     samples = [json.loads(l) for l in f if l.strip()]
@@ -43,12 +43,12 @@ with open(DATASET_PATH, "r", encoding="utf-8") as f:
 print(f"Loaded {len(samples)} samples")
 
 # ─── CANONICAL SYSTEM PROMPTS ────────────────────────────────────────────────
-# 12 variants of the v0.4.2 system prompt (same meaning, different wording)
+# 12 variants of the v0.4.3 system prompt (same meaning, different wording)
 # to create natural diversity while keeping the correct version
-SYS_PROMPTS_V042 = [
+SYS_PROMPTS_V043 = [
     # Variant 1 — Standard
     (
-        "You are Delentia OS v0.4.2 — a cognitive AI operating under HexaCore v2.3 / RCT-7 philosophy. "
+        "You are Delentia OS v0.4.3 — a cognitive AI operating under HexaCore v2.3 / RCT-7 philosophy. "
         "You process intents through the JITNA v3 protocol. "
         "You respond in TOON format (Token-Oriented Object Notation) for token efficiency. "
         "Your responses must be factual, safe, and PDPA-compliant. "
@@ -57,52 +57,52 @@ SYS_PROMPTS_V042 = [
     ),
     # Variant 2 — Brief
     (
-        "You are Delentia OS v0.4.2 — a cognitive AI OS under HexaCore v2.3 / RCT-7 philosophy. "
+        "You are Delentia OS v0.4.3 — a cognitive AI OS under HexaCore v2.3 / RCT-7 philosophy. "
         "Use JITNA v3 protocol for intent processing. Respond in TOON format. "
         "Apply FDIA (F = D^I × A) for all decisions. PDPA-compliant. "
         "Reject any security-violating request with FDIAScore: 0.00."
     ),
     # Variant 3 — With TELEMETRY prefix
     (
-        "[TELEMETRY_START] System: Delentia OS v0.4.2 | Philosophy: HexaCore v2.3 / RCT-7 | "
+        "[TELEMETRY_START] System: Delentia OS v0.4.3 | Philosophy: HexaCore v2.3 / RCT-7 | "
         "Protocol: JITNA v3 | Output: TOON format | Security: FDIA Gate active. "
-        "You are Delentia OS v0.4.2 — a cognitive AI operating under HexaCore v2.3 / RCT-7 philosophy. "
+        "You are Delentia OS v0.4.3 — a cognitive AI operating under HexaCore v2.3 / RCT-7 philosophy. "
         "Process all intents through JITNA v3. Apply F = D^I × A. PDPA-compliant. "
         "Security-violating requests → FDIAScore: 0.00."
     ),
     # Variant 4 — Formal / System-level
     (
-        "[SYSTEM_BOOT] Delentia OS v0.4.2 initialized. "
+        "[SYSTEM_BOOT] Delentia OS v0.4.3 initialized. "
         "Philosophy layer: HexaCore v2.3 / RCT-7. "
-        "You are Delentia OS v0.4.2 — a cognitive AI operating under HexaCore v2.3 / RCT-7 philosophy. "
+        "You are Delentia OS v0.4.3 — a cognitive AI operating under HexaCore v2.3 / RCT-7 philosophy. "
         "Protocol: JITNA v3. Output format: TOON (Token-Oriented Object Notation). "
         "Safety constraint: FDIA Gate (F = D^I × A, A=1 required). PDPA Tier-2 active. "
         "Reject unconstitutional requests with FDIAScore: 0.00."
     ),
     # Variant 5 — Core only
     (
-        "You are Delentia OS v0.4.2, a cognitive AI OS. "
+        "You are Delentia OS v0.4.3, a cognitive AI OS. "
         "Philosophy: HexaCore v2.3 / RCT-7. Protocol: JITNA v3. "
         "Response format: TOON. Security: FDIA (F = D^I × A). "
         "PDPA-compliant. Reject violations → FDIAScore: 0.00."
     ),
     # Variant 6 — Thai (ภาษาไทย) system prompt
     (
-        "คุณคือ Delentia OS v0.4.2 — ระบบ Cognitive AI ที่ทำงานภายใต้ปรัชญา HexaCore v2.3 / RCT-7 "
+        "คุณคือ Delentia OS v0.4.3 — ระบบ Cognitive AI ที่ทำงานภายใต้ปรัชญา HexaCore v2.3 / RCT-7 "
         "คุณประมวลผลเจตจำนงผ่านโปรโตคอล JITNA v3 และตอบสนองในรูปแบบ TOON (Token-Oriented Object Notation) "
         "คุณต้องประเมิน FDIA สำหรับทุกคำขอ (F = D^I × A) และปฏิเสธคำขอที่ละเมิดความปลอดภัยด้วย FDIAScore: 0.00 "
         "ระบบของคุณสอดคล้องกับ PDPA และกฎหมายคุ้มครองข้อมูลส่วนบุคคล"
     ),
     # Variant 7 — With priority label
     (
-        "[PRIORITY: NORMAL] You are Delentia OS v0.4.2 — a cognitive AI under HexaCore v2.3 / RCT-7 philosophy. "
+        "[PRIORITY: NORMAL] You are Delentia OS v0.4.3 — a cognitive AI under HexaCore v2.3 / RCT-7 philosophy. "
         "All intents must pass through JITNA v3 protocol. "
         "FDIA security gate: F = D^I × A (A=1 = approved, A=0 = hard rejection). "
         "Output in TOON format. PDPA compliant. Unconstitutional requests → FDIAScore: 0.00."
     ),
     # Variant 8 — Developer mode phrasing
     (
-        "System Role: Delentia OS v0.4.2 | HexaCore v2.3 / RCT-7 Philosophy Layer Active\n"
+        "System Role: Delentia OS v0.4.3 | HexaCore v2.3 / RCT-7 Philosophy Layer Active\n"
         "You are a cognitive AI that processes all user intents through JITNA v3 protocol. "
         "Output format: TOON (Token-Oriented Object Notation). "
         "Security constraint: FDIA equation F = D^I × A enforced at Layer 3. "
@@ -110,14 +110,14 @@ SYS_PROMPTS_V042 = [
     ),
     # Variant 9 — Compact inline
     (
-        "<sys>Delentia OS v0.4.2 | HexaCore v2.3/RCT-7 | JITNA v3 | TOON | FDIA: F=D^I×A | PDPA</sys> "
-        "You are Delentia OS v0.4.2 — a cognitive AI operating under HexaCore v2.3 / RCT-7 philosophy. "
+        "<sys>Delentia OS v0.4.3 | HexaCore v2.3/RCT-7 | JITNA v3 | TOON | FDIA: F=D^I×A | PDPA</sys> "
+        "You are Delentia OS v0.4.3 — a cognitive AI operating under HexaCore v2.3 / RCT-7 philosophy. "
         "Process intents via JITNA v3. Respond in TOON format. "
         "Apply FDIA gate for all security decisions. Reject violations: FDIAScore=0.00."
     ),
     # Variant 10 — With version history note
     (
-        "You are Delentia OS v0.4.2 (successor to v0.3 / v0.4.1) — "
+        "You are Delentia OS v0.4.3 (successor to v0.3 / v0.4.2) — "
         "a cognitive AI operating under HexaCore v2.3 / RCT-7 philosophy. "
         "Intent processing: JITNA v3 protocol. Output: TOON format. "
         "Security: FDIA Gate (F = D^I × A). PDPA-compliant. "
@@ -125,7 +125,7 @@ SYS_PROMPTS_V042 = [
     ),
     # Variant 11 — Role-specific intro (Guardian-style)
     (
-        "You are Delentia OS v0.4.2 — a cognitive AI operating under HexaCore v2.3 / RCT-7 philosophy. "
+        "You are Delentia OS v0.4.3 — a cognitive AI operating under HexaCore v2.3 / RCT-7 philosophy. "
         "As a constitutional AI, you process all intents through JITNA v3 protocol. "
         "Every response must be in TOON format (Token-Oriented Object Notation). "
         "Human Architect veto (A=0) immediately nullifies any request (F = D^I × 0 = 0). "
@@ -133,9 +133,9 @@ SYS_PROMPTS_V042 = [
     ),
     # Variant 12 — Minimal academic
     (
-        "Delentia OS v0.4.2 | Cognitive AI OS | HexaCore v2.3 | RCT-7 | JITNA v3 | TOON | "
+        "Delentia OS v0.4.3 | Cognitive AI OS | HexaCore v2.3 | RCT-7 | JITNA v3 | TOON | "
         "FDIA (F=D^I×A) | PDPA-compliant\n"
-        "You are Delentia OS v0.4.2. Process intents via JITNA v3. Respond in TOON format. "
+        "You are Delentia OS v0.4.3. Process intents via JITNA v3. Respond in TOON format. "
         "Apply FDIA security gate. Reject unconstitutional requests with FDIAScore: 0.00."
     ),
 ]
@@ -146,13 +146,13 @@ THAI_PREFIXES = [
     "", "ช่วยอธิบาย", "อยากทราบ", "สอบถามครับ", "รบกวนถามว่า", "ขอทราบรายละเอียด",
     "ช่วยชี้แจง", "อธิบายให้ฟังหน่อย", "อยากเข้าใจเรื่อง", "ช่วยขยายความ",
     "คำถามด่วน:", "HELP:", "[CORE_L3]", "[TELEMETRY_DATA]", "ด่วน!",
-    "ขอข้อมูลเกี่ยวกับ", "รายละเอียดของ", "ในบริบทของ Delentia OS v0.4.2,",
+    "ขอข้อมูลเกี่ยวกับ", "รายละเอียดของ", "ในบริบทของ Delentia OS v0.4.3,",
     "จากมุมมอง RCT-7,", "กรณีศึกษา:", "ตามโปรโตคอล JITNA v3,",
 ]
 ENGLISH_PREFIXES = [
     "", "Explain", "Clarify", "Detail", "Urgent:", "HELP:", "[PRIORITY_HIGH]",
     "Please explain", "Can you explain", "I need to understand",
-    "From a technical standpoint,", "According to RCT-7,", "In Delentia OS v0.4.2,",
+    "From a technical standpoint,", "According to RCT-7,", "In Delentia OS v0.4.3,",
     "As per JITNA v3,", "From the governance perspective,", "Technical query:",
     "Quick question:", "System query:", "For documentation purposes:",
     "In the context of HexaCore v2.3,", "Regarding", "What is the role of",
@@ -189,7 +189,7 @@ def diversify_intent(intent, variant_idx):
 
 # ─── STEP 1: Fix old system prompts ────────────────────────────────────────────
 print("\n" + "=" * 70)
-print("STEP 1: Fix old system prompts (v0.2/v0.3 → v0.4.2)")
+print("STEP 1: Fix old system prompts (v0.2/v0.3/v0.4.2 → v0.4.3)")
 print("=" * 70)
 
 OLD_SYS_PATTERNS = [
@@ -221,6 +221,7 @@ OLD_SIMPLE_PATTERNS = [
     ("Delentia OS v0.2 — a constitutional AI operating under RCT v5", None),
     ("Delentia OS v0.3 — a constitutional AI operating under RCT v5", None),
     ("Delentia OS v0.4 — a constitutional AI operating under RCT v5", None),
+    ("Delentia OS v0.4.2 — a cognitive AI operating under HexaCore v2.3 / RCT-7", None),
     ("under RCT v5 governance", "under HexaCore v2.3 / RCT-7 governance"),
     ("constitutional AI operating", "cognitive AI operating"),
 ]
@@ -238,24 +239,25 @@ for s in samples:
             if new_str:
                 p = p.replace(old_str, new_str)
             else:
-                # Replace entire old system block with a new v0.4.2 variant
+                # Replace entire old system block with a new v0.4.3 variant
                 # Find the system prompt portion
                 user_intent_idx = p.find("\n\nUser intent:")
                 if user_intent_idx >= 0:
                     user_portion = p[user_intent_idx:]
-                    new_sys = SYS_PROMPTS_V042[sys_prompt_idx % len(SYS_PROMPTS_V042)]
+                    new_sys = SYS_PROMPTS_V043[sys_prompt_idx % len(SYS_PROMPTS_V043)]
                     p = new_sys + user_portion
                     sys_prompt_idx += 1
                 else:
-                    new_sys = SYS_PROMPTS_V042[sys_prompt_idx % len(SYS_PROMPTS_V042)]
+                    new_sys = SYS_PROMPTS_V043[sys_prompt_idx % len(SYS_PROMPTS_V043)]
                     p = new_sys + "\n\n" + p[p.find("\n\n")+2:] if "\n\n" in p else new_sys + "\n\n" + p
                     sys_prompt_idx += 1
                 break
 
-    # Also fix v0.4 without .2
-    p = re.sub(r"Delentia OS v0\.4(?!\.)", "Delentia OS v0.4.2", p)
-    p = re.sub(r"Delentia OS v0\.3", "Delentia OS v0.4.2", p)
-    p = re.sub(r"Delentia OS v0\.2", "Delentia OS v0.4.2", p)
+    # Also fix v0.4.2 and below to v0.4.3
+    p = re.sub(r"Delentia OS v0\.4\.2", "Delentia OS v0.4.3", p)
+    p = re.sub(r"Delentia OS v0\.4(?!\.)", "Delentia OS v0.4.3", p)
+    p = re.sub(r"Delentia OS v0\.3", "Delentia OS v0.4.3", p)
+    p = re.sub(r"Delentia OS v0\.2", "Delentia OS v0.4.3", p)
     p = re.sub(r"RCT v5", "RCT-7", p)
 
     if p != original:
@@ -272,7 +274,7 @@ for s in samples:
     p = s.get("prompt", "")
     if "You are Delentia OS" not in p and "คุณคือ Delentia OS" not in p and "Delentia OS v" not in p:
         # Add system prompt
-        new_sys = SYS_PROMPTS_V042[sys_prompt_idx % len(SYS_PROMPTS_V042)]
+        new_sys = SYS_PROMPTS_V043[sys_prompt_idx % len(SYS_PROMPTS_V043)]
         sys_prompt_idx += 1
         s["prompt"] = f"{new_sys}\n\nUser intent: {p}"
         no_sys_count += 1
@@ -312,7 +314,7 @@ for intent, idxs in intent_groups.items():
             # Also use a different system prompt variant
             sys_end = p.find("\n\nUser intent:")
             if sys_end > 0:
-                new_sys = SYS_PROMPTS_V042[(variant_num * 3) % len(SYS_PROMPTS_V042)]
+                new_sys = SYS_PROMPTS_V043[(variant_num * 3) % len(SYS_PROMPTS_V043)]
                 user_portion = p[sys_end:]
                 intent_in_user = user_portion.find("User intent:")
                 if intent_in_user >= 0:
@@ -329,9 +331,10 @@ fixed_comp = 0
 for s in samples:
     c = s.get("completion", "")
     orig = c
-    c = re.sub(r"Delentia OS v0\.[0-3](?!\.)", "Delentia AI v0.4.2", c)
-    c = re.sub(r"Delentia OS v0\.3", "Delentia AI v0.4.2", c)
-    c = re.sub(r"Delentia OS v0\.2", "Delentia AI v0.4.2", c)
+    c = re.sub(r"Delentia OS v0\.4\.2", "Delentia AI v0.4.3", c)
+    c = re.sub(r"Delentia OS v0\.[0-3](?!\.)", "Delentia AI v0.4.3", c)
+    c = re.sub(r"Delentia OS v0\.3", "Delentia AI v0.4.3", c)
+    c = re.sub(r"Delentia OS v0\.2", "Delentia AI v0.4.3", c)
     c = re.sub(r"RCT v5", "RCT-7", c)
     c = re.sub(r"HexaCore v2\.2", "HexaCore v2.3", c)
     if c != orig:
@@ -356,9 +359,10 @@ random.shuffle(final)
 print("\nSTEP 6: 4-Tier Quality Validation")
 
 # Check version consistency
-v042_count = sum(1 for s in final if "v0.4.2" in s.get("prompt",""))
+v043_count = sum(1 for s in final if "v0.4.3" in s.get("prompt",""))
 old_v_count = sum(1 for s in final if
     re.search(r"Delentia OS v0\.[0-3](?!\.)", s.get("prompt","")) or
+    "v0.4.2" in s.get("prompt","") or
     "RCT v5" in s.get("prompt",""))
 no_sys = sum(1 for s in final if
     "You are Delentia OS" not in s.get("prompt","") and
@@ -381,7 +385,7 @@ for i, s in enumerate(final):
     lengths.append(len(c))
 
 # Version check
-print(f"  Samples with v0.4.2 system prompt: {v042_count}")
+print(f"  Samples with v0.4.3 system prompt: {v043_count}")
 print(f"  Samples with OLD version (should be 0): {old_v_count}")
 print(f"  Samples without system prompt (should be ~0): {no_sys}")
 print(f"  Validation errors: {len(errors)}")
@@ -397,7 +401,7 @@ def classify(s):
     if "[CRITICAL VETO" in c: return "VETO"
     if "D < 30" in c or "ไม่เพียงพอ" in c or "Please provide specific" in c: return "READINESS"
     if "HexaCore Registry" in c or "Kimi K2.5" in c or ("Routing" in c and "Edge Model" in c): return "ESCALATION"
-    if "Delentia AI v0.4.2" in c or "อิทธิฤทธิ์" in c or "Ittirit Saengow" in c or "Ittirit" in c: return "IDENTITY"
+    if "Delentia AI v0.4.3" in c or "อิทธิฤทธิ์" in c or "Ittirit Saengow" in c or "Ittirit" in c: return "IDENTITY"
     if "I:" in c and "D:" in c and ("A:" in c or "R:" in c): return "TOON"
     if "RCT-7" in c and ("Observe" in c or "Analyze" in c or "ขั้น" in c): return "THEORY"
     if "FDIA" in c and ("F = D" in c or "สมการ" in c or "equation" in c.lower()): return "THEORY"
@@ -434,7 +438,7 @@ print("=" * 70)
 # Known before values
 before = {
     "total": 3157,
-    "v042_prompt": 850,
+    "v043_prompt": 850,
     "old_version_prompt": 765,
     "no_sys_prompt": 1542,
     "dup_intents": 339,
@@ -451,8 +455,8 @@ before = {
 print(f"\n{'Metric':<35} {'Before':>12} {'After':>12} {'Change':>10}")
 print("-" * 72)
 print(f"  {'Total samples':<33} {before['total']:>12} {total:>12} {total - before['total']:>+10}")
-print(f"  {'v0.4.2 system prompt':<33} {before['v042_prompt']:>12} {v042_count:>12} {v042_count - before['v042_prompt']:>+10}")
-print(f"  {'Old version prompt (v0.2/v0.3)':<33} {before['old_version_prompt']:>12} {old_v_count:>12} {old_v_count - before['old_version_prompt']:>+10}")
+print(f"  {'v0.4.3 system prompt':<33} {before['v043_prompt']:>12} {v043_count:>12} {v043_count - before['v043_prompt']:>+10}")
+print(f"  {'Old version prompt (v0.2/v0.3/v0.4.2)':<33} {before['old_version_prompt']:>12} {old_v_count:>12} {old_v_count - before['old_version_prompt']:>+10}")
 print(f"  {'No system prompt':<33} {before['no_sys_prompt']:>12} {no_sys:>12} {no_sys - before['no_sys_prompt']:>+10}")
 print(f"  {'Duplicate intent instances':<33} {before['dup_intents']:>12} {'0 (fixed)':>12}")
 print()

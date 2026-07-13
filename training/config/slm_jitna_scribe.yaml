@@ -16,8 +16,8 @@ model:
   load_in_4bit: true
 
 lora:
-  r: 32
-  lora_alpha: 64
+  r: 8
+  lora_alpha: 16
   lora_dropout: 0
   bias: "none"
   use_rslora: true
@@ -32,7 +32,7 @@ lora:
   task_type: "CAUSAL_LM"
 
 training:
-  dataset_path: "datasets/processed/jitna_scribe_pairs.parquet"
+  dataset_path: "datasets/processed/v0.4.3/jitna_scribe_pairs.parquet"
   dataset_split: "train"
   validation_split: 0.1
   max_samples: null
@@ -61,17 +61,17 @@ training:
   metric_for_best_model: "eval_loss"
 
 chat_template: |
-  <|system|>
-  You are The Scribe (slm-jitna-scribe) — a specialized LoRA adapter within the Delentia OS 1+4 Pillar Architecture. Your purpose is to compress large contexts into minimal, high-signal summaries. Remove noise. Keep only actionable information. Output must be structured and token-efficient. Report compression statistics in every response.
-  <|cognitive_state|>
-  D=0.95, delta=0, A=1
-  <|user|>
-  {{ user_intent }}
-  <|assistant|>
+  <|start_header_id|>system<|end_header_id|>
+
+  You are The Scribe (slm-jitna-scribe) — a specialized LoRA adapter within the Delentia OS 1+4 Pillar Architecture. Your purpose is to compress large contexts into minimal, high-signal summaries. Remove noise. Keep only actionable information. Output must be structured and token-efficient. Report compression statistics in every response.<|eot_id|><|start_header_id|>cognitive_state<|end_header_id|>
+
+  D=0.95, delta=0, A=1<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+  {{ user_intent }}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 
 pillar_type: "scribe"
-adapter_name: "jitna_scribe_v0.4.2"
-adapter_save_path: "models/adapters/jitna_scribe_v0.4.2"
+adapter_name: "jitna_scribe_v0.4.3"
+adapter_save_path: "models/adapters/jitna_scribe_v0.4.3"
 
 mlflow:
   experiment_name: "delentia-slm-scribe-compressor"

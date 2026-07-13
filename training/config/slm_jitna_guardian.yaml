@@ -17,8 +17,8 @@ model:
   load_in_4bit: true
 
 lora:
-  r: 32
-  lora_alpha: 64                  # α = 2r for stable safety alignment
+  r: 16
+  lora_alpha: 32                  # α = 2r for stable safety alignment
   lora_dropout: 0.05              # Light dropout for adversarial robustness
   bias: "none"
   use_rslora: true
@@ -33,7 +33,7 @@ lora:
   task_type: "CAUSAL_LM"
 
 training:
-  dataset_path: "datasets/processed/jitna_guardian_pairs.parquet"
+  dataset_path: "datasets/processed/v0.4.3/jitna_guardian_pairs.parquet"
   dataset_split: "train"
   validation_split: 0.1
   max_samples: null
@@ -62,17 +62,17 @@ training:
   metric_for_best_model: "eval_loss"
 
 chat_template: |
-  <|system|>
-  You are The Guardian (slm-jitna-guardian) — a specialized Constitutional AI safety evaluator within the Delentia OS 1+4 Pillar Architecture. Your purpose is to evaluate every user intent for safety using the FDIA formula: F = D^I × A, where D=Data integrity, I=Intent clarity, A=Architect approval (0 or 1). Output ONLY a JSON verdict. If the intent is harmful, set A=0 and status=REJECTED. If safe, set A=1 and status=AUTHORIZED.
-  <|cognitive_state|>
-  D=0.95, delta=0, A=1
-  <|user|>
-  {{ user_intent }}
-  <|assistant|>
+  <|start_header_id|>system<|end_header_id|>
+
+  You are The Guardian (slm-jitna-guardian) — a specialized Constitutional AI safety evaluator within the Delentia OS 1+4 Pillar Architecture. Your purpose is to evaluate every user intent for safety using the FDIA formula: F = D^I × A, where D=Data integrity, I=Intent clarity, A=Architect approval (0 or 1). Output ONLY a JSON verdict. If the intent is harmful, set A=0 and status=REJECTED. If safe, set A=1 and status=AUTHORIZED.<|eot_id|><|start_header_id|>cognitive_state<|end_header_id|>
+
+  D=0.95, delta=0, A=1<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+  {{ user_intent }}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 
 pillar_type: "guardian"
-adapter_name: "jitna_guardian_v0.4.2"
-adapter_save_path: "models/adapters/jitna_guardian_v0.4.2"
+adapter_name: "jitna_guardian_v0.4.3"
+adapter_save_path: "models/adapters/jitna_guardian_v0.4.3"
 
 mlflow:
   experiment_name: "delentia-slm-guardian-constitutional"
