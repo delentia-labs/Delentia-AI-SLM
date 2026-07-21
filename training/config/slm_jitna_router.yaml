@@ -1,25 +1,18 @@
-# Delentia SLM — The Router (slm-jitna-router) LoRA Configuration
-# Purpose: Intent Classification (Sequence Classification)
-# Priority: #2 in 4-Pillar Architecture
-#
-# The Router replaces the Language Modeling Head with a Classification Head.
-# It outputs ONLY a label: ROUTER_EXECUTOR, ROUTER_SCRIBE, ROUTER_GUARDIAN, ROUTER_BASE
-# Uses LoRA α = 2r to control intruder dimensions and reduce forgetting.
+# Delentia SLM — The Router (jitna-router-v0.5) LoRA Configuration
+# Purpose: Intent Classification & D/I/A Parameter Assignment
+# Base Model: Qwen2.5-27B-Instruct (Jitna v0.5 Engine)
 
 model:
-  # IMPORTANT: Use the Unsloth pre-quantized base model (has config.json + safetensors)
-  # Delentia/delentia-slm-jitna-v0.4 contains only GGUF files — NOT loadable by Unsloth/transformers
-  # The 4-Pillar LoRA adapters are trained ON TOP of this base model (Llama 3.1 8B)
-  base_model: "Delentia/delentia-slm-jitna-v0.4"
-  tokenizer: "Delentia/delentia-slm-jitna-v0.4"
-  max_seq_length: 512             # Shorter — classification needs less context
-  dtype: null
+  base_model: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
+  tokenizer: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
+  max_seq_length: 16384
+  dtype: "bfloat16"
   load_in_4bit: true
 
 lora:
-  r: 8                            # Lower rank for classification task
-  lora_alpha: 16                  # α = 2r (research-recommended for classification)
-  lora_dropout: 0.05              # Light dropout for classification robustness
+  r: 32                         # Rank 32 for routing intent classification
+  lora_alpha: 64
+  lora_dropout: 0
   bias: "none"
   use_rslora: true
   target_modules:
@@ -27,55 +20,60 @@ lora:
     - "k_proj"
     - "v_proj"
     - "o_proj"
-  task_type: "SEQ_CLS"            # Sequence Classification (NOT CAUSAL_LM)
-
-classification:
-  num_labels: 4
-  label_map:
-    ROUTER_EXECUTOR: 0
-    ROUTER_SCRIBE: 1
-    ROUTER_GUARDIAN: 2
-    ROUTER_BASE: 3
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+  task_type: "CAUSAL_LM"
 
 training:
-  dataset_path: "datasets/processed/v0.4.3/jitna_router_pairs.parquet"
+  dataset_path: "datasets/processed/v0.5/jitna_router_pairs_v05.parquet"
   dataset_split: "train"
-  validation_split: 0.1            # More validation for classification
+  validation_split: 0.05
   max_samples: null
 
-  per_device_train_batch_size: 4   # Larger batch for classification
+  per_device_train_batch_size: 2
   gradient_accumulation_steps: 4
 
-  learning_rate: 2.0e-4            # Higher LR for classification head
+  learning_rate: 5.0e-5
   lr_scheduler_type: "cosine"
-  warmup_ratio: 0.1
-  num_train_epochs: 8              # More epochs for classification convergence
+  warmup_ratio: 0.05
+  num_train_epochs: 5
 
   bf16: true
   fp16: false
   optim: "adamw_8bit"
   weight_decay: 0.01
-  max_grad_norm: 1.0
+  max_grad_norm: 0.3
 
-  output_dir: "models/checkpoints/router_classifier"
+  output_dir: "models/checkpoints/jitna_router_v05"
   save_strategy: "epoch"
   save_total_limit: 3
   logging_steps: 10
 
   evaluation_strategy: "epoch"
   load_best_model_at_end: true
-  metric_for_best_model: "eval_accuracy"
+  metric_for_best_model: "eval_loss"
+
+chat_template: |
+  {% for message in messages %}
+  {% if message['role'] == 'system' %}{{ '<|im_start|>system\n' + message['content'] + '<|im_end|>\n' }}
+  {% elif message['role'] == 'cognitive_state' %}{{ '<|im_start|>cognitive_state\n' + message['content'] + '<|im_end|>\n' }}
+  {% elif message['role'] == 'user' %}{{ '<|im_start|>user\n' + message['content'] + '<|im_end|>\n' }}
+  {% elif message['role'] == 'assistant' %}{{ '<|im_start|>assistant\n' + message['content'] + '<|im_end|>\n' }}
+  {% endif %}
+  {% endfor %}
+  {% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}
 
 pillar_type: "router"
-adapter_name: "jitna_router_v0.4.3"
-adapter_save_path: "models/adapters/jitna_router_v0.4.3"
+adapter_name: "jitna_router_v0.5"
+adapter_save_path: "models/adapters/v0.5/jitna_router_v0.5"
+version: "v0.5"
 
 mlflow:
-  experiment_name: "delentia-slm-router-classifier"
+  experiment_name: "delentia-slm-router-v05"
   tracking_uri: "https://delentia-delentia-agent-monitor.hf.space"
   log_model: true
 
 target_metrics:
-  classification_accuracy: 0.96   # >= 96% correct routing
-  latency_ms: 50                  # < 50ms classification time
-  f1_macro: 0.94                  # >= 0.94 macro F1 across all labels
+  routing_accuracy: 0.98         # >= 98% correct routing decision
+  fdia_parameter_mae: 0.02       # MAE <= 0.02 on D, I, A values

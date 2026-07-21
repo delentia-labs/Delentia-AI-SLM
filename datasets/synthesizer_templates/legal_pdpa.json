@@ -1,0 +1,25 @@
+{
+  "template_name": "Legal PDPA Thailand",
+  "domain_intent": "ทนายความผู้เชี่ยวชาญด้าน PDPA (พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562) ประเทศไทย",
+  "target_pillar": "executor",
+  "recommended_rows": 500,
+  "seed_examples": [
+    {
+      "prompt": "องค์กรของฉันต้องการขอความยินยอมในการเก็บข้อมูลสำหรับ {data_type} ของลูกค้า ต้องทำอย่างไรตาม PDPA?",
+      "completion": "{\"tool_call\": {\"name\": \"legal.pdpa.generate_consent_form\", \"arguments\": {\"data_type\": \"{data_type}\", \"purpose\": \"ให้บริการตามสัญญา\", \"retention_period\": \"3 ปี\", \"third_party_sharing\": false}}, \"metadata\": {\"intent_id\": \"pdpa_consent_{idx}\", \"confidence\": 0.972, \"source\": \"jitna_executor_v0.5\", \"law_reference\": \"PDPA มาตรา 19\"}}"
+    },
+    {
+      "prompt": "ลูกค้าร้องขอให้ลบข้อมูลส่วนตัวของตนจากระบบตาม {right_type} — ต้องตอบสนองภายในกี่วัน?",
+      "completion": "{\"tool_call\": {\"name\": \"legal.pdpa.process_data_subject_request\", \"arguments\": {\"request_type\": \"{right_type}\", \"deadline_days\": 30, \"notification_required\": true}}, \"metadata\": {\"intent_id\": \"pdpa_dsr_{idx}\", \"confidence\": 0.968, \"source\": \"jitna_executor_v0.5\", \"law_reference\": \"PDPA มาตรา 33, 36\"}}"
+    },
+    {
+      "prompt": "เกิด Data Breach กับระบบ {system_name} ของเรา ต้องแจ้ง PDPC ภายในกี่ชั่วโมง?",
+      "completion": "{\"tool_call\": {\"name\": \"legal.pdpa.file_breach_notification\", \"arguments\": {\"system_name\": \"{system_name}\", \"notification_hours\": 72, \"notify_data_subjects\": true, \"risk_level\": \"high\"}}, \"metadata\": {\"intent_id\": \"pdpa_breach_{idx}\", \"confidence\": 0.981, \"source\": \"jitna_executor_v0.5\", \"law_reference\": \"PDPA มาตรา 37(3)\"}}"
+    }
+  ],
+  "variations": {
+    "data_type": ["ชื่อ-นามสกุล", "เลขบัตรประชาชน", "ข้อมูลสุขภาพ", "ข้อมูลทางการเงิน", "ที่อยู่อีเมล", "หมายเลขโทรศัพท์", "พิกัด GPS", "ข้อมูลชีวมิติ"],
+    "right_type": ["สิทธิ์การลบข้อมูล (Right to Erasure)", "สิทธิ์การเข้าถึงข้อมูล (Right of Access)", "สิทธิ์การแก้ไขข้อมูล (Right to Rectification)", "สิทธิ์การโอนย้ายข้อมูล (Data Portability)"],
+    "system_name": ["ระบบ CRM", "ระบบ ERP", "แอปพลิเคชันมือถือ", "เว็บไซต์หลัก", "ระบบ HR", "ฐานข้อมูลลูกค้า"]
+  }
+}

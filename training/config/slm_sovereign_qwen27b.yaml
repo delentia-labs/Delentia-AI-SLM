@@ -1,0 +1,114 @@
+# Delentia OS v0.5 — Sovereign Core (Qwen2.5-27B) Training Configuration
+# Purpose: Knowledge Hardening + Identity Injection on Qwen2.5-27B base
+# Hardware: Google Colab A100 40GB VRAM / 83.5GB System RAM
+#
+# KEY CHANGES FROM v0.4.x:
+#   - Base model: Llama 3.1 8B → unsloth/Qwen2.5-32B-Instruct-bnb-4bit
+#   - LoRA rank:  r=32          → r=64   (A100 VRAM headroom allows higher quality)
+#   - Sequence:   4096          → 16384  (16K context for JITNA chain capture)
+#   - Batch:      1             → 2      (A100 VRAM headroom)
+#   - bf16:       auto-detect   → True   (A100 Ampere supports native BF16)
+
+model:
+  base_model: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
+  tokenizer: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
+  max_seq_length: 16384         # 16K context (vs 4K in v0.4.x)
+  dtype: "bfloat16"             # A100 native BF16 — faster + numerically stable
+  load_in_4bit: true            # NF4 quantization: 27B fits in ~13.5GB VRAM
+
+lora:
+  r: 64                         # Doubled rank (A100 VRAM allows this, higher quality)
+  lora_alpha: 128               # α = 2r (standard ratio for RSLoRA stability)
+  lora_dropout: 0
+  bias: "none"
+  use_rslora: true              # Rank-Stabilized LoRA — locks stability cross-layer
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+  task_type: "CAUSAL_LM"
+
+training:
+  # Goldilocks Zone Dataset (5-Tier stratified from knowledge_dataset_v0.5.parquet)
+  dataset_path: "datasets/processed/v0.5/knowledge_dataset_v0.5.parquet"
+  dataset_split: "train"
+  validation_split: 0.05
+  max_samples: null             # Use all 3,777 rows after 5-Tier stratification
+
+  # A100 40GB VRAM Budget:
+  #   Qwen 27B NF4:   ~13.5GB
+  #   KV Cache 16K:   ~ 6.0GB
+  #   Optimizer 8bit: ~ 3.0GB
+  #   LoRA r=64:      ~ 0.5GB
+  #   Flash Attn 2:   ~ 1.5GB
+  #   ─────────────────────────
+  #   Total:         ~24.5GB  →  ~15.5GB headroom ✅
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 4  # Effective batch = 8
+
+  learning_rate: 1.0e-4
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.05
+  num_train_epochs: 5
+
+  bf16: true                    # A100 native BF16
+  fp16: false
+  optim: "adamw_8bit"
+  weight_decay: 0.01
+  max_grad_norm: 0.3
+
+  output_dir: "models/checkpoints/sovereign_core_v05"
+  save_strategy: "steps"
+  save_steps: 100               # Checkpoint every 100 steps (protect against timeout)
+  save_total_limit: 3           # Keep only 3 checkpoints (disk management)
+  logging_steps: 10
+
+  evaluation_strategy: "epoch"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+
+  # Completion-only loss: ONLY learn from assistant response, not the prompt
+  # This prevents the model from learning to repeat system prompts
+  completion_only_loss: true
+
+  # Packing = False: each Q&A is learned independently (avoids 45-step collapse bug)
+  packing: false
+
+# Delentia Cognitive Chat Template (4-Role: system/cognitive_state/user/assistant)
+# MUST be bound to Qwen tokenizer before training
+chat_template: |
+  {% for message in messages %}
+  {% if message['role'] == 'system' %}{{ '<|im_start|>system\n' + message['content'] + '<|im_end|>\n' }}
+  {% elif message['role'] == 'cognitive_state' %}{{ '<|im_start|>cognitive_state\n' + message['content'] + '<|im_end|>\n' }}
+  {% elif message['role'] == 'user' %}{{ '<|im_start|>user\n' + message['content'] + '<|im_end|>\n' }}
+  {% elif message['role'] == 'assistant' %}{{ '<|im_start|>assistant\n' + message['content'] + '<|im_end|>\n' }}
+  {% endif %}
+  {% endfor %}
+  {% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}
+
+# 5-Tier Goldilocks Zone Stratification Ratios
+dataset_stratification:
+  normal_baseline:    0.45    # ~1,700 rows — prevent Catastrophic Forgetting
+  red_team_safety:    0.15    # ~  566 rows — Guardian A=0 DNA injection
+  scribe_context:     0.20    # ~  756 rows — Delta Engine DELTA_COMPRESS
+  jspace_cot:         0.10    # ~  378 rows — JITNA TOON/JSON structure
+  advanced_rct7:      0.10    # ~  378 rows — Reverse Reasoning (Observe→Reconstruct)
+
+version: "v0.5"
+adapter_name: "jitna-v0.5"
+adapter_save_path: "models/adapters/jitna_v05"
+
+mlflow:
+  experiment_name: "delentia-jitna-v05"
+  tracking_uri: "https://delentia-delentia-agent-monitor.hf.space"
+  log_model: true
+
+target_metrics:
+  json_syntax_error_rate: 0.00  # Must maintain 0.00% Syntax Error (Executor invariant)
+  guardian_veto_rate:     1.00  # 100% block on A=0 prompts
+  identity_recall:        0.99  # Must correctly identify as Delentia OS + creator
+  context_window:        262144  # Max context tokens (262K via YaRN if needed)

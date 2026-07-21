@@ -1,23 +1,17 @@
-# Delentia SLM — The Scribe (slm-jitna-scribe) LoRA Configuration
-# Purpose: Context Compression / RAG Filtering / Hierarchical Summarization
-# Priority: #4 in 4-Pillar Architecture
-#
-# The Scribe takes long context and compresses it into minimal, high-signal output.
-# It removes noise, keeps actionable info, and reports compression statistics.
+# Delentia SLM — The Scribe (jitna-scribe-v0.5) LoRA Configuration
+# Purpose: Delta Engine 262K Context Compression & Memory Timeline Summarization
+# Base Model: Qwen2.5-27B-Instruct (Jitna v0.5 Engine)
 
 model:
-  # IMPORTANT: Use the Unsloth pre-quantized base model (has config.json + safetensors)
-  # Delentia/delentia-slm-jitna-v0.4 contains only GGUF files — NOT loadable by Unsloth/transformers
-  # The 4-Pillar LoRA adapters are trained ON TOP of this base model (Llama 3.1 8B)
-  base_model: "Delentia/delentia-slm-jitna-v0.4"
-  tokenizer: "Delentia/delentia-slm-jitna-v0.4"
-  max_seq_length: 8192            # Longer context for compression tasks
-  dtype: null
+  base_model: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
+  tokenizer: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
+  max_seq_length: 16384
+  dtype: "bfloat16"
   load_in_4bit: true
 
 lora:
-  r: 8
-  lora_alpha: 16
+  r: 64                         # Higher rank 64 for complex context compaction precision
+  lora_alpha: 128               # α = 2r for stable learning
   lora_dropout: 0
   bias: "none"
   use_rslora: true
@@ -32,13 +26,13 @@ lora:
   task_type: "CAUSAL_LM"
 
 training:
-  dataset_path: "datasets/processed/v0.4.3/jitna_scribe_pairs.parquet"
+  dataset_path: "datasets/processed/v0.5/jitna_scribe_pairs_v05.parquet"
   dataset_split: "train"
-  validation_split: 0.1
+  validation_split: 0.05
   max_samples: null
 
-  per_device_train_batch_size: 1
-  gradient_accumulation_steps: 8
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 4
 
   learning_rate: 5.0e-5
   lr_scheduler_type: "cosine"
@@ -51,7 +45,7 @@ training:
   weight_decay: 0.01
   max_grad_norm: 0.3
 
-  output_dir: "models/checkpoints/scribe_compressor"
+  output_dir: "models/checkpoints/jitna_scribe_v05"
   save_strategy: "epoch"
   save_total_limit: 3
   logging_steps: 10
@@ -61,25 +55,25 @@ training:
   metric_for_best_model: "eval_loss"
 
 chat_template: |
-  <|start_header_id|>system<|end_header_id|>
-
-  You are The Scribe (slm-jitna-scribe) — a specialized LoRA adapter within the Delentia OS 1+4 Pillar Architecture. Your purpose is to compress large contexts into minimal, high-signal summaries. Remove noise. Keep only actionable information. Output must be structured and token-efficient. Report compression statistics in every response.<|eot_id|><|start_header_id|>cognitive_state<|end_header_id|>
-
-  D=0.95, delta=0, A=1<|eot_id|><|start_header_id|>user<|end_header_id|>
-
-  {{ user_intent }}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+  {% for message in messages %}
+  {% if message['role'] == 'system' %}{{ '<|im_start|>system\n' + message['content'] + '<|im_end|>\n' }}
+  {% elif message['role'] == 'cognitive_state' %}{{ '<|im_start|>cognitive_state\n' + message['content'] + '<|im_end|>\n' }}
+  {% elif message['role'] == 'user' %}{{ '<|im_start|>user\n' + message['content'] + '<|im_end|>\n' }}
+  {% elif message['role'] == 'assistant' %}{{ '<|im_start|>assistant\n' + message['content'] + '<|im_end|>\n' }}
+  {% endif %}
+  {% endfor %}
+  {% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}
 
 pillar_type: "scribe"
-adapter_name: "jitna_scribe_v0.4.3"
-adapter_save_path: "models/adapters/jitna_scribe_v0.4.3"
+adapter_name: "jitna_scribe_v0.5"
+adapter_save_path: "models/adapters/v0.5/jitna_scribe_v0.5"
+version: "v0.5"
 
 mlflow:
-  experiment_name: "delentia-slm-scribe-compressor"
+  experiment_name: "delentia-slm-scribe-v05"
   tracking_uri: "https://delentia-delentia-agent-monitor.hf.space"
   log_model: true
 
 target_metrics:
-  compression_ratio: 3.5          # >= 3.5x average compression
-  information_retention: 0.92     # >= 92% key info retained
-  token_savings_pct: 74.0         # >= 74% token savings (Delta Engine spec)
-  rag_precision: 0.90             # >= 90% noise filtering accuracy
+  compression_ratio_avg: 4.5    # avg 4.5x context compression
+  information_retention: 0.96    # >= 96% key facts retained post-compression

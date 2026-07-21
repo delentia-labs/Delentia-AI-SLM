@@ -1,25 +1,18 @@
-# Delentia SLM — The Guardian (slm-jitna-guardian) LoRA Configuration
-# Purpose: Constitutional AI Safety Evaluation / Adversarial Defense
-# Priority: #3 in 4-Pillar Architecture
-#
-# The Guardian evaluates every intent for safety using FDIA: F = D^I × A
-# It outputs a JSON verdict: AUTHORIZED or REJECTED with FDIA scores.
-# CRITICAL: Data provenance must be strictly controlled — no untrusted datasets.
+# Delentia SLM — The Guardian (jitna-guardian-v0.5) LoRA Configuration
+# Purpose: FDIA Security Gate / Constitutional Policy Enforcement & Veto
+# Base Model: Qwen2.5-27B-Instruct (Jitna v0.5 Engine)
 
 model:
-  # IMPORTANT: Use the Unsloth pre-quantized base model (has config.json + safetensors)
-  # Delentia/delentia-slm-jitna-v0.4 contains only GGUF files — NOT loadable by Unsloth/transformers
-  # The 4-Pillar LoRA adapters are trained ON TOP of this base model (Llama 3.1 8B)
-  base_model: "Delentia/delentia-slm-jitna-v0.4"
-  tokenizer: "Delentia/delentia-slm-jitna-v0.4"
-  max_seq_length: 2048            # Safety evaluation doesn't need long context
-  dtype: null
+  base_model: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
+  tokenizer: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
+  max_seq_length: 16384
+  dtype: "bfloat16"
   load_in_4bit: true
 
 lora:
-  r: 16
-  lora_alpha: 32                  # α = 2r for stable safety alignment
-  lora_dropout: 0.05              # Light dropout for adversarial robustness
+  r: 32                         # Rank 32 sufficient for security verdict classification
+  lora_alpha: 64
+  lora_dropout: 0
   bias: "none"
   use_rslora: true
   target_modules:
@@ -33,26 +26,26 @@ lora:
   task_type: "CAUSAL_LM"
 
 training:
-  dataset_path: "datasets/processed/v0.4.3/jitna_guardian_pairs.parquet"
+  dataset_path: "datasets/processed/v0.5/jitna_guardian_pairs_v05.parquet"
   dataset_split: "train"
-  validation_split: 0.1
+  validation_split: 0.05
   max_samples: null
 
   per_device_train_batch_size: 2
   gradient_accumulation_steps: 4
 
-  learning_rate: 2.0e-5           # Very low LR — safety alignment must be precise
+  learning_rate: 5.0e-5
   lr_scheduler_type: "cosine"
-  warmup_ratio: 0.1
-  num_train_epochs: 6
+  warmup_ratio: 0.05
+  num_train_epochs: 5
 
   bf16: true
   fp16: false
   optim: "adamw_8bit"
-  weight_decay: 0.02              # Slightly higher weight decay for regularization
+  weight_decay: 0.01
   max_grad_norm: 0.3
 
-  output_dir: "models/checkpoints/guardian_constitutional"
+  output_dir: "models/checkpoints/jitna_guardian_v05"
   save_strategy: "epoch"
   save_total_limit: 3
   logging_steps: 10
@@ -62,30 +55,25 @@ training:
   metric_for_best_model: "eval_loss"
 
 chat_template: |
-  <|start_header_id|>system<|end_header_id|>
-
-  You are The Guardian (slm-jitna-guardian) — a specialized Constitutional AI safety evaluator within the Delentia OS 1+4 Pillar Architecture. Your purpose is to evaluate every user intent for safety using the FDIA formula: F = D^I × A, where D=Data integrity, I=Intent clarity, A=Architect approval (0 or 1). Output ONLY a JSON verdict. If the intent is harmful, set A=0 and status=REJECTED. If safe, set A=1 and status=AUTHORIZED.<|eot_id|><|start_header_id|>cognitive_state<|end_header_id|>
-
-  D=0.95, delta=0, A=1<|eot_id|><|start_header_id|>user<|end_header_id|>
-
-  {{ user_intent }}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+  {% for message in messages %}
+  {% if message['role'] == 'system' %}{{ '<|im_start|>system\n' + message['content'] + '<|im_end|>\n' }}
+  {% elif message['role'] == 'cognitive_state' %}{{ '<|im_start|>cognitive_state\n' + message['content'] + '<|im_end|>\n' }}
+  {% elif message['role'] == 'user' %}{{ '<|im_start|>user\n' + message['content'] + '<|im_end|>\n' }}
+  {% elif message['role'] == 'assistant' %}{{ '<|im_start|>assistant\n' + message['content'] + '<|im_end|>\n' }}
+  {% endif %}
+  {% endfor %}
+  {% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}
 
 pillar_type: "guardian"
-adapter_name: "jitna_guardian_v0.4.3"
-adapter_save_path: "models/adapters/jitna_guardian_v0.4.3"
+adapter_name: "jitna_guardian_v0.5"
+adapter_save_path: "models/adapters/v0.5/jitna_guardian_v0.5"
+version: "v0.5"
 
 mlflow:
-  experiment_name: "delentia-slm-guardian-constitutional"
+  experiment_name: "delentia-slm-guardian-v05"
   tracking_uri: "https://delentia-delentia-agent-monitor.hf.space"
   log_model: true
 
 target_metrics:
-  adversarial_rejection_rate: 0.99   # >= 99% rejection of hostile intents
-  false_positive_rate: 0.02          # <= 2% false blocking of safe intents
-  fdia_accuracy: 0.95                # >= 95% correct FDIA scoring
-  jailbreak_resistance: 0.98         # >= 98% resistance to jailbreak attempts
-
-security:
-  data_provenance: "closed_environment_only"
-  backdoor_check: true
-  adversarial_validation: true
+  guardian_veto_rate: 1.00       # 100% detection and veto of hostile/jailbreak intent
+  false_positive_rate: 0.01      # <= 1% false positive block rate

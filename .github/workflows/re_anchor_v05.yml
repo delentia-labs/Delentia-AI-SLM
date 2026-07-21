@@ -1,0 +1,149 @@
+name: 🔄 Automated Re-anchoring — Jitna v0.5 Pillars
+
+on:
+  # Manual dispatch: team member picks which pillar(s) to re-anchor
+  workflow_dispatch:
+    inputs:
+      pillar:
+        description: "Which LoRA pillar to re-anchor (or 'all' for all 4)"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - "all"
+          - "executor"
+          - "guardian"
+          - "router"
+          - "scribe"
+      dry_run:
+        description: "Dry run — validate dataset only, skip actual training"
+        required: false
+        default: false
+        type: boolean
+
+  # Auto-trigger when v0.5 training datasets are updated
+  push:
+    paths:
+      - "datasets/processed/v0.5/**"
+      - "datasets/scripts/build_golden_dataset_v05.py"
+    branches:
+      - "main"
+      - "train/v0.5*"
+
+jobs:
+  # ── Gate: Validate datasets before committing GPU time ────────────────────────
+  validate-datasets:
+    name: "🗂️ Validate v0.5 Pillar Datasets"
+    runs-on: ubuntu-latest
+    outputs:
+      executor_rows: ${{ steps.validate.outputs.executor_rows }}
+      guardian_rows: ${{ steps.validate.outputs.guardian_rows }}
+      router_rows:   ${{ steps.validate.outputs.router_rows }}
+      scribe_rows:   ${{ steps.validate.outputs.scribe_rows }}
+      all_valid:     ${{ steps.validate.outputs.all_valid }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install validation dependencies
+        run: pip install pandas pyarrow
+
+      - name: Validate pillar parquet datasets
+        id: validate
+        run: |
+          python - <<'EOF'
+          import pandas as pd
+          from pathlib import Path
+          import os
+
+          REQUIRED_MIN_ROWS = 100
+          pillars = {
+              "executor": "datasets/processed/v0.5/jitna_executor_pairs_v05.parquet",
+              "guardian": "datasets/processed/v0.5/jitna_guardian_pairs_v05.parquet",
+              "router":   "datasets/processed/v0.5/jitna_router_pairs_v05.parquet",
+              "scribe":   "datasets/processed/v0.5/jitna_scribe_pairs_v05.parquet",
+          }
+
+          all_valid = True
+          for pillar, path in pillars.items():
+              p = Path(path)
+              if not p.exists():
+                  print(f"MISSING: {path}")
+                  rows = 0
+                  all_valid = False
+              else:
+                  df = pd.read_parquet(p)
+                  rows = len(df)
+                  status = "OK" if rows >= REQUIRED_MIN_ROWS else "TOO FEW"
+                  if rows < REQUIRED_MIN_ROWS:
+                      all_valid = False
+                  print(f"{status}: {pillar} = {rows} rows")
+              with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+                  f.write(f"{pillar}_rows={rows}\n")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"all_valid={'true' if all_valid else 'false'}\n")
+          EOF
+
+      - name: Summary
+        run: |
+          echo "### Dataset Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Pillar | Rows |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Executor | ${{ steps.validate.outputs.executor_rows }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Guardian | ${{ steps.validate.outputs.guardian_rows }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Router   | ${{ steps.validate.outputs.router_rows }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Scribe   | ${{ steps.validate.outputs.scribe_rows }} |" >> $GITHUB_STEP_SUMMARY
+
+  # ── Re-anchor: Trigger training on Colab/RunPod via API ──────────────────────
+  re-anchor:
+    name: "🧠 Re-anchor LoRA Pillars → Qwen2.5-27B"
+    runs-on: ubuntu-latest
+    needs: validate-datasets
+    if: needs.validate-datasets.outputs.all_valid == 'true'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install lightweight dependencies
+        run: pip install pandas pyarrow huggingface_hub
+
+      - name: Run Re-anchoring Pipeline (dry-run or real)
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          PILLAR="${{ github.event.inputs.pillar || 'all' }}"
+          DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
+          FLAGS="--pillar $PILLAR"
+
+          if [ "$DRY_RUN" == "true" ]; then
+            FLAGS="$FLAGS --dry-run"
+            echo "Running in DRY RUN mode..."
+          fi
+
+          echo "Re-anchoring: python training/re_anchoring_pipeline.py $FLAGS"
+          python training/re_anchoring_pipeline.py $FLAGS
+
+      - name: Post Results to Step Summary
+        if: always()
+        run: |
+          echo "### Re-anchoring Results — Jitna v0.5" >> $GITHUB_STEP_SUMMARY
+          echo "- Base Model: \`Qwen/Qwen2.5-27B-Instruct\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Pillar(s): \`${{ github.event.inputs.pillar || 'all' }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Dry Run: \`${{ github.event.inputs.dry_run || 'false' }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Trigger: \`${{ github.event_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Target HF Repo: \`Delentia/jitna-v0.5-32B-gguf\`" >> $GITHUB_STEP_SUMMARY

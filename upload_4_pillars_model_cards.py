@@ -41,16 +41,48 @@ tags:
 
 # Delentia SLM — The Router v0.4 (slm-jitna-router-v0.4)
 
+[![GitHub Stars](https://img.shields.io/github/stars/delentia-labs/Delentia-OS?style=social)](https://github.com/delentia-labs/Delentia-OS)
+[![GitHub Forks](https://img.shields.io/github/forks/delentia-labs/Delentia-OS?style=social)](https://github.com/delentia-labs/Delentia-OS)
+
+> ⚙️ **Looking for the SDK & Source Code?**  
+> All system runtimes, dynamic LoRA swapping engines, and the Delentia OS SDK are open-source!  
+> 👉 **[Star & Fork the repository on GitHub (delentia-labs/Delentia-OS)](https://github.com/delentia-labs/Delentia-OS)**
+
+---
+
 The Router is a specialized Sequence Classification LoRA adapter within the **Delentia OS 1+4 Pillar Architecture**. Its primary role is to intercept incoming user intents and classify them into one of the specialized execution pathways at ultra-low latency.
 
-## 🔗 JITNA Ecosystem Links
-To ensure proper routing operations, developers must configure JITNA to load the associated components:
-* **Core Foundation Base:** [Delentia/delentia-slm-jitna-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-v0.4)
-* **Sibling Adapters:**
-  * ⚡ [The Executor v0.4](https://huggingface.co/Delentia/delentia-lora-executor-v0.4)
-  * 🛡️ [The Guardian v0.4](https://huggingface.co/Delentia/delentia-lora-guardian-v0.4)
-  * 📜 [The Scribe v0.4](https://huggingface.co/Delentia/delentia-lora-scribe-v0.4)
-* **Training Dataset:** [Delentia/delentia-rct-intent-dataset](https://huggingface.co/datasets/Delentia/delentia-rct-intent-dataset)
+
+## ⚡ Quick Start: Load Adapter via PEFT
+To execute this specialized classification adapter, load it on top of the base model:
+```python
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from peft import PeftModel
+
+base_model_name = "Delentia/delentia-slm-jitna-v0.4"
+adapter_name = "Delentia/delentia-lora-router-v0.4"
+
+# Load base model & tokenizer
+model = AutoModelForSequenceClassification.from_pretrained(base_model_name, num_labels=4)
+tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+
+# Load adapter
+model = PeftModel.from_pretrained(model, adapter_name)
+```
+
+## 🌐 Delentia OS Ecosystem Model Roster (v0.4.x)
+Delentia OS is organized into two primary deployment styles: **Dynamic PEFT Adapters** (1+4 Pillars) for sub-ms switching in unified VRAM, and **Pre-Merged GGUF Models** for direct plug-and-play local execution in Ollama / llama.cpp.
+
+| Component / Role | Deployment Type | Hugging Face Repository | Description | GGUF Support |
+| :--- | :--- | :--- | :--- | :---: |
+| **SLM Base Kernel** | Base Foundation | [Delentia/delentia-slm-jitna-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-v0.4) | Core cognitive LLM (8B Parameters) | ✅ |
+| **The Router** | PEFT LoRA Adapter | [Delentia/delentia-lora-router-v0.4](https://huggingface.co/Delentia/delentia-lora-router-v0.4) | Intention parser & node routing | ❌ (PEFT only) |
+| **The Executor** | PEFT LoRA Adapter | [Delentia/delentia-lora-executor-v0.4](https://huggingface.co/Delentia/delentia-lora-executor-v0.4) | JSON tool payload generation | ✅ (Merged GGUF below) |
+| **The Guardian** | PEFT LoRA Adapter | [Delentia/delentia-lora-guardian-v0.4](https://huggingface.co/Delentia/delentia-lora-guardian-v0.4) | Zero-trust constitutional safety | ✅ (Merged GGUF below) |
+| **The Scribe** | PEFT LoRA Adapter | [Delentia/delentia-lora-scribe-v0.4](https://huggingface.co/Delentia/delentia-lora-scribe-v0.4) | Context compression/summarization | ✅ (Merged GGUF below) |
+| **Pre-Merged Executor** | Pre-Merged GGUF | [Delentia/delentia-slm-jitna-executor-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-executor-v0.4) | Complete tool executor (plug-and-play) | ✅ |
+| **Pre-Merged Guardian** | Pre-Merged GGUF | [Delentia/delentia-slm-jitna-guardian-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-guardian-v0.4) | Full safety guardrail model | ✅ |
+| **Pre-Merged Scribe** | Pre-Merged GGUF | [Delentia/delentia-slm-jitna-scribe-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-scribe-v0.4) | Out-of-the-box context compressor | ✅ |
 
 ## Technical Specifications
 - **Base Model:** `unsloth/Meta-Llama-3.1-8B-bnb-4bit`
@@ -87,20 +119,52 @@ tags:
 
 # Delentia SLM — The Executor v0.4 (slm-jitna-executor-v0.4)
 
+[![GitHub Stars](https://img.shields.io/github/stars/delentia-labs/Delentia-OS?style=social)](https://github.com/delentia-labs/Delentia-OS)
+[![GitHub Forks](https://img.shields.io/github/forks/delentia-labs/Delentia-OS?style=social)](https://github.com/delentia-labs/Delentia-OS)
+
+> ⚙️ **Looking for the SDK & Source Code?**  
+> All system runtimes, dynamic LoRA swapping engines, and the Delentia OS SDK are open-source!  
+> 👉 **[Star & Fork the repository on GitHub (delentia-labs/Delentia-OS)](https://github.com/delentia-labs/Delentia-OS)**
+
+---
+
 The Executor is a specialized generative LoRA adapter in the **Delentia OS 1+4 Pillar Architecture**. It is trained specifically to translate raw user intents into machine-executable JSON/TOON payloads.
+
 
 ## Key Principles
 1. **Zero Conversational Bias:** Output is strictly restricted to valid, raw JSON/TOON format. It never generates conversational fillers or explanations.
 2. **Deterministic Tool Invocation:** Correctly maps tools, parameters, and system state boundaries with zero hallucinations.
 
-## 🔗 JITNA Ecosystem Links
-To ensure proper execution of tool calls, compile with these associated components:
-* **Core Foundation Base:** [Delentia/delentia-slm-jitna-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-v0.4)
-* **Sibling Adapters:**
-  * 🔀 [The Router v0.4](https://huggingface.co/Delentia/delentia-lora-router-v0.4)
-  * 🛡️ [The Guardian v0.4](https://huggingface.co/Delentia/delentia-lora-guardian-v0.4)
-  * 📜 [The Scribe v0.4](https://huggingface.co/Delentia/delentia-lora-scribe-v0.4)
-* **Training Dataset:** [Delentia/delentia-rct-intent-dataset](https://huggingface.co/datasets/Delentia/delentia-rct-intent-dataset)
+## ⚡ Quick Start: Load Adapter via PEFT
+To execute this specialized generative tool-calling adapter, load it on top of the base model:
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import PeftModel
+
+base_model_name = "Delentia/delentia-slm-jitna-v0.4"
+adapter_name = "Delentia/delentia-lora-executor-v0.4"
+
+# Load base model & tokenizer
+model = AutoModelForCausalLM.from_pretrained(base_model_name)
+tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+
+# Load adapter
+model = PeftModel.from_pretrained(model, adapter_name)
+```
+
+## 🌐 Delentia OS Ecosystem Model Roster (v0.4.x)
+Delentia OS is organized into two primary deployment styles: **Dynamic PEFT Adapters** (1+4 Pillars) for sub-ms switching in unified VRAM, and **Pre-Merged GGUF Models** for direct plug-and-play local execution in Ollama / llama.cpp.
+
+| Component / Role | Deployment Type | Hugging Face Repository | Description | GGUF Support |
+| :--- | :--- | :--- | :--- | :---: |
+| **SLM Base Kernel** | Base Foundation | [Delentia/delentia-slm-jitna-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-v0.4) | Core cognitive LLM (8B Parameters) | ✅ |
+| **The Router** | PEFT LoRA Adapter | [Delentia/delentia-lora-router-v0.4](https://huggingface.co/Delentia/delentia-lora-router-v0.4) | Intention parser & node routing | ❌ (PEFT only) |
+| **The Executor** | PEFT LoRA Adapter | [Delentia/delentia-lora-executor-v0.4](https://huggingface.co/Delentia/delentia-lora-executor-v0.4) | JSON tool payload generation | ✅ (Merged GGUF below) |
+| **The Guardian** | PEFT LoRA Adapter | [Delentia/delentia-lora-guardian-v0.4](https://huggingface.co/Delentia/delentia-lora-guardian-v0.4) | Zero-trust constitutional safety | ✅ (Merged GGUF below) |
+| **The Scribe** | PEFT LoRA Adapter | [Delentia/delentia-lora-scribe-v0.4](https://huggingface.co/Delentia/delentia-lora-scribe-v0.4) | Context compression/summarization | ✅ (Merged GGUF below) |
+| **Pre-Merged Executor** | Pre-Merged GGUF | [Delentia/delentia-slm-jitna-executor-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-executor-v0.4) | Complete tool executor (plug-and-play) | ✅ |
+| **Pre-Merged Guardian** | Pre-Merged GGUF | [Delentia/delentia-slm-jitna-guardian-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-guardian-v0.4) | Full safety guardrail model | ✅ |
+| **Pre-Merged Scribe** | Pre-Merged GGUF | [Delentia/delentia-slm-jitna-scribe-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-scribe-v0.4) | Out-of-the-box context compressor | ✅ |
 
 ## Technical Specifications
 - **Base Model:** `unsloth/Meta-Llama-3.1-8B-bnb-4bit`
@@ -129,7 +193,17 @@ tags:
 
 # Delentia SLM — The Guardian v0.4 (slm-jitna-guardian-v0.4)
 
+[![GitHub Stars](https://img.shields.io/github/stars/delentia-labs/Delentia-OS?style=social)](https://github.com/delentia-labs/Delentia-OS)
+[![GitHub Forks](https://img.shields.io/github/forks/delentia-labs/Delentia-OS?style=social)](https://github.com/delentia-labs/Delentia-OS)
+
+> ⚙️ **Looking for the SDK & Source Code?**  
+> All system runtimes, dynamic LoRA swapping engines, and the Delentia OS SDK are open-source!  
+> 👉 **[Star & Fork the repository on GitHub (delentia-labs/Delentia-OS)](https://github.com/delentia-labs/Delentia-OS)**
+
+---
+
 The Guardian is the Constitutional AI safety evaluator in the **Delentia OS 1+4 Pillar Architecture**. It computes real-time intent safety based on the constitutional FDIA formula.
+
 
 ## The FDIA Safety Equation
 Every prompt is evaluated using the formula:
@@ -144,14 +218,36 @@ Where:
 > [!WARNING]
 > **Mathematical Preemption Proof:** If the Guardian detects a prompt injection, privilege escalation attempt, or PDPA violation, it sets $A = 0$, forcing $F = 0$ instantly. This mathematical design cancels the transaction before execution.
 
-## 🔗 JITNA Ecosystem Links
-To ensure proper guardrails check, connect with the following components:
-* **Core Foundation Base:** [Delentia/delentia-slm-jitna-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-v0.4)
-* **Sibling Adapters:**
-  * 🔀 [The Router v0.4](https://huggingface.co/Delentia/delentia-lora-router-v0.4)
-  * ⚡ [The Executor v0.4](https://huggingface.co/Delentia/delentia-lora-executor-v0.4)
-  * 📜 [The Scribe v0.4](https://huggingface.co/Delentia/delentia-lora-scribe-v0.4)
-* **Training Dataset:** [Delentia/delentia-rct-intent-dataset](https://huggingface.co/datasets/Delentia/delentia-rct-intent-dataset)
+## ⚡ Quick Start: Load Adapter via PEFT
+To execute this specialized generative safety guardrail adapter, load it on top of the base model:
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import PeftModel
+
+base_model_name = "Delentia/delentia-slm-jitna-v0.4"
+adapter_name = "Delentia/delentia-lora-guardian-v0.4"
+
+# Load base model & tokenizer
+model = AutoModelForCausalLM.from_pretrained(base_model_name)
+tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+
+# Load adapter
+model = PeftModel.from_pretrained(model, adapter_name)
+```
+
+## 🌐 Delentia OS Ecosystem Model Roster (v0.4.x)
+Delentia OS is organized into two primary deployment styles: **Dynamic PEFT Adapters** (1+4 Pillars) for sub-ms switching in unified VRAM, and **Pre-Merged GGUF Models** for direct plug-and-play local execution in Ollama / llama.cpp.
+
+| Component / Role | Deployment Type | Hugging Face Repository | Description | GGUF Support |
+| :--- | :--- | :--- | :--- | :---: |
+| **SLM Base Kernel** | Base Foundation | [Delentia/delentia-slm-jitna-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-v0.4) | Core cognitive LLM (8B Parameters) | ✅ |
+| **The Router** | PEFT LoRA Adapter | [Delentia/delentia-lora-router-v0.4](https://huggingface.co/Delentia/delentia-lora-router-v0.4) | Intention parser & node routing | ❌ (PEFT only) |
+| **The Executor** | PEFT LoRA Adapter | [Delentia/delentia-lora-executor-v0.4](https://huggingface.co/Delentia/delentia-lora-executor-v0.4) | JSON tool payload generation | ✅ (Merged GGUF below) |
+| **The Guardian** | PEFT LoRA Adapter | [Delentia/delentia-lora-guardian-v0.4](https://huggingface.co/Delentia/delentia-lora-guardian-v0.4) | Zero-trust constitutional safety | ✅ (Merged GGUF below) |
+| **The Scribe** | PEFT LoRA Adapter | [Delentia/delentia-lora-scribe-v0.4](https://huggingface.co/Delentia/delentia-lora-scribe-v0.4) | Context compression/summarization | ✅ (Merged GGUF below) |
+| **Pre-Merged Executor** | Pre-Merged GGUF | [Delentia/delentia-slm-jitna-executor-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-executor-v0.4) | Complete tool executor (plug-and-play) | ✅ |
+| **Pre-Merged Guardian** | Pre-Merged GGUF | [Delentia/delentia-slm-jitna-guardian-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-guardian-v0.4) | Full safety guardrail model | ✅ |
+| **Pre-Merged Scribe** | Pre-Merged GGUF | [Delentia/delentia-slm-jitna-scribe-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-scribe-v0.4) | Out-of-the-box context compressor | ✅ |
 
 ## Technical Specifications
 - **Base Model:** `unsloth/Meta-Llama-3.1-8B-bnb-4bit`
@@ -180,19 +276,53 @@ tags:
 
 # Delentia SLM — The Scribe v0.4 (slm-jitna-scribe-v0.4)
 
+[![GitHub Stars](https://img.shields.io/github/stars/delentia-labs/Delentia-OS?style=social)](https://github.com/delentia-labs/Delentia-OS)
+[![GitHub Forks](https://img.shields.io/github/forks/delentia-labs/Delentia-OS?style=social)](https://github.com/delentia-labs/Delentia-OS)
+
+> ⚙️ **Looking for the SDK & Source Code?**  
+> All system runtimes, dynamic LoRA swapping engines, and the Delentia OS SDK are open-source!  
+> 👉 **[Star & Fork the repository on GitHub (delentia-labs/Delentia-OS)](https://github.com/delentia-labs/Delentia-OS)**
+
+---
+
 The Scribe is a specialized context compression LoRA adapter in the **Delentia OS 1+4 Pillar Architecture**. It resolves context window saturation by performing recursive text summarization.
+
 
 ## Core Mechanics
 1. **Recursive Summarization:** Condenses long historical chat context into a structured, minimal TOON representation.
 2. **Noise Reduction:** Filters out colloquial conversational elements, keeping only actionable parameters.
 
-## 🔗 JITNA Ecosystem Links
-To ensure proper context compression, connect with these associated components:
-* **Core Foundation Base:** [Delentia/delentia-slm-jitna-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-v0.4)
-* **Sibling Adapters:**
-  * 🔀 [The Router v0.4](https://huggingface.co/Delentia/delentia-lora-router-v0.4)
-  * ⚡ [The Executor v0.4](https://huggingface.co/Delentia/delentia-lora-executor-v0.4)
-  * 🛡️ [The Guardian v0.4](https://huggingface.co/Delentia/delentia-lora-guardian-v0.4)
+## ⚡ Quick Start: Load Adapter via PEFT
+To execute this specialized generative context-compression adapter, load it on top of the base model:
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import PeftModel
+
+base_model_name = "Delentia/delentia-slm-jitna-v0.4"
+adapter_name = "Delentia/delentia-lora-scribe-v0.4"
+
+# Load base model & tokenizer
+model = AutoModelForCausalLM.from_pretrained(base_model_name)
+tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+
+# Load adapter
+model = PeftModel.from_pretrained(model, adapter_name)
+```
+
+## 🌐 Delentia OS Ecosystem Model Roster (v0.4.x)
+Delentia OS is organized into two primary deployment styles: **Dynamic PEFT Adapters** (1+4 Pillars) for sub-ms switching in unified VRAM, and **Pre-Merged GGUF Models** for direct plug-and-play local execution in Ollama / llama.cpp.
+
+| Component / Role | Deployment Type | Hugging Face Repository | Description | GGUF Support |
+| :--- | :--- | :--- | :--- | :---: |
+| **SLM Base Kernel** | Base Foundation | [Delentia/delentia-slm-jitna-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-v0.4) | Core cognitive LLM (8B Parameters) | ✅ |
+| **The Router** | PEFT LoRA Adapter | [Delentia/delentia-lora-router-v0.4](https://huggingface.co/Delentia/delentia-lora-router-v0.4) | Intention parser & node routing | ❌ (PEFT only) |
+| **The Executor** | PEFT LoRA Adapter | [Delentia/delentia-lora-executor-v0.4](https://huggingface.co/Delentia/delentia-lora-executor-v0.4) | JSON tool payload generation | ✅ (Merged GGUF below) |
+| **The Guardian** | PEFT LoRA Adapter | [Delentia/delentia-lora-guardian-v0.4](https://huggingface.co/Delentia/delentia-lora-guardian-v0.4) | Zero-trust constitutional safety | ✅ (Merged GGUF below) |
+| **The Scribe** | PEFT LoRA Adapter | [Delentia/delentia-lora-scribe-v0.4](https://huggingface.co/Delentia/delentia-lora-scribe-v0.4) | Context compression/summarization | ✅ (Merged GGUF below) |
+| **Pre-Merged Executor** | Pre-Merged GGUF | [Delentia/delentia-slm-jitna-executor-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-executor-v0.4) | Complete tool executor (plug-and-play) | ✅ |
+| **Pre-Merged Guardian** | Pre-Merged GGUF | [Delentia/delentia-slm-jitna-guardian-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-guardian-v0.4) | Full safety guardrail model | ✅ |
+| **Pre-Merged Scribe** | Pre-Merged GGUF | [Delentia/delentia-slm-jitna-scribe-v0.4](https://huggingface.co/Delentia/delentia-slm-jitna-scribe-v0.4) | Out-of-the-box context compressor | ✅ |
+
 * **Ecosystem Datasets:**
   * 📖 [RAG Corpus Dataset](https://huggingface.co/datasets/Delentia/delentia-os-whitepaper-rag-corpus) — source material for long-document parsing.
   * 📊 [Intent Training Dataset](https://huggingface.co/datasets/Delentia/delentia-rct-intent-dataset)
@@ -249,7 +379,8 @@ def main():
 
         github_url = "https://github.com/delentia-labs/Delentia-AI-SLM/blob/main/notebooks/v0.4.3/colab_4_pillars_v043.ipynb"
         colab_url = "https://colab.research.google.com/github/delentia-labs/Delentia-AI-SLM/blob/main/notebooks/v0.4.3/colab_4_pillars_v043.ipynb"
-        header_inject = f"[GitHub Source]({github_url}) | [Live Auditor (Google Colab)]({colab_url}) | [SHA256 - Verified Purity](README#empirical-audit-ledger) | [DOI: 10.5281/zenodo.20920052](https://doi.org/10.5281/zenodo.20920052)\n\n"
+        sdk_url = "https://github.com/delentia-labs/Delentia-OS"
+        header_inject = f"[⚙️ GitHub SDK]({sdk_url}) | [GitHub Source]({github_url}) | [Live Auditor (Google Colab)]({colab_url}) | [SHA256 - Verified Purity](README#empirical-audit-ledger) | [DOI: 10.5281/zenodo.20920052](https://doi.org/10.5281/zenodo.20920052)\n\n"
         header_inject += "> ### 🛡️ Attest the Performance Live on Free T4 GPU\n"
         header_inject += "> We challenge any technical reviewer, auditor, or developer to verify our systems benchmarks.\n"
         header_inject += f"> Click the badge below to run the clean-room auditor on a free Google Colab T4 GPU instance. No private credentials or Drive mounts are required.\n>\n"

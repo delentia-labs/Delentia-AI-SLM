@@ -47,12 +47,16 @@ PILLAR_CONFIGS = {
     "executor": Path(__file__).parent / "config" / "slm_jitna_executor.yaml",
     "guardian": Path(__file__).parent / "config" / "slm_jitna_guardian.yaml",
     "scribe":  Path(__file__).parent / "config" / "slm_jitna_scribe.yaml",
+    # v0.5: Qwen2.5-32B Sovereign Core (Knowledge Hardening baseline)
+    "sovereign": Path(__file__).parent / "config" / "slm_sovereign_qwen27b.yaml",
 }
 
 PILLAR_LABELS = {
     "executor": "The Executor (slm-jitna-agentic)",
     "guardian": "The Guardian (slm-jitna-guardian)",
     "scribe":  "The Scribe (slm-jitna-scribe)",
+    # v0.5: Sovereign Core — base knowledge injection for Qwen2.5-32B on A100
+    "sovereign": "Sovereign Core v0.5 (Qwen2.5-32B / A100 40GB)",
 }
 @app.command()
 def main(
@@ -60,8 +64,9 @@ def main(
     dry_run: bool = typer.Option(False, help="Validate setup without training"),  # noqa: B008
     toon: bool = typer.Option(False, "--toon", help="Train with TOON v0.2 format"),  # noqa: B008
     adapter_path: Path = typer.Option(None, help="LoRA adapter save directory"),  # noqa: B008
-    pillar: str = typer.Option(None, help="Pillar type: executor, guardian, scribe (Router uses finetune_classifier.py)"),  # noqa: B008
+    pillar: str = typer.Option(None, help="Pillar type: executor, guardian, scribe, sovereign (Router uses finetune_classifier.py)"),  # noqa: B008
     push_to_hub: bool = typer.Option(False, "--push-to-hub", help="Push checkpoints to HF Hub"),  # noqa: B008
+    base_model: str = typer.Option(None, "--base-model", help="Override base model (e.g. Qwen/Qwen2.5-32B-Instruct)"),  # noqa: B008
 ):
     if pillar:
         pillar = pillar.lower()
@@ -69,12 +74,19 @@ def main(
             console.print("[red]The Router uses Sequence Classification. Use finetune_classifier.py instead.[/]")
             raise typer.Exit(1)
         if pillar not in PILLAR_CONFIGS:
-            console.print(f"[red]Unknown pillar:[/] {pillar}. Valid: executor, guardian, scribe")
+            console.print(f"[red]Unknown pillar:[/] {pillar}. Valid: executor, guardian, scribe, sovereign")
             raise typer.Exit(1)
         # Use pillar-specific config if user didn't provide a custom one
         if config == CONFIG_DEFAULT:
             config = PILLAR_CONFIGS[pillar]
         version_label = PILLAR_LABELS[pillar]
+        # v0.5 Sovereign Core: show A100 requirement reminder
+        if pillar == "sovereign":
+            console.print(Panel(
+                "[yellow]⚠️  Sovereign Core (Qwen2.5-32B) requires A100 40GB VRAM + 83.5GB System RAM[/]\n"
+                "[cyan]Run on Google Colab A100 session. Ensure --base-model is not overridden to Llama.[/]",
+                title="[bold]v0.5 Sovereign Core Notice[/bold]",
+            ))
     elif toon:
         version_label = "v0.2 TOON"
     else:
