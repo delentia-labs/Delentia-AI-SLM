@@ -245,16 +245,7 @@ def retrain_pillar(pillar_config: PillarConfig, dry_run: bool = False) -> bool:
     model.save_pretrained(str(cfg.save_path))
     tokenizer.save_pretrained(str(cfg.save_path))
     print(f"   ✅ {cfg.name} LoRA saved to: {cfg.save_path}")
-    # Push to Hugging Face Hub
-    if push_to_hub:
-        try:
-            repo_id = f"Delentia/{cfg.save_path.name}"
-            print(f"   🚀 Pushing {cfg.name} to Hugging Face Hub ({repo_id})...")
-            model.push_to_hub(repo_id)
-            tokenizer.push_to_hub(repo_id)
-            print(f"   ✅ Successfully pushed to https://huggingface.co/{repo_id}")
-        except Exception as e:
-            print(f"   ❌ Failed to push to Hugging Face: {e}")
+
 
 
     return True
