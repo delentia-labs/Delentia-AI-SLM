@@ -3,15 +3,15 @@
 # Hardware: Google Colab A100 40GB VRAM / 83.5GB System RAM
 #
 # KEY CHANGES FROM v0.4.x:
-#   - Base model: Llama 3.1 8B → unsloth/Qwen2.5-32B-Instruct-bnb-4bit
+#   - Base model: Llama 3.1 8B → Qwen/Qwen3.6-27B
 #   - LoRA rank:  r=32          → r=64   (A100 VRAM headroom allows higher quality)
 #   - Sequence:   4096          → 16384  (16K context for JITNA chain capture)
 #   - Batch:      1             → 2      (A100 VRAM headroom)
 #   - bf16:       auto-detect   → True   (A100 Ampere supports native BF16)
 
 model:
-  base_model: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
-  tokenizer: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
+  base_model: "Qwen/Qwen3.6-27B"
+  tokenizer: "Qwen/Qwen3.6-27B"
   max_seq_length: 16384         # 16K context (vs 4K in v0.4.x)
   dtype: "bfloat16"             # A100 native BF16 — faster + numerically stable
   load_in_4bit: true            # NF4 quantization: 27B fits in ~13.5GB VRAM
