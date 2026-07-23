@@ -99,7 +99,7 @@ PILLAR_CONFIGS = {
     ),
 }
 
-BASE_MODEL = "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
+BASE_MODEL = "Qwen/Qwen3.6-27B"
 
 
 def check_environment() -> bool:
@@ -327,7 +327,7 @@ Examples:
 
     print("🔄 Delentia OS v0.5 — Automated Re-anchoring Pipeline")
     print("=" * 60)
-    print(f"   New Base: {BASE_MODEL}")
+    print(f"   New Base: {BASE_MODEL} (Dynamically loaded in 4-bit via Unsloth)")
     print(f"   Old Base: Qwen 0.5 (v0.5)")
     print(f"   Mode:     {'DRY RUN' if args.dry_run else 'FULL TRAINING'}")
     print()
