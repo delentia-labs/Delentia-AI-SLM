@@ -31,6 +31,8 @@ Usage:
     python training/re_anchoring_pipeline.py --pillar guardian --dry-run
 """
 
+import os
+os.environ["UNSLOTH_COMPILE_DISABLE"] = "1"  # Bypass Unsloth compilation bug for Qwen3.5 architecture
 import argparse
 import json
 import sys
