@@ -309,7 +309,7 @@ Examples:
         action="store_true",
         help="Validate setup and estimate time without training",
     )
-        parser.add_argument(
+    parser.add_argument(
         "--push-to-hub",
         action="store_true",
         help="Push trained adapters to Hugging Face Hub automatically",
