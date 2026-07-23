@@ -133,7 +133,7 @@ def validate_dataset(pillar_config: PillarConfig) -> int:
 
     try:
         import pandas as pd
-        df = pd.read_parquet(dataset_path) if dataset_path.suffix == ".parquet" else None
+        df = pd.read_json(dataset_path, lines=True) if dataset_path.suffix == ".jsonl" else None
         if df is not None:
             print(f"   Dataset: {dataset_path.name} — {len(df):,} rows ✅")
             return len(df)
