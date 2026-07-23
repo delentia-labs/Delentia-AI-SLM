@@ -1,0 +1,12 @@
+{
+  "domain_intent": "Complex TOON JSON Tools and Logic Execution",
+  "seed_examples": [
+    {
+      "prompt": "Create a multi-step execution plan for deploying a microservice. It needs a build step, test step, and deploy step. Format strictly as TOON JSON array of tool_calls.",
+      "completion": "{\"tool_calls\": [{\"name\": \"docker.build\", \"arguments\": {\"image\": \"{microservice_name}\", \"tag\": \"latest\"}}, {\"name\": \"pytest.run\", \"arguments\": {\"target\": \"{microservice_name}/tests\"}}, {\"name\": \"k8s.apply\", \"arguments\": {\"deployment\": \"{microservice_name}-deployment.yaml\"}}], \"metadata\": {\"intent_id\": \"multi_step_deploy\", \"confidence\": 0.95, \"source\": \"jitna_executor_v0.5\"}}"
+    }
+  ],
+  "variations": {
+    "microservice_name": ["auth_service", "payment_gateway", "user_profile_db", "notification_worker"]
+  }
+}

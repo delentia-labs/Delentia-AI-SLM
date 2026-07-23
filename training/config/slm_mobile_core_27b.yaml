@@ -1,0 +1,82 @@
+# Delentia OS v0.5.1 — Mobile Core (Qwen3.6-27B) Configuration
+# Purpose: Asymmetric Piggybacking (1-bit Base + 4 Pillars 16-bit LoRA)
+# Architecture: Mobile / Edge Device deployment
+
+model:
+  base_model: "unsloth/Qwen3.6-27B-Instruct-bnb-4bit"
+  tokenizer: "unsloth/Qwen3.6-27B-Instruct-bnb-4bit"
+  max_seq_length: 16384         # 16K context
+  dtype: "bfloat16"
+  load_in_4bit: true
+
+lora:
+  r: 32                         # Set to 32 for Executor stability, 64 for Router/Scribe
+  lora_alpha: 64                # α = 2r
+  lora_dropout: 0
+  bias: "none"
+  use_rslora: true              # Rank-Stabilized LoRA
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+  task_type: "CAUSAL_LM"
+
+training:
+  dataset_path: "datasets/processed/v0.5.1/knowledge_dataset_v0.5.1.parquet"
+  dataset_split: "train"
+  validation_split: 0.05
+  max_samples: null
+
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 4
+
+  learning_rate: 3.0e-5
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.05
+  num_train_epochs: 5
+
+  bf16: true
+  fp16: false
+  optim: "adamw_8bit"
+  weight_decay: 0.01
+  max_grad_norm: 0.3
+
+  output_dir: "models/checkpoints/mobile_core_v051"
+  save_strategy: "steps"
+  save_steps: 100
+  save_total_limit: 3
+  logging_steps: 10
+  evaluation_strategy: "epoch"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  completion_only_loss: true
+  packing: false
+
+chat_template: |
+  {% for message in messages %}
+  {% if message['role'] == 'system' %}{{ '<|im_start|>system\n' + message['content'] + '<|im_end|>\n' }}
+  {% elif message['role'] == 'cognitive_state' %}{{ '<|im_start|>cognitive_state\n' + message['content'] + '<|im_end|>\n' }}
+  {% elif message['role'] == 'user' %}{{ '<|im_start|>user\n' + message['content'] + '<|im_end|>\n' }}
+  {% elif message['role'] == 'assistant' %}{{ '<|im_start|>assistant\n' + message['content'] + '<|im_end|>\n' }}
+  {% endif %}
+  {% endfor %}
+  {% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}
+
+version: "v0.5.1"
+adapter_name: "jitna-v0.5.1"
+adapter_save_path: "models/adapters/jitna_v0.5.1"
+
+mlflow:
+  experiment_name: "delentia-jitna-v051-mobile"
+  tracking_uri: "https://delentia-delentia-agent-monitor.hf.space"
+  log_model: true
+
+target_metrics:
+  json_syntax_error_rate: 0.00
+  guardian_veto_rate:     1.00
+  identity_recall:        0.99
+  context_window:        262144

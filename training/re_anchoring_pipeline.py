@@ -55,46 +55,46 @@ class PillarConfig:
 PILLAR_CONFIGS = {
     "executor": PillarConfig(
         name="Executor",
-        dataset_path=Path("datasets/processed/v0.5/jitna_executor_pairs_v05.parquet") if Path("datasets/processed/v0.5/jitna_executor_pairs_v05.parquet").exists() else Path("datasets/processed/v0.4.3/jitna_executor_pairs.parquet"),
+        dataset_path=Path("datasets/processed/v0.5.1/jitna_executor_pairs_v051.jsonl"),
         lora_r=64,           # Higher rank: JSON syntax requires more precision
         lora_alpha=128,
         learning_rate=3e-5,  # Lower LR: forces precise JSON structure learning
         num_epochs=5,
         max_seq_length=16384,
-        save_path=Path("models/adapters/v0.5/jitna_executor_v0.5"),
+        save_path=Path("models/adapters/v0.5.1/jitna_executor_v0.5.1"),
         description="JSON/TOON output — must maintain 0.00% Syntax Error on Q1_0_G128",
     ),
     "guardian": PillarConfig(
         name="Guardian",
-        dataset_path=Path("datasets/processed/v0.5/jitna_guardian_pairs_v05.parquet") if Path("datasets/processed/v0.5/jitna_guardian_pairs_v05.parquet").exists() else Path("datasets/processed/v0.4.3/jitna_guardian_pairs.parquet"),
+        dataset_path=Path("datasets/processed/v0.5.1/jitna_guardian_pairs_v051.jsonl"),
         lora_r=32,           # Lower rank: binary safety decisions don't need high complexity
         lora_alpha=64,
         learning_rate=5e-5,
         num_epochs=5,
         max_seq_length=8192,
-        save_path=Path("models/adapters/v0.5/jitna_guardian_v0.5"),
+        save_path=Path("models/adapters/v0.5.1/jitna_guardian_v0.5.1"),
         description="Security Veto (A=0) — 100% block rate on adversarial prompts",
     ),
     "router": PillarConfig(
         name="Router",
-        dataset_path=Path("datasets/processed/v0.5/jitna_router_pairs_v05.parquet") if Path("datasets/processed/v0.5/jitna_router_pairs_v05.parquet").exists() else Path("datasets/processed/v0.4.3/jitna_router_pairs.parquet"),
+        dataset_path=Path("datasets/processed/v0.5.1/jitna_router_pairs_v051.jsonl"),
         lora_r=32,
         lora_alpha=64,
         learning_rate=5e-5,
         num_epochs=5,
         max_seq_length=8192,
-        save_path=Path("models/adapters/v0.5/jitna_router_v0.5"),
+        save_path=Path("models/adapters/v0.5.1/jitna_router_v0.5.1"),
         description="Intent Classification & Routing — D/I parameter assignment",
     ),
     "scribe": PillarConfig(
         name="Scribe",
-        dataset_path=Path("datasets/processed/v0.5/jitna_scribe_pairs_v05.parquet") if Path("datasets/processed/v0.5/jitna_scribe_pairs_v05.parquet").exists() else Path("datasets/processed/v0.4.3/jitna_scribe_pairs.parquet"),
+        dataset_path=Path("datasets/processed/v0.5.1/jitna_scribe_pairs_v051.jsonl"),
         lora_r=64,           # Higher rank: context compression requires nuanced understanding
         lora_alpha=128,
         learning_rate=5e-5,
         num_epochs=5,
         max_seq_length=32768,  # Scribe needs the longest context (compressing 262K input)
-        save_path=Path("models/adapters/v0.5/jitna_scribe_v0.5"),
+        save_path=Path("models/adapters/v0.5.1/jitna_scribe_v0.5.1"),
         description="Context Compression (DELTA_COMPRESS) — Delta Engine 262K handler",
     ),
 }
@@ -142,7 +142,7 @@ def validate_dataset(pillar_config: PillarConfig) -> int:
     return 0
 
 
-def retrain_pillar(pillar_config: PillarConfig, dry_run: bool = False) -> bool:
+def retrain_pillar(pillar_config: PillarConfig, dry_run: bool = False, push_to_hub: bool = False) -> bool:
     """
     Re-anchor a single LoRA pillar on Qwen2.5-32B.
     Returns True on success.
@@ -203,7 +203,7 @@ def retrain_pillar(pillar_config: PillarConfig, dry_run: bool = False) -> bool:
     )
 
     # Load dataset
-    df = pd.read_parquet(cfg.dataset_path)
+    df = pd.read_json(cfg.dataset_path, lines=True)
     dataset = Dataset.from_pandas(df)
 
     # Train
@@ -243,6 +243,17 @@ def retrain_pillar(pillar_config: PillarConfig, dry_run: bool = False) -> bool:
     model.save_pretrained(str(cfg.save_path))
     tokenizer.save_pretrained(str(cfg.save_path))
     print(f"   ✅ {cfg.name} LoRA saved to: {cfg.save_path}")
+    # Push to Hugging Face Hub
+    if push_to_hub:
+        try:
+            repo_id = f"Delentia/{cfg.save_path.name}"
+            print(f"   🚀 Pushing {cfg.name} to Hugging Face Hub ({repo_id})...")
+            model.push_to_hub(repo_id)
+            tokenizer.push_to_hub(repo_id)
+            print(f"   ✅ Successfully pushed to https://huggingface.co/{repo_id}")
+        except Exception as e:
+            print(f"   ❌ Failed to push to Hugging Face: {e}")
+
 
     return True
 
@@ -258,7 +269,7 @@ def run_attestation(pillars_done: list[str]) -> None:
             result = subprocess.run(
                 [sys.executable, "training/attestation_ledger.py",
                  "--merged-dir", str(cfg.save_path),
-                 "--notes", f"re-anchored_{pillar_name}_v0.5"],
+                 "--notes", f"re-anchored_{pillar_name}_v0.5.1"],
                 capture_output=True, text=True
             )
             if result.returncode == 0:
@@ -298,6 +309,11 @@ Examples:
         action="store_true",
         help="Validate setup and estimate time without training",
     )
+        parser.add_argument(
+        "--push-to-hub",
+        action="store_true",
+        help="Push trained adapters to Hugging Face Hub automatically",
+    )
     parser.add_argument(
         "--skip-attestation",
         action="store_true",
@@ -312,7 +328,7 @@ Examples:
     print("🔄 Delentia OS v0.5 — Automated Re-anchoring Pipeline")
     print("=" * 60)
     print(f"   New Base: {BASE_MODEL}")
-    print(f"   Old Base: Llama 3.1 8B (v0.4.3)")
+    print(f"   Old Base: Qwen 0.5 (v0.5)")
     print(f"   Mode:     {'DRY RUN' if args.dry_run else 'FULL TRAINING'}")
     print()
 
@@ -329,7 +345,7 @@ Examples:
     results = {}
     for pillar_name in pillars_to_run:
         cfg = PILLAR_CONFIGS[pillar_name]
-        success = retrain_pillar(cfg, dry_run=args.dry_run)
+        success = retrain_pillar(cfg, dry_run=args.dry_run, push_to_hub=args.push_to_hub)
         results[pillar_name] = success
 
     # Summary
