@@ -407,66 +407,31 @@ def main():
 
         print(f"\n--- Processing Pillar: {title} ({suffix}) ---")
 
-        # Write to temporary file
-        temp_file_path = os.path.join(temp_dir, f"README_{pillar_key}.md")
-        with open(temp_file_path, "w", encoding="utf-8") as f:
+        # We will write the README directly into the local adapter folder
+        adapter_folder = os.path.join("models", "adapters", "v0.5.1", f"jitna_{pillar_key}_v0.5.1")
+        
+        if not os.path.exists(adapter_folder):
+            print(f"  ⚠ Warning: Adapter folder {adapter_folder} does not exist. Did you run the training step?")
+            os.makedirs(adapter_folder, exist_ok=True)
+            
+        readme_path = os.path.join(adapter_folder, "README.md")
+        with open(readme_path, "w", encoding="utf-8") as f:
             f.write(readme_content)
-
-        # Upload only to official org repositories
-        for namespace in [org_user]:
-            repo_id = f"{namespace}/{suffix}"
-            print(f"Uploading model card to: {repo_id}...")
-            try:
-                # Ensure repo exists
-                api.create_repo(repo_id=repo_id, repo_type="model", exist_ok=True, private=False)
-                
-                # Determine file path to upload
-                if namespace == personal_user:
-                    personal_readme = f"""---
-license: apache-2.0
-tags:
-- delentia-os
-- deprecated
-- outdated
-- redirection
----
-
-# 🛑 OFFICIAL CORE REDIRECT / ย้ายที่อยู่โมเดลหลักอย่างเป็นทางการ
-
-> [!WARNING]
-> **Architect's Personal Mirror:** โมเดล LoRA Adapter ตัวนี้เป็นเวอร์ชันกระจกส่วนตัวของผู้ออกแบบระบบ เพื่อการใช้งานระดับ Enterprise และรับอัปเดตการตรวจรับรองประสิทธิภาพล่าสุดแบบอัตโนมัติ กรุณาดาวน์โหลดและเรียกใช้จากแหล่งข้อมูลอย่างเป็นทางการขององค์กรกลางที่:
-> 👉 **[Delentia/{suffix}](https://huggingface.co/Delentia/{suffix})**
-"""
-                    temp_personal_file = os.path.join(temp_dir, f"README_{pillar_key}_personal.md")
-                    with open(temp_personal_file, "w", encoding="utf-8") as f:
-                        f.write(personal_readme)
-                    upload_path = temp_personal_file
-                else:
-                    upload_path = temp_file_path
-
-                # Upload file
-                api.upload_file(
-                    path_or_fileobj=upload_path,
-                    path_in_repo="README.md",
-                    repo_id=repo_id,
-                    repo_type="model",
-                    commit_message=f"docs: update model card redirection/official for {title}",
-                )
-                
-                if namespace == personal_user:
-                    try:
-                        os.remove(temp_personal_file)
-                    except Exception:
-                        pass
-                print(f"  ✓ Live: https://huggingface.co/{repo_id}")
-            except Exception as e:
-                print(f"  ⚠ Failed for {repo_id}: {e}")
-
-        # Clean up temporary file
+            
+        # Upload the ENTIRE folder (Weights + Model Card) to Hugging Face
+        repo_id = f"{org_user}/{suffix}"
+        print(f"Uploading folder (Weights + Model Card) to: {repo_id}...")
         try:
-            os.remove(temp_file_path)
-        except Exception:
-            pass
+            api.create_repo(repo_id=repo_id, repo_type="model", exist_ok=True, private=False)
+            api.upload_folder(
+                folder_path=adapter_folder,
+                repo_id=repo_id,
+                repo_type="model",
+                commit_message=f"feat: upload trained adapter weights and model card for {title}"
+            )
+            print(f"  ✓ Live: https://huggingface.co/{repo_id}")
+        except Exception as e:
+            print(f"  ⚠ Failed for {repo_id}: {e}")
 
     # Clean up temp directory
     try:

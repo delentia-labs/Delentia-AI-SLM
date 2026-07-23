@@ -144,7 +144,7 @@ def validate_dataset(pillar_config: PillarConfig) -> int:
     return 0
 
 
-def retrain_pillar(pillar_config: PillarConfig, dry_run: bool = False, push_to_hub: bool = False) -> bool:
+def retrain_pillar(pillar_config: PillarConfig, dry_run: bool = False) -> bool:
     """
     Re-anchor a single LoRA pillar on Qwen2.5-32B.
     Returns True on success.
@@ -311,11 +311,7 @@ Examples:
         action="store_true",
         help="Validate setup and estimate time without training",
     )
-    parser.add_argument(
-        "--push-to-hub",
-        action="store_true",
-        help="Push trained adapters to Hugging Face Hub automatically",
-    )
+
     parser.add_argument(
         "--skip-attestation",
         action="store_true",
@@ -347,7 +343,7 @@ Examples:
     results = {}
     for pillar_name in pillars_to_run:
         cfg = PILLAR_CONFIGS[pillar_name]
-        success = retrain_pillar(cfg, dry_run=args.dry_run, push_to_hub=args.push_to_hub)
+        success = retrain_pillar(cfg, dry_run=args.dry_run)
         results[pillar_name] = success
 
     # Summary
