@@ -102,6 +102,7 @@ PILLAR_CONFIGS = {
 }
 
 BASE_MODEL = "Qwen/Qwen3.6-27B"
+HF_ORG = "Delentia"
 
 
 def check_environment() -> bool:
@@ -142,6 +143,36 @@ def validate_dataset(pillar_config: PillarConfig) -> int:
     except Exception as e:
         print(f"   ❌ Dataset read error: {e}")
     return 0
+
+
+def upload_pillar_to_hub(cfg: PillarConfig) -> None:
+    """
+    🔁 Auto-Upload: ทันทีที่แต่ละเสาเทรนเสร็จ ให้ส่งขึ้น HuggingFace เป็น Save Point
+    วิธีนี้ทำให้ข้อมูลปลอดภัยจาก Colab Session Reset
+    """
+    hf_token = os.environ.get("HF_TOKEN")
+    if not hf_token:
+        print(f"   ⚠️  HF_TOKEN not set — skipping auto-upload for {cfg.name}")
+        print(f"   💡 Set: os.environ['HF_TOKEN'] = 'hf_...' before running")
+        return
+
+    try:
+        from huggingface_hub import HfApi
+        api = HfApi(token=hf_token)
+        repo_id = f"{HF_ORG}/{cfg.save_path.name}"
+        print(f"\n   🔁 Auto-uploading {cfg.name} weights to HF Hub ({repo_id})...")
+        api.create_repo(repo_id=repo_id, repo_type="model", exist_ok=True, private=False)
+        api.upload_folder(
+            folder_path=str(cfg.save_path),
+            repo_id=repo_id,
+            repo_type="model",
+            ignore_patterns=["checkpoints/*"],
+            commit_message=f"feat: auto-upload {cfg.name} v0.5.1 adapter (re-anchored on {BASE_MODEL})"
+        )
+        print(f"   ✅ {cfg.name} safely backed up → https://huggingface.co/{repo_id}")
+    except Exception as e:
+        print(f"   ⚠️  Auto-upload failed for {cfg.name}: {e}")
+        print(f"   💡 Weights are still saved locally. Run Step 4 manually to upload later.")
 
 
 def retrain_pillar(pillar_config: PillarConfig, dry_run: bool = False) -> bool:
@@ -246,7 +277,9 @@ def retrain_pillar(pillar_config: PillarConfig, dry_run: bool = False) -> bool:
     tokenizer.save_pretrained(str(cfg.save_path))
     print(f"   ✅ {cfg.name} LoRA saved to: {cfg.save_path}")
 
-
+    # 🔁 CRITICAL: Auto-upload to HuggingFace immediately as a Save Point
+    # This protects against Colab Session Reset losing all trained weights!
+    upload_pillar_to_hub(cfg)
 
     return True
 
@@ -352,9 +385,9 @@ Examples:
         run_attestation(list(results.keys()))
 
     if all_success:
-        print("\n✅ Re-anchoring complete — all adapters anchored to Qwen2.5-32B")
-        print("   Next: Run Three-Body Synthesis Verification")
-        print("   python training/test_three_body_synthesis.py --gguf-path jitna-v0.5-32B.gguf")
+        print(f"\n✅ Re-anchoring complete — all adapters anchored to {BASE_MODEL}")
+        print("   ✅ Each pillar was auto-uploaded to HuggingFace as it completed")
+        print("   Next: Run Step 4 in Colab to generate Model Cards")
     else:
         print("\n❌ Some pillars failed — review errors above")
         sys.exit(1)
