@@ -303,6 +303,18 @@ def retrain_pillar(pillar_config: PillarConfig, dry_run: bool = False) -> bool:
     # This protects against Colab Session Reset losing all trained weights!
     upload_pillar_to_hub(cfg)
 
+    # 🧹 Clean up GPU memory to prevent memory leaks across loops (avoiding CPU dispatch crashes)
+    print("   🧹 Clearing VRAM cache...")
+    import gc
+    try:
+        del model
+        del tokenizer
+        del trainer
+    except NameError:
+        pass
+    gc.collect()
+    torch.cuda.empty_cache()
+
     return True
 
 
