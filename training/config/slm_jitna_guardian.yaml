@@ -1,28 +1,26 @@
-# Delentia SLM — The Guardian (jitna-guardian-v0.5) LoRA Configuration
+# Delentia SLM — The Guardian (jitna-guardian-v0.5.1) LoRA Configuration
 # Purpose: FDIA Security Gate / Constitutional Policy Enforcement & Veto
-# Base Model: Qwen2.5-27B-Instruct (Jitna v0.5 Engine)
+# Base Model: Qwen/Qwen3.6-27B (DRR Edition)
+# DRR Applied: r=16 (was 32), modules=q+v only (was 7), Est. size ~150 MB
 
 model:
-  base_model: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
-  tokenizer: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
-  max_seq_length: 16384
+  base_model: "Qwen/Qwen3.6-27B"
+  tokenizer: "Qwen/Qwen3.6-27B"
+  max_seq_length: 8192
   dtype: "bfloat16"
   load_in_4bit: true
 
 lora:
-  r: 32                         # Rank 32 sufficient for security verdict classification
-  lora_alpha: 64
+  r: 16                         # DRR: 32→16. Binary veto verdict; low complexity sufficient
+  lora_alpha: 32                # α = 2r (RSLoRA standard ratio)
   lora_dropout: 0
   bias: "none"
   use_rslora: true
   target_modules:
-    - "q_proj"
-    - "k_proj"
-    - "v_proj"
-    - "o_proj"
-    - "gate_proj"
-    - "up_proj"
-    - "down_proj"
+    - "q_proj"                  # Controls WHERE model attends
+    - "v_proj"                  # Controls WHAT model outputs
+  # REMOVED: k_proj, o_proj, gate_proj, up_proj, down_proj
+  # Reason: Guardian's binary decision (A=0/1) is simple enough for q+v only
   task_type: "CAUSAL_LM"
 
 training:

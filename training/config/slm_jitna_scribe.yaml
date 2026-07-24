@@ -1,28 +1,26 @@
-# Delentia SLM — The Scribe (jitna-scribe-v0.5) LoRA Configuration
+# Delentia SLM — The Scribe (jitna-scribe-v0.5.1) LoRA Configuration
 # Purpose: Delta Engine 262K Context Compression & Memory Timeline Summarization
-# Base Model: Qwen2.5-27B-Instruct (Jitna v0.5 Engine)
+# Base Model: Qwen/Qwen3.6-27B (DRR Edition)
+# DRR Applied: r=32 (was 64), modules=q+v only (was 7), Est. size ~300 MB
 
 model:
-  base_model: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
-  tokenizer: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
-  max_seq_length: 16384
+  base_model: "Qwen/Qwen3.6-27B"
+  tokenizer: "Qwen/Qwen3.6-27B"
+  max_seq_length: 32768         # Scribe needs long context for 262K compression
   dtype: "bfloat16"
   load_in_4bit: true
 
 lora:
-  r: 64                         # Higher rank 64 for complex context compaction precision
-  lora_alpha: 128               # α = 2r for stable learning
+  r: 32                         # DRR: 64→32. Context compression needs nuance; r=32 on 27B is sufficient
+  lora_alpha: 64                # α = 2r (RSLoRA standard ratio)
   lora_dropout: 0
   bias: "none"
   use_rslora: true
   target_modules:
-    - "q_proj"
-    - "k_proj"
-    - "v_proj"
-    - "o_proj"
-    - "gate_proj"
-    - "up_proj"
-    - "down_proj"
+    - "q_proj"                  # Controls WHERE model attends (critical for long-context)
+    - "v_proj"                  # Controls WHAT model outputs (compression output)
+  # REMOVED: k_proj, o_proj, gate_proj, up_proj, down_proj
+  # Reason: Scribe compresses 262K context; q+v training focuses attention re-routing
   task_type: "CAUSAL_LM"
 
 training:

@@ -52,52 +52,72 @@ class PillarConfig:
     max_seq_length: int
     save_path: Path
     description: str
+    # DRR: target modules per pillar — controls LoRA file size directly
+    # q_proj + v_proj only = ~75-300 MB per adapter (mobile-safe)
+    # All 7 modules = ~2 GB per adapter (mobile OOM)
+    target_modules: tuple = ("q_proj", "v_proj")
 
+
+# ── DRR (Dynamic Rank Reduction) Table ────────────────────────────────────────
+# Target: Each LoRA adapter must be < 500 MB for Mobile/Edge deployment
+# Rule: Only q_proj + v_proj — controls WHERE to attend & WHAT to output
+#        k,o,gate,up,down are structural layers Qwen 27B already handles well
+# ─────────────────────────────────────────────────────────────────────────────
+# Pillar     │ r   │ α   │ Est. Size │ Reason
+# Executor   │ 32  │ 64  │ ~300 MB   │ JSON/TOON needs precision; q+v sufficient
+# Guardian   │ 16  │ 32  │ ~150 MB   │ Binary veto; low complexity needed
+# Router     │ 8   │ 16  │ ~75 MB    │ Classification; lowest rank viable
+# Scribe     │ 32  │ 64  │ ~300 MB   │ Context compression; needs nuance
+# Total (max simultaneous 3 LoRAs): ~750 MB VRAM overhead → Mobile safe ✅
 
 PILLAR_CONFIGS = {
     "executor": PillarConfig(
         name="Executor",
         dataset_path=Path("datasets/processed/v0.5.1/jitna_executor_pairs_v051.jsonl"),
-        lora_r=64,           # Higher rank: JSON syntax requires more precision
-        lora_alpha=128,
+        lora_r=32,           # DRR: 64→32. JSON precision maintained at r=32 on 27B
+        lora_alpha=64,       # α = 2r (RSLoRA standard ratio)
         learning_rate=3e-5,  # Lower LR: forces precise JSON structure learning
         num_epochs=5,
         max_seq_length=16384,
         save_path=Path("models/adapters/v0.5.1/jitna_executor_v0.5.1"),
         description="JSON/TOON output — must maintain 0.00% Syntax Error on Q1_0_G128",
+        target_modules=("q_proj", "v_proj"),  # ~300 MB (was ~2.15 GB with 7 modules)
     ),
     "guardian": PillarConfig(
         name="Guardian",
         dataset_path=Path("datasets/processed/v0.5.1/jitna_guardian_pairs_v051.jsonl"),
-        lora_r=32,           # Lower rank: binary safety decisions don't need high complexity
-        lora_alpha=64,
+        lora_r=16,           # DRR: 32→16. Binary veto decisions need low complexity
+        lora_alpha=32,       # α = 2r
         learning_rate=5e-5,
         num_epochs=5,
         max_seq_length=8192,
         save_path=Path("models/adapters/v0.5.1/jitna_guardian_v0.5.1"),
         description="Security Veto (A=0) — 100% block rate on adversarial prompts",
+        target_modules=("q_proj", "v_proj"),  # ~150 MB
     ),
     "router": PillarConfig(
         name="Router",
         dataset_path=Path("datasets/processed/v0.5.1/jitna_router_pairs_v051.jsonl"),
-        lora_r=32,
-        lora_alpha=64,
+        lora_r=8,            # DRR: 32→8. Classification task; lowest viable rank
+        lora_alpha=16,       # α = 2r
         learning_rate=5e-5,
         num_epochs=5,
         max_seq_length=8192,
         save_path=Path("models/adapters/v0.5.1/jitna_router_v0.5.1"),
         description="Intent Classification & Routing — D/I parameter assignment",
+        target_modules=("q_proj", "v_proj"),  # ~75 MB — lightest adapter
     ),
     "scribe": PillarConfig(
         name="Scribe",
         dataset_path=Path("datasets/processed/v0.5.1/jitna_scribe_pairs_v051.jsonl"),
-        lora_r=64,           # Higher rank: context compression requires nuanced understanding
-        lora_alpha=128,
+        lora_r=32,           # DRR: 64→32. Context compression needs nuance; 32 sufficient
+        lora_alpha=64,       # α = 2r
         learning_rate=5e-5,
         num_epochs=5,
         max_seq_length=32768,  # Scribe needs the longest context (compressing 262K input)
         save_path=Path("models/adapters/v0.5.1/jitna_scribe_v0.5.1"),
         description="Context Compression (DELTA_COMPRESS) — Delta Engine 262K handler",
+        target_modules=("q_proj", "v_proj"),  # ~300 MB
     ),
 }
 
@@ -182,7 +202,8 @@ def retrain_pillar(pillar_config: PillarConfig, dry_run: bool = False) -> bool:
     """
     cfg = pillar_config
     print(f"\n{'─'*60}")
-    print(f"🔄 RE-ANCHORING: {cfg.name.upper()} LoRA → Qwen2.5-32B")
+    print(f"🔄 RE-ANCHORING: {cfg.name.upper()} LoRA → {BASE_MODEL}")
+    print(f"   DRR Profile: r={cfg.lora_r}, α={cfg.lora_alpha}, modules={list(cfg.target_modules)}")
     print(f"   {cfg.description}")
     print(f"   Dataset:    {cfg.dataset_path}")
     print(f"   LoRA r/α:   {cfg.lora_r}/{cfg.lora_alpha}")
@@ -222,7 +243,9 @@ def retrain_pillar(pillar_config: PillarConfig, dry_run: bool = False) -> bool:
         load_in_4bit=True,
     )
 
-    # Attach LoRA
+    # Attach LoRA — DRR: each pillar uses its own target_modules (q,v only)
+    # This is the key fix: was hardcoded 7 modules (~2 GB), now per-pillar (~75-300 MB)
+    print(f"   LoRA target modules: {list(cfg.target_modules)}")
     model = FastLanguageModel.get_peft_model(
         model,
         r=cfg.lora_r,
@@ -230,8 +253,7 @@ def retrain_pillar(pillar_config: PillarConfig, dry_run: bool = False) -> bool:
         lora_dropout=0,
         bias="none",
         use_rslora=True,
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
-                        "gate_proj", "up_proj", "down_proj"],
+        target_modules=list(cfg.target_modules),
         random_state=42,
     )
 

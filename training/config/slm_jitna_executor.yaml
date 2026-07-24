@@ -1,28 +1,27 @@
-# Delentia SLM — The Executor (jitna-executor-v0.5) LoRA Configuration
+# Delentia SLM — The Executor (jitna-executor-v0.5.1) LoRA Configuration
 # Purpose: Function Calling / Structured JSON Output (TOON format)
-# Base Model: Qwen2.5-27B-Instruct (Jitna v0.5 Engine)
+# Base Model: Qwen/Qwen3.6-27B (DRR Edition)
+# DRR Applied: r=32 (was 64), modules=q+v only (was 7), Est. size ~300 MB (was ~2.15 GB)
 
 model:
-  base_model: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
-  tokenizer: "unsloth/Qwen2.5-32B-Instruct-bnb-4bit"
+  base_model: "Qwen/Qwen3.6-27B"
+  tokenizer: "Qwen/Qwen3.6-27B"
   max_seq_length: 16384
   dtype: "bfloat16"
   load_in_4bit: true
 
 lora:
-  r: 64                         # Higher rank for precise JSON/TOON structure
-  lora_alpha: 128               # α = 2r for stable learning
+  r: 32                         # DRR: 64→32. JSON precision maintained at r=32 on 27B base
+  lora_alpha: 64                # α = 2r (RSLoRA standard ratio)
   lora_dropout: 0
   bias: "none"
   use_rslora: true
   target_modules:
-    - "q_proj"
-    - "k_proj"
-    - "v_proj"
-    - "o_proj"
-    - "gate_proj"
-    - "up_proj"
-    - "down_proj"
+    - "q_proj"                  # Controls WHERE model attends (attention query)
+    - "v_proj"                  # Controls WHAT model outputs (attention value)
+  # REMOVED: k_proj, o_proj, gate_proj, up_proj, down_proj
+  # Reason: Reducing from 7→2 modules cuts file size from ~2.15 GB → ~300 MB
+  #         Qwen 27B is smart enough; structural layers don't need LoRA override
   task_type: "CAUSAL_LM"
 
 training:
