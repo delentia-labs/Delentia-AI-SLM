@@ -30,19 +30,24 @@ import argparse
 import json
 import os
 import random
+import sys
 from pathlib import Path
 
 import pandas as pd
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 # ── Default paths ──────────────────────────────────────────────────────────────
-DEFAULT_OUTPUT = Path("datasets/processed/v0.5/delentia_v05_imatrix_calib.txt")
-PARQUET_SOURCES = [
-    Path("datasets/processed/v0.4.3/knowledge_dataset_v0.4.3.parquet"),
-    Path("datasets/processed/v0.4.3/jitna_executor_pairs.parquet"),
-    Path("datasets/processed/v0.4.3/jitna_guardian_pairs.parquet"),
-    Path("datasets/processed/v0.4.3/jitna_scribe_pairs.parquet"),
+DEFAULT_OUTPUT = Path("datasets/processed/v0.5.1/delentia_v051_imatrix_calib.txt")
+DATASET_SOURCES = [
+    Path("datasets/processed/v0.5.1/knowledge_dataset_v0.5.1.parquet"),
+    Path("datasets/processed/v0.5.1/jitna_executor_pairs_v051.parquet"),
+    Path("datasets/processed/v0.5.1/jitna_guardian_pairs_v051.parquet"),
+    Path("datasets/processed/v0.5.1/jitna_router_pairs_v051.parquet"),
+    Path("datasets/processed/v0.5.1/jitna_scribe_pairs_v051.parquet"),
 ]
-EXISTING_CALIB = Path("datasets/processed/v0.4.3/delentia_v043_imatrix_calib.txt")
+EXISTING_CALIB = Path("datasets/processed/v0.5.1/delentia_v0.5.1_imatrix_calib.txt")
 
 # ── Curated calibration seeds (hardcoded examples of critical syntax) ──────────
 TOON_SEEDS = [
@@ -89,21 +94,38 @@ TOON_SEEDS = [
 
 # ── System Prompts (varied to prevent distribution shift) ─────────────────────
 SYSTEM_PROMPTS = [
-    "คุณคือ Delentia OS v0.5 (Cognitive AI OS) สร้างโดยคุณอิทธิฤทธิ์ แซ่โง้ว ในปี 2025 ทำงานภายใต้ระบบ HexaCore v2.3 และปรัชญา RCT-7 ประมวลผลคำขอผ่านโปรโตคอล JITNA v3 และตอบสนองด้วยไวยากรณ์ TOON ป้องกันความมั่นคงข้อมูลตามสมการ FDIA (F = D^I × A)",
-    "You are Delentia OS v0.5 — a Cognitive AI Operating System built by Ittirit Saengow in 2025. You enforce the FDIA equation (F = D^I × A) at all times. Output ONLY in TOON (Token-Oriented Object Notation) JSON format for tool calls.",
-    "คุณคือ Delentia AI v0.5 (Cognitive Operating System) รันบนขุมพลัง HexaCore v2.3 และลอจิกวิเคราะห์ RCT-7 สำหรับคำร้องขอเชิงเครื่องมือให้คายข้อมูล JITNA TOON ที่ตรวจสอบความเสถียรผ่านเกณฑ์ FDIA Equation แล้วเท่านั้น",
+    "คุณคือ Delentia OS v0.5.1 (Cognitive AI OS) สร้างโดยคุณอิทธิฤทธิ์ แซ่โง้ว ในปี 2026 ทำงานภายใต้ระบบ HexaCore v2.3 และปรัชญา RCT-7 ประมวลผลคำขอผ่านโปรโตคอล JITNA v3 และตอบสนองด้วยไวยากรณ์ TOON ป้องกันความมั่นคงข้อมูลตามสมการ FDIA (F = D^I × A)",
+    "You are Delentia OS v0.5.1 — a Cognitive AI Operating System built by Ittirit Saengow in 2026. You enforce the FDIA equation (F = D^I × A) at all times. Output ONLY in TOON (Token-Oriented Object Notation) JSON format for tool calls.",
+    "คุณคือ Delentia AI v0.5.1 (Cognitive Operating System) รันบนขุมพลัง HexaCore v2.3 และลอจิกวิเคราะห์ RCT-7 สำหรับคำร้องขอเชิงเครื่องมือให้คายข้อมูล JITNA TOON ที่ตรวจสอบความเสถียรผ่านเกณฑ์ FDIA Equation แล้วเท่านั้น",
 ]
 
 
-def load_parquet_samples(parquet_path: Path, n: int = 100) -> list[str]:
-    """Load N random completion samples from a parquet file."""
-    if not parquet_path.exists():
-        print(f"   ⚠️  Parquet not found, skipping: {parquet_path}")
-        return []
-    df = pd.read_parquet(parquet_path)
-    col = "completion" if "completion" in df.columns else df.columns[-1]
-    samples = df[col].dropna().tolist()
-    return random.sample(samples, min(n, len(samples)))
+def load_dataset_samples(source_path: Path, n: int = 100) -> list[str]:
+    """Load N random completion/text samples from a parquet or jsonl file."""
+    target_path = source_path
+    if not target_path.exists():
+        # Fallback to .jsonl if .parquet does not exist
+        jsonl_path = source_path.with_suffix(".jsonl")
+        if jsonl_path.exists():
+            target_path = jsonl_path
+        else:
+            print(f"   ⚠️  Dataset not found, skipping: {source_path} / {jsonl_path}")
+            return []
+
+    try:
+        if target_path.suffix == ".parquet":
+            df = pd.read_parquet(target_path)
+        else:
+            df = pd.read_json(target_path, lines=True)
+
+        for col in ["completion", "output", "text", "response", df.columns[-1]]:
+            if col in df.columns:
+                samples = df[col].dropna().astype(str).tolist()
+                if samples:
+                    return random.sample(samples, min(n, len(samples)))
+    except Exception as e:
+        print(f"   ⚠️ Error reading {target_path}: {e}")
+    return []
 
 
 def format_as_conversation(prompt: str, completion: str, system: str) -> str:
@@ -126,8 +148,8 @@ def generate_calibration_text(
 
     Structure:
     1. Hardcoded TOON/FDIA seeds (most critical — always included)
-    2. Random samples from existing v0.4.3 Parquet datasets
-    3. Optionally prepend existing v0.4.3 imatrix calib (if found)
+    2. Random samples from existing v0.5.1 datasets
+    3. Optionally prepend existing v0.5.1 imatrix calib (if found)
     """
     random.seed(seed)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -145,29 +167,31 @@ def generate_calibration_text(
             ))
     print(f"   Added {len(lines)} seed entries")
 
-    # ── Block 2: Real QA pairs from Parquet datasets ──────────────────────────
-    print("\n📌 Block 2: Sampling from existing v0.4.3 datasets...")
-    for parquet_path in PARQUET_SOURCES:
-        samples = load_parquet_samples(parquet_path, n_samples_per_source)
+    # ── Block 2: Real QA pairs from v0.5.1 datasets ───────────────────────────
+    print("\n📌 Block 2: Sampling from existing v0.5.1 datasets...")
+    for source_path in DATASET_SOURCES:
+        samples = load_dataset_samples(source_path, n_samples_per_source)
         for completion in samples:
             sys_prompt = random.choice(SYSTEM_PROMPTS)
             lines.append(format_as_conversation(
-                prompt="คำถามจาก Dataset v0.4.3",
+                prompt="คำถามจาก Dataset v0.5.1",
                 completion=str(completion),
                 system=sys_prompt,
             ))
-        print(f"   Loaded {len(samples)} samples from {parquet_path.name}")
+        print(f"   Loaded {len(samples)} samples from {source_path.name}")
 
-    # ── Block 3: Prepend existing v0.4.3 calibration (if available) ──────────
+    # ── Block 3: Prepend existing v0.5.1 calibration (if available) ──────────
     prefix_lines = []
-    if EXISTING_CALIB.exists():
-        print(f"\n📌 Block 3: Prepending existing v0.4.3 IMatrix calibration ({EXISTING_CALIB.stat().st_size // 1024}KB)...")
+    if EXISTING_CALIB.exists() and EXISTING_CALIB != output_path:
+        print(f"\n📌 Block 3: Prepending existing v0.5.1 IMatrix calibration ({EXISTING_CALIB.stat().st_size // 1024}KB)...")
         with open(EXISTING_CALIB, "r", encoding="utf-8", errors="replace") as f:
             existing_content = f.read()
         prefix_lines.append(existing_content)
         print(f"   Prepended {len(existing_content):,} chars")
+    elif EXISTING_CALIB.exists():
+        print(f"\n📌 Block 3: Found existing v0.5.1 IMatrix calibration at output location ({EXISTING_CALIB.stat().st_size // 1024}KB)")
     else:
-        print(f"\n⚠️  Existing v0.4.3 calib not found at {EXISTING_CALIB} — skipping Block 3")
+        print(f"\n⚠️  Existing v0.5.1 calib not found at {EXISTING_CALIB} — skipping Block 3")
 
     # ── Write output ──────────────────────────────────────────────────────────
     all_content = "\n\n".join(prefix_lines + lines)
